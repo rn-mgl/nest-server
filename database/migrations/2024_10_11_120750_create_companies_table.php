@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,10 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('performance_reviews', function (Blueprint $table) {
+        Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
-            $table->string("title");
+            $table->foreignIdFor(Admin::class, "added_by")->nullable()->constrained("admins")->nullOnDelete();
+            $table->foreignIdFor(User::class, "handled_by")->nullable()->constrained("users")->nullOnDelete();
+            $table->string("name");
             $table->longText("description");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('performance_reviews');
+        Schema::dropIfExists('companies');
     }
 };
