@@ -1,27 +1,48 @@
 <?php
 
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect(env("APP_URL"));
+});
+
+Route::middleware("guest")->group(function() {
+    Route::controller(RegisterController::class)->group(function() {
+        Route::post("/auth/register", "store");
+    });
+
+    Route::controller(SessionController::class)->group(function() {
+        Route::post("/auth/login", "store");
+    });
 });
 
 Route::middleware("auth")->group(function() {
-    Route::get('/email/verify', function () {
-        return view('auth.verify-email');
-    })->name('verification.notice');
 
-    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-        $request->fulfill();
+    // email verification routes
+    Route::prefix("email")->name("verification")->group(function() {
+        Route::get('/verify', function () {
+            return view('auth.verify-email');
+        })->name('notice');
 
-        return redirect('/home');
-    })->middleware("signed")->name('verification.verify');
+        Route::get('/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+            $request->fulfill();
 
-    Route::post('/email/verification-notification', function (Request $request) {
-        $request->user()->sendEmailVerificationNotification();
+            return redirect('/home');
+        })->middleware("signed")->name('verify');
 
-        return back()->with('message', 'Verification link sent!');
-    })->middleware("throttle:6,1")->name('verification.send');
+        Route::post('/verification-notification', function (Request $request) {
+            $request->user()->sendEmailVerificationNotification();
+
+            return back()->with('message', 'Verification link sent!');
+        })->middleware("throttle:6,1")->name('send');
+    });
+
+    // session routes
+    Route::controller(SessionController::class)->group(function() {
+        Route::delete("/auth/logout", "delete");
+    });
 });
