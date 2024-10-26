@@ -5,6 +5,7 @@ use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 Route::prefix("api")->group(function() {
 
@@ -33,19 +34,23 @@ Route::prefix("api")->group(function() {
         // email verification routes
         Route::prefix("email")->name("verification.")->group(function() {
             Route::get('/verify', function () {
-                return view('auth.verify-email');
+                return redirect(env("APP_URL") . "/auth/sending?type=verification");
             })->name('notice');
 
             Route::get('/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
                 $request->fulfill();
 
-                return redirect('/home');
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect(env("APP_URL") . "/auth/login");
             })->middleware("signed")->name('verify');
 
             Route::post('/verification-notification', function (Request $request) {
                 $request->user()->sendEmailVerificationNotification();
 
-                return back()->with('message', 'Verification link sent!');
+                return response()->json(["message" => "Verification link sent!"]);
             })->middleware("throttle:6,1")->name('send');
         });
 
