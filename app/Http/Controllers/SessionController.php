@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Registered;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -48,6 +49,12 @@ class SessionController extends Controller
 
         $user = User::find($id);
 
+        $isVerified = $user->email_verified_at;
+
+        if (!$isVerified) {
+            event(new Registered($user));
+        }
+
         $payload = [
             "user" => $user->id,
             "name" => "{$user->first_name} {$user->last_name}",
@@ -61,7 +68,7 @@ class SessionController extends Controller
 
         $token = JWT::encode($payload, env("JWT_KEY"), "HS256");
 
-        return response()->json(["success" => true, "token" => $token]);
+        return response()->json(["success" => true, "token" => $token, "role" => $user->role, "isVerified" => $isVerified]);
     }
 
     /**
@@ -99,6 +106,6 @@ class SessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect(env("APP_URL"));
+        return redirect(env("NEST_URL"));
     }
 }

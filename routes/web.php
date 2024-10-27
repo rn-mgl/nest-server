@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
@@ -10,22 +11,25 @@ use Illuminate\Support\Facades\Auth;
 Route::prefix("api")->group(function() {
 
     Route::get('/', function () {
-        return redirect(env("APP_URL"));
+        return redirect(env("NEST_URL"));
     });
 
     Route::get('sanctum/csrf-cookie', function() {
         return response()->json(["token" => csrf_token()]);
     });
 
-    Route::middleware("guest")->group(function() {
-        Route::prefix("auth")->group(function() {
-            Route::controller(RegisterController::class)->group(function() {
-                Route::post("/register", "store");
-            });
+    Route::controller(AuthController::class)->group(function() {
+        Route::get("/verify", "index");
+    });
 
-            Route::controller(SessionController::class)->group(function() {
-                Route::post("/login", "store");
-            });
+    Route::prefix("auth")->group(function() {
+        Route::controller(RegisterController::class)->group(function() {
+            Route::post("/register", "store");
+        });
+
+        Route::controller(SessionController::class)->group(function() {
+            Route::get("/login", "index")->name("login");
+            Route::post("/login", "store");
         });
     });
 
@@ -34,7 +38,7 @@ Route::prefix("api")->group(function() {
         // email verification routes
         Route::prefix("email")->name("verification.")->group(function() {
             Route::get('/verify', function () {
-                return redirect(env("APP_URL") . "/auth/sending?type=verification");
+                return redirect(env("NEST_URL") . "/auth/sending?type=verification");
             })->name('notice');
 
             Route::get('/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
@@ -44,7 +48,7 @@ Route::prefix("api")->group(function() {
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return redirect(env("APP_URL") . "/auth/login");
+                return redirect(env("NEST_URL") . "/auth/login");
             })->middleware("signed")->name('verify');
 
             Route::post('/verification-notification', function (Request $request) {
@@ -55,9 +59,12 @@ Route::prefix("api")->group(function() {
         });
 
         // session routes
-        Route::controller(SessionController::class)->group(function() {
-            Route::delete("/auth/logout", "delete");
+        Route::prefix("auth")->group(function() {
+            Route::controller(SessionController::class)->group(function() {
+                Route::delete("/logout", "delete");
+            });
         });
+
     });
 
 });
