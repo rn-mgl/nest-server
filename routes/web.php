@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
@@ -18,10 +17,6 @@ Route::prefix("api")->group(function() {
         return response()->json(["token" => csrf_token()]);
     });
 
-    Route::controller(AuthController::class)->group(function() {
-        Route::get("/verify", "index");
-    });
-
     Route::prefix("auth")->group(function() {
         Route::controller(RegisterController::class)->group(function() {
             Route::post("/register", "store");
@@ -33,7 +28,7 @@ Route::prefix("api")->group(function() {
         });
     });
 
-    Route::middleware("auth")->group(function() {
+    Route::middleware(["auth", "valid_token"])->group(function() {
 
         // email verification routes
         Route::prefix("email")->name("verification.")->group(function() {
@@ -62,6 +57,13 @@ Route::prefix("api")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(SessionController::class)->group(function() {
                 Route::delete("/logout", "delete");
+            });
+        });
+
+        // employee route
+        Route::prefix("employee")->group(function() {
+            Route::get("/dashboard", function() {
+                return response()->json(["test" => 123]);
             });
         });
 
