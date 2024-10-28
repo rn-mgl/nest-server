@@ -32,7 +32,6 @@ class RegisterController extends Controller
      */
     public function store(Request $request)
     {
-        logger($request);
 
         $attributes = $request->validate([
             "first_name" => ["required", "string"],

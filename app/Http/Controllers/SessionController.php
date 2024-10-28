@@ -18,7 +18,7 @@ class SessionController extends Controller
      */
     public function index()
     {
-        //
+        return redirect(env("NEST_URL") . "/auth/login");
     }
 
     /**
