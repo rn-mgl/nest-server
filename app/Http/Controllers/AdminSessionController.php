@@ -51,10 +51,10 @@ class AdminSessionController extends Controller
         $isVerified = $admin->email_verified_at;
 
         $payload = [
-            "user" => $admin->id,
+            "admin" => $admin->id,
             "name" => "{$admin->first_name} {$admin->last_name}",
             "email" => $admin->email,
-            "role" => $admin->role,
+            "role" => "admin",
             "iss" => "Nest",
             "aud" => env("APP_URL"),
             "iat" => Carbon::now()->timestamp,

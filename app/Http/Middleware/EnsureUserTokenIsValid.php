@@ -10,10 +10,10 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Carbon\Carbon;
 use App\Models\User;
+use Exception;
+use Illuminate\Validation\UnauthorizedException;
 
-
-
-class EnsureTokenIsValid
+class EnsureUserTokenIsValid
 {
     /**
      * Handle an incoming request.
@@ -25,10 +25,8 @@ class EnsureTokenIsValid
 
         $authToken = $request->header("Authorization");
 
-        logger($authToken);
-
         if (!$authToken || !Str::startsWith($authToken, "Bearer ")) {
-            return response()->json(["message" => "Please login first."]);
+            throw new UnauthorizedException("You are unauthorized to proceed.");
         }
 
         $token = explode(" ", $authToken)[1];
@@ -41,20 +39,20 @@ class EnsureTokenIsValid
 
             // check if payload match db
             if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
-                return response()->json(["message" => "Stop using modified tokens."]);
+                throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
             // check if expired
             $expiration = Carbon::createFromTimestamp($decoded->exp);
 
             if (Carbon::now()->greaterThanOrEqualTo($expiration)) {
-                return response()->json(["message" => "Please Log In again."]);
+                throw new UnauthorizedException("Session expired. Please log in again.");
             }
 
             return $next($request);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Something went wrong when verifying your account."]);
+            throw new Exception("Something went wrong when verifying your account.");
         }
 
     }

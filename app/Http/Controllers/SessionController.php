@@ -39,13 +39,13 @@ class SessionController extends Controller
             "password" => ["required"]
         ]);
 
-        if (!Auth::attempt($attributes)) {
+        if (!Auth::guard("base")->attempt($attributes)) {
             throw new AuthorizationException("Invalid Credentials");
         }
 
         $request->session()->regenerateToken();
 
-        $id = Auth::id();
+        $id = Auth::guard("base")->id();
 
         $user = User::find($id);
 
@@ -100,7 +100,7 @@ class SessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        Auth::logout();
+        Auth::guard("base")->logout();
 
         $request->session()->invalidate();
 

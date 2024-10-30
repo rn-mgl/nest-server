@@ -18,6 +18,7 @@ Route::prefix("api")->group(function() {
         return response()->json(["token" => csrf_token()]);
     });
 
+    // employee and hr auth
     Route::prefix("auth")->group(function() {
         Route::controller(RegisterController::class)->group(function() {
             Route::post("/register", "store");
@@ -29,6 +30,7 @@ Route::prefix("api")->group(function() {
         });
     });
 
+    // admin auth
     Route::prefix("admin_auth")->group(function() {
         Route::controller(AdminSessionController::class)->group(function() {
             Route::post("/login", "store");
@@ -38,6 +40,7 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth", "valid_token"])->group(function() {
 
         // email verification routes
+    Route::middleware(["auth:web"])->group(function() {
         Route::prefix("email")->name("verification.")->group(function() {
             Route::get('/verify', function () {
                 return redirect(env("NEST_URL") . "/auth/sending?type=verification");
@@ -46,7 +49,7 @@ Route::prefix("api")->group(function() {
             Route::get('/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
                 $request->fulfill();
 
-                Auth::logout();
+                Auth::guard("base")->logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
@@ -59,7 +62,10 @@ Route::prefix("api")->group(function() {
                 return response()->json(["message" => "Verification link sent!"]);
             })->middleware("throttle:6,1")->name('send');
         });
+        });
 
+    // hr and employee routes
+    Route::middleware(["auth:base", "valid_user_token"])->group(function() {
         // session routes
         Route::prefix("auth")->group(function() {
             Route::controller(SessionController::class)->group(function() {
@@ -74,6 +80,12 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // hr route
+        Route::prefix("hr")->group(function() {
+
+        });
     });
 
+    // admin routes
+    // Route::middleware(["auth:admin",])
 });
