@@ -53,6 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+    'nest_url' => env('NEST_URL', 'http://localhost:3000'),
 
     /*
     |--------------------------------------------------------------------------

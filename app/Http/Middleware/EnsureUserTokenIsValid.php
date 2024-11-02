@@ -30,7 +30,7 @@ class EnsureUserTokenIsValid
         }
 
         $token = explode(" ", $authToken)[1];
-        $key = env("JWT_KEY");
+        $key = env("SESSION_KEY");
 
         try {
             $decoded = JWT::decode($token, new Key($key, "HS256"));

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Events\Registered;
+use App\Utils\Tokens;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -33,21 +35,26 @@ class RegisterController extends Controller
     public function store(Request $request)
     {
 
-        $attributes = $request->validate([
-            "first_name" => ["required", "string"],
-            "last_name" => ["required", "string"],
-            "email" => ["required", "string", "email", "unique:users,email"],
-            "password" => ["required", Password::min(8)],
-            "role" => ["required", "string"]
-        ]);
+        try {
+            $attributes = $request->validate([
+                "first_name" => ["required", "string"],
+                "last_name" => ["required", "string"],
+                "email" => ["required", "string", "email", "unique:users,email"],
+                "password" => ["required", Password::min(8)],
+                "role" => ["required", "string"]
+            ]);
 
-        $user = User::create($attributes);
+            $user = User::create($attributes);
 
-        Auth::login($user);
+            $token = Tokens::createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
 
-        event(new Registered($user));
+            event(new Registered($user, $token));
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\Registered;
 use App\Models\User;
+use App\Utils\Tokens;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -34,41 +35,48 @@ class SessionController extends Controller
      */
     public function store(Request $request)
     {
-        $attributes = $request->validate([
-            "email" => ["required", "email"],
-            "password" => ["required"]
-        ]);
 
-        if (!Auth::guard("base")->attempt($attributes)) {
-            throw new AuthorizationException("Invalid Credentials");
+        try {
+            $attributes = $request->validate([
+                "email" => ["required", "email"],
+                "password" => ["required"]
+            ]);
+
+            if (!Auth::guard("base")->attempt($attributes)) {
+                throw new AuthorizationException("Invalid Credentials");
+            }
+
+            $request->session()->regenerateToken();
+
+            $id = Auth::guard("base")->id();
+
+            $user = User::find($id);
+
+            $isVerified = $user->email_verified_at;
+
+            if (!$isVerified) {
+                $token = Tokens::createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+                event(new Registered($user, $token));
+                return response()->json(["success" => true, "token" => null, "role" => $user->role, "isVerified" => false]);
+            }
+
+            $payload = [
+                "user" => $user->id,
+                "name" => "{$user->first_name} {$user->last_name}",
+                "email" => $user->email,
+                "role" => $user->role,
+                "iss" => "Nest",
+                "aud" => env("APP_URL"),
+                "iat" => Carbon::now()->timestamp,
+                "exp" => Carbon::now()->addDay()->timestamp,
+            ];
+
+            $token = JWT::encode($payload, env("SESSION_KEY"), "HS256");
+
+            return response()->json(["success" => true, "token" => $token, "role" => $user->role, "isVerified" => $isVerified]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
         }
-
-        $request->session()->regenerateToken();
-
-        $id = Auth::guard("base")->id();
-
-        $user = User::find($id);
-
-        $isVerified = $user->email_verified_at;
-
-        if (!$isVerified) {
-            event(new Registered($user));
-        }
-
-        $payload = [
-            "user" => $user->id,
-            "name" => "{$user->first_name} {$user->last_name}",
-            "email" => $user->email,
-            "role" => $user->role,
-            "iss" => "Nest",
-            "aud" => env("APP_URL"),
-            "iat" => Carbon::now()->timestamp,
-            "exp" => Carbon::now()->addDay()->timestamp,
-        ];
-
-        $token = JWT::encode($payload, env("JWT_KEY"), "HS256");
-
-        return response()->json(["success" => true, "token" => $token, "role" => $user->role, "isVerified" => $isVerified]);
     }
 
     /**

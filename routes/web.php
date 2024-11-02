@@ -28,6 +28,18 @@ Route::prefix("api")->group(function() {
             Route::get("/login", "index")->name("login");
             Route::post("/login", "store");
         });
+
+        Route::post('/verification-notification', function (Request $request) {
+            $request->user()->sendEmailVerificationNotification();
+
+            return response()->json(["message" => "Verification link sent!"]);
+        })->middleware("throttle:6,1");
+
+        Route::patch('/verify/{token}', function (Request $request) {
+            $request->fulfill();
+
+            return redirect(env("NEST_URL") . "/auth/login");
+        })->middleware("signed");
     });
 
     // admin auth
@@ -35,33 +47,18 @@ Route::prefix("api")->group(function() {
         Route::controller(AdminSessionController::class)->group(function() {
             Route::post("/login", "store");
         });
-    });
-
-    Route::middleware(["auth", "valid_token"])->group(function() {
-
-        // email verification routes
-    Route::middleware(["auth:web"])->group(function() {
-        Route::prefix("email")->name("verification.")->group(function() {
-            Route::get('/verify', function () {
-                return redirect(env("NEST_URL") . "/auth/sending?type=verification");
-            })->name('notice');
-
-            Route::get('/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-                $request->fulfill();
-
-                Auth::guard("base")->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return redirect(env("NEST_URL") . "/auth/login");
-            })->middleware("signed")->name('verify');
 
             Route::post('/verification-notification', function (Request $request) {
                 $request->user()->sendEmailVerificationNotification();
 
                 return response()->json(["message" => "Verification link sent!"]);
-            })->middleware("throttle:6,1")->name('send');
-        });
+        })->middleware("throttle:6,1");
+
+        Route::patch('/verify/{token}', function (Request $request) {
+            $request->fulfill();
+
+            return redirect(env("NEST_URL") . "/auth/login");
+        })->middleware("signed");
         });
 
     // hr and employee routes
