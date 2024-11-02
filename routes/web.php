@@ -32,11 +32,8 @@ Route::prefix("api")->group(function() {
 
         Route::controller(UserAuthController::class)->group(function() {
             Route::patch('/verify', "verify");
+            Route::post("/verification-notification", "resend_verification")->middleware(["auth:base", "throttle:6,1"]);
         });
-
-        Route::post('/verification-notification', function (Request $request) {
-            return response()->json(["message" => "Verification link sent!"]);
-        })->middleware("throttle:6,1");
     });
 
     // admin auth
@@ -47,15 +44,8 @@ Route::prefix("api")->group(function() {
 
         Route::controller(AdminAuthController::class)->group(function() {
             Route::patch("/verify", "verify");
+            Route::post("/verification-notification", "resend_verification")->middleware(["auth:admin", "throttle:6,1"]);
         });
-
-        Route::post('/verification-notification', function (Request $request) {
-            $request->user()->sendEmailVerificationNotification();
-
-            return response()->json(["message" => "Verification link sent!"]);
-        })->middleware("throttle:6,1");
-
-
     });
 
     // hr and employee routes

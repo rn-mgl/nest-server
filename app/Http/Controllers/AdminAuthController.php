@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\AdminRegistered;
 use App\Models\Admin;
 use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -43,5 +45,22 @@ class AdminAuthController extends Controller
             throw new Exception($th->getMessage());
         }
 
+    }
+
+    public function resend_verification()
+    {
+        try {
+            $id = Auth::guard("admin")->id();
+            $admin = Admin::findOrFail($id);
+
+            $tokens = new Tokens(true);
+            $token = $tokens->createVerificationToken($admin->id, "{$admin->first_name} {$admin->last_name}", $admin->email, "admin");
+
+            event(new AdminRegistered($admin, $token));
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

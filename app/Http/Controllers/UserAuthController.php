@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Registered;
 use App\Models\User;
 use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -43,5 +45,22 @@ class UserAuthController extends Controller
             throw new Exception($th->getMessage());
         }
 
+    }
+
+    public function resend_verification()
+    {
+        try {
+            $id = Auth::guard("base")->id();
+            $user = User::findOrFail($id);
+
+            $tokens = new Tokens();
+            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+
+            event(new Registered($user, $token));
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

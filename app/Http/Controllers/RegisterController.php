@@ -48,6 +48,8 @@ class RegisterController extends Controller
             $tokens = new Tokens();
             $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
 
+            Auth::guard("base")->login($user);
+
             event(new Registered($user, $token));
 
             return response()->json(['success' => true]);
