@@ -61,7 +61,7 @@ class AdminSessionController extends Controller
             "exp" => Carbon::now()->addDay()->timestamp,
         ];
 
-        $token = JWT::encode($payload, env("ADMIN_JWT_KEY"), "HS256");
+        $token = JWT::encode($payload, env("ADMIN_SESSION_KEY"), "HS256");
 
         return response()->json(["success" => true, "token" => $token, "isVerified" => $isVerified]);
     }

@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminSessionController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\UserAuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -18,28 +20,23 @@ Route::prefix("api")->group(function() {
         return response()->json(["token" => csrf_token()]);
     });
 
-    // employee and hr auth
+    // base auth
     Route::prefix("auth")->group(function() {
         Route::controller(RegisterController::class)->group(function() {
             Route::post("/register", "store");
         });
 
         Route::controller(SessionController::class)->group(function() {
-            Route::get("/login", "index")->name("login");
             Route::post("/login", "store");
         });
 
-        Route::post('/verification-notification', function (Request $request) {
-            $request->user()->sendEmailVerificationNotification();
+        Route::controller(UserAuthController::class)->group(function() {
+            Route::patch('/verify', "verify");
+        });
 
+        Route::post('/verification-notification', function (Request $request) {
             return response()->json(["message" => "Verification link sent!"]);
         })->middleware("throttle:6,1");
-
-        Route::patch('/verify/{token}', function (Request $request) {
-            $request->fulfill();
-
-            return redirect(env("NEST_URL") . "/auth/login");
-        })->middleware("signed");
     });
 
     // admin auth
@@ -48,18 +45,18 @@ Route::prefix("api")->group(function() {
             Route::post("/login", "store");
         });
 
-            Route::post('/verification-notification', function (Request $request) {
-                $request->user()->sendEmailVerificationNotification();
+        Route::controller(AdminAuthController::class)->group(function() {
+            Route::patch("/verify", "verify");
+        });
 
-                return response()->json(["message" => "Verification link sent!"]);
+        Route::post('/verification-notification', function (Request $request) {
+            $request->user()->sendEmailVerificationNotification();
+
+            return response()->json(["message" => "Verification link sent!"]);
         })->middleware("throttle:6,1");
 
-        Route::patch('/verify/{token}', function (Request $request) {
-            $request->fulfill();
 
-            return redirect(env("NEST_URL") . "/auth/login");
-        })->middleware("signed");
-        });
+    });
 
     // hr and employee routes
     Route::middleware(["auth:base", "valid_user_token"])->group(function() {

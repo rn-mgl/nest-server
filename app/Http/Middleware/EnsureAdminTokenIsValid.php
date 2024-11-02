@@ -30,7 +30,7 @@ class EnsureAdminTokenIsValid
         }
 
         $token = explode(" ", $authToken)[1];
-        $key = env("ADMIN_JWT_KEY");
+        $key = env("ADMIN_SESSION_KEY");
 
         try {
             $decoded = JWT::decode($token, new Key($key, "HS256"));

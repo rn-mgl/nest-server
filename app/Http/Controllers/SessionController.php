@@ -55,7 +55,8 @@ class SessionController extends Controller
             $isVerified = $user->email_verified_at;
 
             if (!$isVerified) {
-                $token = Tokens::createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+                $tokens = new Tokens();
+                $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
                 event(new Registered($user, $token));
                 return response()->json(["success" => true, "token" => null, "role" => $user->role, "isVerified" => false]);
             }
@@ -65,8 +66,8 @@ class SessionController extends Controller
                 "name" => "{$user->first_name} {$user->last_name}",
                 "email" => $user->email,
                 "role" => $user->role,
-                "iss" => "Nest",
-                "aud" => env("APP_URL"),
+                "iss" => env("TOKEN_ISSUER"),
+                "aud" => env("TOKEN_AUDIENNCE"),
                 "iat" => Carbon::now()->timestamp,
                 "exp" => Carbon::now()->addDay()->timestamp,
             ];

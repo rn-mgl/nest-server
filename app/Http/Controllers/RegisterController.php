@@ -45,8 +45,8 @@ class RegisterController extends Controller
             ]);
 
             $user = User::create($attributes);
-
-            $token = Tokens::createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+            $tokens = new Tokens();
+            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
 
             event(new Registered($user, $token));
 
