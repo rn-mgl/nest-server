@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminSessionController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function() {
@@ -71,7 +72,7 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth:admin", "valid_admin_token"])->prefix("admin")->group(function() {
         Route::prefix("hr")->group(function() {
             Route::controller(RegisterController::class)->group(function() {
-                Route::post("/register", "store");
+                Route::post("/register", "store")->can("update", Admin::class);
             });
         });
     });
