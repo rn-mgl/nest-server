@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
@@ -73,6 +74,11 @@ Route::prefix("api")->group(function() {
         Route::prefix("hr")->group(function() {
             Route::controller(RegisterController::class)->group(function() {
                 Route::post("/register", "store")->can("update", Admin::class);
+            });
+
+            Route::controller(AdminHRController::class)->group(function() {
+                Route::get("/", "index")->can("update", Admin::class)->can("update", Admin::class);
+                Route::patch("/update/{hr}", "update")->can("update", Admin::class);
             });
         });
     });
