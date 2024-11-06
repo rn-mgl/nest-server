@@ -16,11 +16,23 @@ class AdminHRController extends Controller
     public function index(Request $request)
     {
 
+        $attributes = $request->validate([
+            "verified" => ["required"]
+        ]);
+
+        $attributes["verified"] = filter_var($attributes["verified"], FILTER_VALIDATE_BOOLEAN);
+
         $hrs = DB::table("users")
                 ->where("role", "=", "hr")
+                ->when($attributes["verified"], function($query) {
+                    return $query->whereNotNull("email_verified_at");
+                })
+                ->when(!$attributes["verified"], function($query) {
+                    return $query->whereNull("email_verified_at");
+                })
                 ->get();
 
-        return response()->json(["hrs" => $hrs]);
+        return response()->json(["hrs" =>  $hrs]);
     }
 
     /**
