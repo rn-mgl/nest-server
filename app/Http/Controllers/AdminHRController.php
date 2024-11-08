@@ -19,28 +19,34 @@ class AdminHRController extends Controller
     {
 
         $attributes = $request->validate([
-            "categoryKey" => ["required"],
-            "categoryValue" => ["required"],
-            "sortKey" => ["required"],
-            "isAsc" => ["required"],
+            "searchKey" => ["required", "string"],
+            "searchValue" => ["nullable", "string"], // Allows empty strings without converting to null
+            "categoryKey" => ["required", "string"],
+            "categoryValue" => ["required", "string"],
+            "sortKey" => ["required", "string"],
+            "isAsc" => ["required", "string"],
         ]);
 
+        // Convert category and sort direction values to booleans
         $attributes["verified"] = filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
         $attributes["isAsc"] = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-        $sortType = $attributes["isAsc"] === true ? "ASC" : "DESC";
 
+        // Determine the sort direction
+        $sortType = $attributes["isAsc"] ? "ASC" : "DESC";
+        $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
+
+        logger($attributes);
+
+        // Query the 'users' table, applying search and sorting filters
         $hrs = DB::table("users")
-                ->where("role", "=", "hr")
-                ->when($attributes["verified"] === true, function($query) {
-                    return $query->whereNotNull("email_verified_at");
-                })
-                ->when($attributes["verified"] === false, function($query) {
-                    return $query->whereNull("email_verified_at");
-                })
+                ->where("role", "hr")
+                ->when($attributes["verified"] === true, fn($query) => $query->whereNotNull("email_verified_at"))
+                ->when($attributes["verified"] === false, fn($query) => $query->whereNull("email_verified_at"))
+                ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                 ->orderBy($attributes["sortKey"], $sortType)
                 ->get();
 
-        return response()->json(["hrs" =>  $hrs]);
+        return response()->json(["hrs" => $hrs]);
     }
 
     /**
