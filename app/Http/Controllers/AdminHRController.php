@@ -35,8 +35,6 @@ class AdminHRController extends Controller
         $sortType = $attributes["isAsc"] ? "ASC" : "DESC";
         $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
 
-        logger($attributes);
-
         // Query the 'users' table, applying search and sorting filters
         $hrs = DB::table("users")
                 ->where("role", "hr")
