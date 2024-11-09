@@ -93,8 +93,18 @@ class AdminSessionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request)
     {
-        //
+        try {
+            Auth::guard("admin")->logout();
+
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 }

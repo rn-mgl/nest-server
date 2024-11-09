@@ -71,6 +71,12 @@ Route::prefix("api")->group(function() {
 
     // admin routes
     Route::middleware(["auth:admin", "valid_admin_token"])->prefix("admin")->group(function() {
+        Route::prefix("auth")->group(function() {
+            Route::controller(AdminSessionController::class)->group(function() {
+                Route::post("/logout", "destroy");
+            });
+        });
+
         Route::prefix("hr")->group(function() {
             Route::controller(RegisterController::class)->group(function() {
                 Route::post("/register", "store")->can("update", Admin::class);
