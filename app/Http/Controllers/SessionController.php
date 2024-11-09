@@ -109,12 +109,18 @@ class SessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        Auth::guard("base")->logout();
 
-        $request->session()->invalidate();
+        try {
+            Auth::guard("base")->logout();
 
-        $request->session()->regenerateToken();
+            $request->session()->invalidate();
 
-        return redirect(env("NEST_URL"));
+            $request->session()->regenerateToken();
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
+
     }
 }

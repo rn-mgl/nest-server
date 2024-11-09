@@ -18,33 +18,38 @@ class AdminHRController extends Controller
     public function index(Request $request)
     {
 
-        $attributes = $request->validate([
-            "searchKey" => ["required", "string"],
-            "searchValue" => ["nullable", "string"], // Allows empty strings without converting to null
-            "categoryKey" => ["required", "string"],
-            "categoryValue" => ["required", "string"],
-            "sortKey" => ["required", "string"],
-            "isAsc" => ["required", "string"],
-        ]);
+        try {
+            $attributes = $request->validate([
+                "searchKey" => ["required", "string"],
+                "searchValue" => ["nullable", "string"], // Allows empty strings without converting to null
+                "categoryKey" => ["required", "string"],
+                "categoryValue" => ["required", "string"],
+                "sortKey" => ["required", "string"],
+                "isAsc" => ["required", "string"],
+            ]);
 
-        // Convert category and sort direction values to booleans
-        $attributes["verified"] = filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-        $attributes["isAsc"] = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            // Convert category and sort direction values to booleans
+            $verified= filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        // Determine the sort direction
-        $sortType = $attributes["isAsc"] ? "ASC" : "DESC";
-        $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
+            // Determine the sort direction
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
 
-        // Query the 'users' table, applying search and sorting filters
-        $hrs = DB::table("users")
-                ->where("role", "hr")
-                ->when($attributes["verified"] === true, fn($query) => $query->whereNotNull("email_verified_at"))
-                ->when($attributes["verified"] === false, fn($query) => $query->whereNull("email_verified_at"))
-                ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
-                ->orderBy($attributes["sortKey"], $sortType)
-                ->get();
+            // Query the 'users' table, applying search and sorting filters
+            $hrs = DB::table("users")
+                    ->where("role", "hr")
+                    ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
+                    ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
+                    ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
+                    ->orderBy($attributes["sortKey"], $sortType)
+                    ->get();
 
-        return response()->json(["hrs" => $hrs]);
+            return response()->json(["hrs" => $hrs]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+
     }
 
     /**
