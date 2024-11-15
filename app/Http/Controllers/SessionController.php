@@ -74,7 +74,7 @@ class SessionController extends Controller
 
             $token = JWT::encode($payload, env("SESSION_KEY"), "HS256");
 
-            return response()->json(["success" => true, "token" => $token, "role" => $user->role, "isVerified" => $isVerified]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role, "isVerified" => $isVerified]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

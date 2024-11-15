@@ -3,10 +3,14 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
+use App\Http\Controllers\HREmployeeController;
+use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
 use App\Models\Admin;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function() {
@@ -47,25 +51,28 @@ Route::prefix("api")->group(function() {
         });
     });
 
-    // hr and employee routes
-    Route::middleware(["auth:base", "valid_user_token"])->group(function() {
+    // hr routes
+    Route::middleware(["auth:base", "valid_user_token"])->prefix("hr")->group(function() {
         // session routes
         Route::prefix("auth")->group(function() {
             Route::controller(SessionController::class)->group(function() {
-                Route::delete("/logout", "delete");
+                Route::post("/logout", "destroy");
             });
         });
 
         // employee route
         Route::prefix("employee")->group(function() {
-            Route::get("/dashboard", function() {
-                return response()->json(["test" => 123]);
+            Route::controller(HREmployeeController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
             });
         });
 
-        // hr route
-        Route::prefix("hr")->group(function() {
-
+        // leave route
+        Route::prefix("leave")->group(function() {
+            Route::controller(LeaveTypeController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+                Route::post("/", "store")->can("updateHR", User::class);
+            });
         });
     });
 
@@ -83,7 +90,7 @@ Route::prefix("api")->group(function() {
             });
 
             Route::controller(AdminHRController::class)->group(function() {
-                Route::get("/", "index")->can("update", Admin::class)->can("update", Admin::class);
+                Route::get("/", "index")->can("update", Admin::class);
                 Route::patch("/update/{hr}", "update")->can("update", Admin::class);
             });
         });

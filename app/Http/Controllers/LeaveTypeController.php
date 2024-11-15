@@ -3,16 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveType;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LeaveTypeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $leaves = DB::table("leave_types")
+                    ->join("users", function (JoinClause $join) {
+                        $join->on("users.id", "=", "leave_types.created_by")
+                    ->where("users.is_deleted", "=", false);
+                    })
+                    ->where("leave_types.is_deleted", "=", false)
+                    ->select(
+                [
+                            "type",
+                            "description",
+                            "leave_types.id",
+                            "leave_types.created_at",
+                            "leave_types.created_by",
+                            "users.first_name",
+                            "users.last_name",
+                            "users.email",
+                        ]
+                    )
+                    ->get();
+
+            return response()->json(["leaves" => $leaves]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
@@ -28,7 +55,20 @@ class LeaveTypeController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "type" => ["required", "string", "unique:leave_types,type"],
+                "description" => ["required", "string"],
+            ]);
+
+            $attributes["created_by"] = Auth::id();
+
+            $leaveType = LeaveType::create($attributes);
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**

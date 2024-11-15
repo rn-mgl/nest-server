@@ -63,7 +63,7 @@ class AdminSessionController extends Controller
 
         $token = JWT::encode($payload, env("ADMIN_SESSION_KEY"), "HS256");
 
-        return response()->json(["success" => true, "token" => $token, "isVerified" => $isVerified, "role" => "admin"]);
+        return response()->json(["success" => true, "token" => $token, "current" => $admin->id, "isVerified" => $isVerified, "role" => "admin"]);
     }
 
     /**
