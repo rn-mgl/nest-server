@@ -72,6 +72,8 @@ Route::prefix("api")->group(function() {
             Route::controller(LeaveTypeController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
+                Route::get("/{leaveType}", "show")->can("updateHR", User::class);
+                Route::patch("/{leaveType}", "update")->can("updateHR", User::class);
             });
         });
     });

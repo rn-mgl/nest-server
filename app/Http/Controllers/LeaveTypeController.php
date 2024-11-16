@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveType;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,7 @@ class LeaveTypeController extends Controller
 
             return response()->json(["leaves" => $leaves]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -71,7 +72,7 @@ class LeaveTypeController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "type" => ["required", "string", "unique:leave_types,type"],
+                "type" => ["required", "string"],
                 "description" => ["required", "string"],
             ]);
 
@@ -81,7 +82,7 @@ class LeaveTypeController extends Controller
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -90,7 +91,11 @@ class LeaveTypeController extends Controller
      */
     public function show(LeaveType $leaveType)
     {
-        //
+        try {
+            return response()->json(["leave" => $leaveType]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -106,7 +111,18 @@ class LeaveTypeController extends Controller
      */
     public function update(Request $request, LeaveType $leaveType)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "type" => ["required", "string"],
+                "description" => ["required", "string"],
+            ]);
+
+            $updatedLeave = $leaveType->update($attributes);
+
+            return response()->json(["success" => $updatedLeave]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
