@@ -16,12 +16,25 @@ class LeaveTypeController extends Controller
     public function index(Request $request)
     {
         try {
+            $attributes = $request->validate([
+                "searchKey" => ["required", "string"],
+                "searchValue" =>["nullable", "string"],
+                "sortKey" => ["required", "string"],
+                "isAsc" => ["required", "string"],
+            ]);
+
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $searchValue = $attributes["searchValue"] ?? "";
+
             $leaves = DB::table("leave_types")
                     ->join("users", function (JoinClause $join) {
                         $join->on("users.id", "=", "leave_types.created_by")
                     ->where("users.is_deleted", "=", false);
                     })
                     ->where("leave_types.is_deleted", "=", false)
+                    ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                     ->select(
                 [
                             "type",
@@ -34,6 +47,7 @@ class LeaveTypeController extends Controller
                             "users.email",
                         ]
                     )
+                    ->orderBy($attributes["sortKey"], $sortType)
                     ->get();
 
             return response()->json(["leaves" => $leaves]);
