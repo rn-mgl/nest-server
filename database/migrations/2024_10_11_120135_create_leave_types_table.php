@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
             $table->string("type");
-            $table->string("description");
+            $table->longText("description");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
         });

@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('performance_review_contents', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(PerformanceReview::class, "performance_review_id")->constrained()->cascadeOnDelete();
-            $table->text("survey");
+            $table->longText("survey");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
         });
