@@ -130,6 +130,12 @@ class LeaveTypeController extends Controller
      */
     public function destroy(LeaveType $leaveType)
     {
-        //
+        try {
+            $deletedLeaveType = $leaveType->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deletedLeaveType]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

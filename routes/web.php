@@ -68,12 +68,13 @@ Route::prefix("api")->group(function() {
         });
 
         // leave route
-        Route::prefix("leave")->group(function() {
+        Route::prefix("leave_type")->group(function() {
             Route::controller(LeaveTypeController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{leaveType}", "show")->can("updateHR", User::class);
                 Route::patch("/{leaveType}", "update")->can("updateHR", User::class);
+                Route::delete("/{leaveType}", "destroy")->can("updateHR", User::class);
             });
         });
     });
