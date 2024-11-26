@@ -12,16 +12,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('onboardings');
+
         Schema::create('onboardings', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class, "user_id")->nullable()->constrained()->nullOnDelete();
             $table->longText("description");
-            $table->boolean("required_documents");
-            $table->boolean("policy_acknowledgement");
+            $table->longText("required_documents");
+            $table->longText("policy_acknowledgement");
             $table->string("status")->default("Pending");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
         });
+
     }
 
     /**
