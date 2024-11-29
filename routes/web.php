@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
 use App\Http\Controllers\HREmployeeController;
 use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
@@ -75,6 +76,13 @@ Route::prefix("api")->group(function() {
                 Route::get("/{leaveType}", "show")->can("updateHR", User::class);
                 Route::patch("/{leaveType}", "update")->can("updateHR", User::class);
                 Route::delete("/{leaveType}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        // onboarding route
+        Route::prefix('onboarding')->group(function() {
+            Route::controller(OnboardingController::class)->group(function() {
+                Route::post("/", "store")->can("updateHR", User::class);
             });
         });
     });

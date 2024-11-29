@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Onboarding;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OnboardingController extends Controller
 {
@@ -28,7 +30,23 @@ class OnboardingController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                'title' => ["string", "required"],
+                'description' => ["string", "required"],
+                'required_documents' => ["string", "required"],
+                'policy_acknowledgements' => ["string", "required"],
+            ]);
+
+            $attributes['user_id'] = Auth::id();
+
+            $onboarding = Onboarding::create($attributes);
+
+            return response()->json(["success" => $onboarding]);
+
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
