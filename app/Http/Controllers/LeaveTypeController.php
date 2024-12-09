@@ -29,23 +29,23 @@ class LeaveTypeController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $searchValue = $attributes["searchValue"] ?? "";
 
-            $leaves = DB::table("leave_types")
-                    ->join("users", function (JoinClause $join) {
-                        $join->on("users.id", "=", "leave_types.created_by")
-                    ->where("users.is_deleted", "=", false);
+            $leaves = DB::table("leave_types as lt")
+                    ->join("users as u", function (JoinClause $join) {
+                        $join->on("u.id", "=", "lt.created_by")
+                        ->where("u.is_deleted", "=", false);
                     })
-                    ->where("leave_types.is_deleted", "=", false)
+                    ->where("lt.is_deleted", "=", false)
                     ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                     ->select(
                 [
                             "type",
                             "description",
-                            "leave_types.id",
-                            "leave_types.created_at",
-                            "leave_types.created_by",
-                            "users.first_name",
-                            "users.last_name",
-                            "users.email",
+                            "lt.id as leave_id",
+                            "lt.created_at",
+                            "lt.created_by",
+                            "u.first_name",
+                            "u.last_name",
+                            "u.email",
                         ]
                     )
                     ->orderBy($attributes["sortKey"], $sortType)

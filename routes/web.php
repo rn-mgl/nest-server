@@ -82,6 +82,7 @@ Route::prefix("api")->group(function() {
         // onboarding route
         Route::prefix('onboarding')->group(function() {
             Route::controller(OnboardingController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
         });
