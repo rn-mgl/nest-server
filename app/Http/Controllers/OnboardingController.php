@@ -98,7 +98,15 @@ class OnboardingController extends Controller
      */
     public function show(Onboarding $onboarding)
     {
-        //
+        try {
+
+            $onboarding->required_documents = explode("\n", trim($onboarding->required_documents));
+            $onboarding->policy_acknowledgements = explode("\n", trim($onboarding->policy_acknowledgements));
+
+            return response()->json(["onboarding" => $onboarding]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
