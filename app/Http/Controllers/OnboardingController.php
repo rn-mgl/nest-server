@@ -122,7 +122,38 @@ class OnboardingController extends Controller
      */
     public function update(Request $request, Onboarding $onboarding)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "title" => ["required", "string"],
+                "description" => ["required", "string"],
+                "required_documents" => ["array", "required"],
+                "required_documents.*" => ["string"],
+                "policy_acknowledgements" => ["array", "required"],
+                "policy_acknowledgements.*" => ["string"]
+            ]);
+
+            $requiredDocuments = "";
+
+            foreach($attributes["required_documents"] as $reqs) {
+                $requiredDocuments .= "$reqs\n";
+            }
+
+            $policyAcknowledgements = "";
+
+            foreach($attributes["policy_acknowledgements"] as $acks) {
+                $policyAcknowledgements .= "$acks\n";
+            }
+
+            $attributes["required_documents"] = $requiredDocuments;
+            $attributes["policy_acknowledgements"] = $policyAcknowledgements;
+
+            $updatedOnboarding = $onboarding->update($attributes);
+
+            return response()->json(["success" => $updatedOnboarding]);
+
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**

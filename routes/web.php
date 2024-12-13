@@ -85,6 +85,7 @@ Route::prefix("api")->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{onboarding}", "show")->can("updateHR", User::class);
+                Route::patch("/{onboarding}", "update")->can("updateHR", User::class);
             });
         });
     });
