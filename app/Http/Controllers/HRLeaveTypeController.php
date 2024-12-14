@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class LeaveTypeController extends Controller
+class HRLeaveTypeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -30,7 +30,7 @@ class LeaveTypeController extends Controller
             $searchValue = $attributes["searchValue"] ?? "";
 
             $leaves = DB::table("leave_types as lt")
-                    ->join("users as u", function (JoinClause $join) {
+                    ->join("users as u", first: function (JoinClause $join) {
                         $join->on("u.id", "=", "lt.created_by")
                         ->where("u.is_deleted", "=", false);
                     })

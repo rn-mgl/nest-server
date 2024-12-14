@@ -8,14 +8,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class OnboardingController extends Controller
+class HROnboardingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
+
+            $attributes = $request->validate([
+                "searchKey" => ["required", "string"],
+                "searchValue" => ["nullable", "string"],
+                "sortKey" => ["required", "string"],
+                "isAsc" => ["required", "string"],
+            ]);
+
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $sortKey = $attributes["sortKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
 
             $onboardings = DB::table("onboardings as o")
                             ->join("users as u",  function(JoinClause $join) {
@@ -23,6 +36,7 @@ class OnboardingController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("o.is_deleted", "=", false)
+                            ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                             ->select([
                                 "o.id as onboarding_id",
                                 "o.created_by",
@@ -31,6 +45,7 @@ class OnboardingController extends Controller
                                 "o.required_documents",
                                 "o.policy_acknowledgements",
                             ])
+                            ->orderBy("o.{$sortKey}", $sortType)
                             ->get();
 
             foreach ($onboardings as $onboarding) {
