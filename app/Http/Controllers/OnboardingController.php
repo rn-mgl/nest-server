@@ -161,6 +161,12 @@ class OnboardingController extends Controller
      */
     public function destroy(Onboarding $onboarding)
     {
-        //
+        try {
+            $deletedOnboarding = $onboarding->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deletedOnboarding]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 }
