@@ -36,7 +36,7 @@ class HROnboardingController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("o.is_deleted", "=", false)
-                            ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
+                            ->whereLike($attributes["searchKey"], "%{$searchValue}%")
                             ->select([
                                 "o.id as onboarding_id",
                                 "o.created_by",

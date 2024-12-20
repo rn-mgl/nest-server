@@ -29,11 +29,19 @@ class HREmployeeController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $searchValue = $attributes["searchValue"] ?? "";
 
-            $employees = DB::table("users")
+            $employees = DB::table("users as u")
                         ->where("role", "=", "employee")
                         ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                         ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                         ->whereLike($attributes["searchKey"], "%$searchValue%")
+                        ->select([
+                            "u.id as user_id",
+                            "u.first_name",
+                            "u.last_name",
+                            "u.email",
+                            "u.email_verified_at",
+                            "u.created_at",
+                        ])
                         ->orderBy($attributes["sortKey"], $sortType)
                         ->get();
 
