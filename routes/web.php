@@ -3,9 +3,10 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\HREmployeeController;
-use App\Http\Controllers\LeaveTypeController;
-use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\HRLeaveTypeController;
+use App\Http\Controllers\HROnboardingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
@@ -70,7 +71,7 @@ Route::prefix("api")->group(function() {
 
         // leave route
         Route::prefix("leave_type")->group(function() {
-            Route::controller(LeaveTypeController::class)->group(function() {
+            Route::controller(HRLeaveTypeController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{leaveType}", "show")->can("updateHR", User::class);
@@ -81,12 +82,18 @@ Route::prefix("api")->group(function() {
 
         // onboarding route
         Route::prefix('onboarding')->group(function() {
-            Route::controller(OnboardingController::class)->group(function() {
+            Route::controller(HROnboardingController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{onboarding}", "show")->can("updateHR", User::class);
                 Route::patch("/{onboarding}", "update")->can("updateHR", User::class);
                 Route::delete("/{onboarding}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        Route::prefix('attendance')->group(function() {
+            Route::controller(AttendanceController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
             });
         });
     });
