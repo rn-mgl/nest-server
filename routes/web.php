@@ -94,6 +94,7 @@ Route::prefix("api")->group(function() {
         Route::prefix('attendance')->group(function() {
             Route::controller(AttendanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
+                Route::get("/{attendance}", "show")->can("updateHR", User::class);
             });
         });
     });

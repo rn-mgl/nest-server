@@ -67,18 +67,10 @@ class AttendanceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request)
+    public function show($requestDate)
     {
         try {
-
-            $attributes = $request->validate([
-                "currentDate" => ["required", "integer"],
-                "currentMonth" => ["required", "integer"],
-                "currentYear" => ["required", "integer"],
-            ]);
-
-            $dateString = "{$attributes['currentYear']}-{$attributes['currentMonth']}-{$attributes['currentDate']}";
-            $parsedDate = Carbon::parse($dateString);
+            $parsedDate = Carbon::parse($requestDate);
             $currentDate = $parsedDate->startOfDay()->format("Y-m-d H:i:s");
             $tomorrowDate = $parsedDate->addDay()->startOfDay()->format("Y-m-d H:i:s");
             $attendances = DB::table("users as u")
@@ -95,6 +87,8 @@ class AttendanceController extends Controller
                                 "a.logout_time",
                                 "u.first_name",
                                 "u.last_name",
+                                DB::raw("CASE WHEN a.login_time IS NOT NULL AND TIME(a.login_time) > '6:00:00' OR a.login_time IS NULL AND TIME(NOW()) > '6:00:00' THEN TRUE ELSE FALSE END AS late"),
+                                DB::raw("CASE WHEN a.login_time IS NULL AND a.logout_time IS NULL AND TIME(NOW()) > '6:00:00' THEN TRUE ELSE FALSE END AS absent")
                             ])
                             ->get();
 
