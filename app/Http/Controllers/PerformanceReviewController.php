@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\PerformanceReview;
 use App\Models\PerformanceReviewContent;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PerformanceReviewController extends Controller
 {
@@ -14,7 +16,18 @@ class PerformanceReviewController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $performances = DB::table("performance_reviews as pr")
+                            ->join("users as u", function(JoinClause $join) {
+                                $join->on("u.id", "=", "pr.created_by")
+                                ->where("u.is_deleted", "=", false);
+                            })
+                            ->get();
+
+            return response()->json(["performances" => $performances]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
