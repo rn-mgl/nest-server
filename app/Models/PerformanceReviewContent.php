@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class PerformanceReviewContent extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
 }

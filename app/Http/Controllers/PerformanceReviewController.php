@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\PerformanceReview;
+use App\Models\PerformanceReviewContent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PerformanceReviewController extends Controller
 {
@@ -28,7 +30,39 @@ class PerformanceReviewController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "title" => ["required", "string"],
+                "description" => ["required", "string"],
+                "surveys" => ["required", "array"],
+                "surveys.*" => ["string"]
+            ]);
+
+            $performanceAttr = [
+                "title" => $attributes["title"],
+                "description" => $attributes["description"],
+                "created_by" => Auth::guard("base")->id()
+            ];
+
+            $createdPerformance = PerformanceReview::create($performanceAttr);
+            $surveys = $attributes["surveys"];
+
+            $createdPerformanceReviews = 0;
+
+            foreach($surveys as $survey) {
+                $performanceReviewAttr = [
+                    "survey" => $survey,
+                    "performance_review_id" => $createdPerformance->id
+                ];
+                PerformanceReviewContent::create($performanceReviewAttr);
+                $createdPerformanceReviews++;
+            }
+
+            return response()->json(["success" => $createdPerformance, "contents" => $createdPerformanceReviews]);
+
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
