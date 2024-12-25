@@ -93,7 +93,21 @@ class HRPerformanceReviewController extends Controller
      */
     public function show(PerformanceReview $performanceReview)
     {
-        //
+        try {
+            $contents = DB::table("performance_review_contents as prc")
+                                    ->where("performance_review_id", "=", $performanceReview->id)
+                                    ->select([
+                                        "id as performance_review_content_id",
+                                        "survey"
+                                    ])
+                                    ->get();
+
+            $performanceReview->contents = $contents;
+
+            return response()->json(["performance" => $performanceReview]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
@@ -109,7 +123,59 @@ class HRPerformanceReviewController extends Controller
      */
     public function update(Request $request, PerformanceReview $performanceReview)
     {
-        //
+
+        try {
+            $attributes = $request->validate([
+                "title" => ["string", "required"],
+                "description" => ["string", "required"],
+                "contents" => ["array", "required"],
+                "contents.*.survey" => ["string", "required"],
+                "contents.*.performance_review_content_id" => ["integer", "nullable"],
+                "surveyToDelete" => ["array"],
+                "surveyToDelete.*" => ["integer", "nullable"]
+            ]);
+
+            $surveyToDelete = $attributes["surveyToDelete"];
+            $contents = $attributes["contents"];
+            $performanceReviewAttr = [
+                "title" => $attributes["title"],
+                "description" => $attributes["description"],
+            ];
+
+            // edit or update survey if performance_review_content_id is set
+            foreach($contents as $content) {
+                $id = $content["performance_review_content_id"] ?? null;
+                if ($id) {
+                    $performanceReviewContent = PerformanceReviewContent::find($id);
+
+                    if ($performanceReviewContent) {
+                        $performanceReviewContent->update([
+                            "survey" => $content["survey"]
+                        ]);
+                    }
+                } else {
+                    PerformanceReviewContent::create([
+                        "survey" => $content["survey"],
+                        "performance_review_id" => $performanceReview->id
+                    ]);
+                }
+            }
+
+            // delete surveys marked for deletion
+            foreach($surveyToDelete as $toDelete) {
+                $performanceReviewContent = PerformanceReviewContent::find($toDelete);
+
+                if ($performanceReviewContent) {
+                    $performanceReviewContent->delete();
+                }
+            }
+
+            $updated = $performanceReview->update($performanceReviewAttr);
+
+            return response()->json(["success" => $updated]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**

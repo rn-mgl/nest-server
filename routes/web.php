@@ -99,10 +99,12 @@ Route::prefix("api")->group(function() {
             });
         });
 
-        Route::prefix('performance')->group(function() {
+        Route::prefix('performance_review')->group(function() {
             Route::controller(HRPerformanceReviewController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
+                Route::get("/{performance_review}", "show")->can("updateHR", User::class);
+                Route::patch("/{performance_review}", "update")->can("updateHR", User::class);
             });
         });
     });
