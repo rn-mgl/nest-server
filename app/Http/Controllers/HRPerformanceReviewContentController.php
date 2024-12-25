@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PerformanceReviewContent;
 use Illuminate\Http\Request;
 
-class PerformanceReviewContentController extends Controller
+class HRPerformanceReviewContentController extends Controller
 {
     /**
      * Display a listing of the resource.

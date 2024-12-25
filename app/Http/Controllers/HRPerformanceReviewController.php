@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PerformanceReviewController extends Controller
+class HRPerformanceReviewController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -22,6 +22,16 @@ class PerformanceReviewController extends Controller
                                 $join->on("u.id", "=", "pr.created_by")
                                 ->where("u.is_deleted", "=", false);
                             })
+                            ->select([
+                                "pr.id as performance_review_id",
+                                "pr.title",
+                                "pr.description",
+                                "pr.created_by",
+                                "u.id as user_id",
+                                "u.first_name",
+                                "u.last_name",
+                                "u.email",
+                            ])
                             ->get();
 
             return response()->json(["performances" => $performances]);

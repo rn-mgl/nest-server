@@ -3,11 +3,11 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
-use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\HRAttendanceController;
 use App\Http\Controllers\HREmployeeController;
 use App\Http\Controllers\HRLeaveTypeController;
 use App\Http\Controllers\HROnboardingController;
-use App\Http\Controllers\PerformanceReviewController;
+use App\Http\Controllers\HRPerformanceReviewController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
@@ -93,14 +93,14 @@ Route::prefix("api")->group(function() {
         });
 
         Route::prefix('attendance')->group(function() {
-            Route::controller(AttendanceController::class)->group(function() {
+            Route::controller(HRAttendanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::get("/{attendance}", "show")->can("updateHR", User::class);
             });
         });
 
         Route::prefix('performance')->group(function() {
-            Route::controller(PerformanceReviewController::class)->group(function() {
+            Route::controller(HRPerformanceReviewController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
