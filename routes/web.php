@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminHRController;
-use App\Http\Controllers\Local\AdminRegisterController;
 use App\Http\Controllers\AdminSessionController;
 use App\Http\Controllers\HRAttendanceController;
 use App\Http\Controllers\HREmployeeController;
@@ -45,10 +44,6 @@ Route::prefix("api")->group(function() {
 
     // admin auth
     Route::prefix("admin_auth")->group(function() {
-        Route::controller(AdminRegisterController::class)->group(function() {
-            Route::post("/register", "store");
-        });
-
         Route::controller(AdminSessionController::class)->group(function() {
             Route::post("/login", "store");
         });
@@ -110,7 +105,6 @@ Route::prefix("api")->group(function() {
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{performance_review}", "show")->can("updateHR", User::class);
                 Route::patch("/{performance_review}", "update")->can("updateHR", User::class);
-                Route::delete("/{performance_review}", "destroy")->can("updateHR", User::class);
             });
         });
     });

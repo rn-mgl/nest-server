@@ -22,7 +22,6 @@ class HRPerformanceReviewController extends Controller
                                 $join->on("u.id", "=", "pr.created_by")
                                 ->where("u.is_deleted", "=", false);
                             })
-                            ->where("pr.is_deleted", "=", false)
                             ->select([
                                 "pr.id as performance_review_id",
                                 "pr.title",
@@ -184,12 +183,6 @@ class HRPerformanceReviewController extends Controller
      */
     public function destroy(PerformanceReview $performanceReview)
     {
-        try {
-            $deletedPerformanceReview = $performanceReview->update(["is_deleted" => true]);
-
-            return response()->json(["success" => $deletedPerformanceReview]);
-        } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
-        }
+        //
     }
 }
