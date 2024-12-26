@@ -105,6 +105,7 @@ Route::prefix("api")->group(function() {
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{performance_review}", "show")->can("updateHR", User::class);
                 Route::patch("/{performance_review}", "update")->can("updateHR", User::class);
+                Route::delete("/{performance_review}", "destroy")->can("updateHR", User::class);
             });
         });
     });
