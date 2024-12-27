@@ -167,7 +167,7 @@ class HRPerformanceReviewController extends Controller
                 $performanceReviewContent = PerformanceReviewContent::find($toDelete);
 
                 if ($performanceReviewContent) {
-                    $performanceReviewContent->delete();
+                    $performanceReviewContent->update(["is_delete" => true]);
                 }
             }
 

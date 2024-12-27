@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_performance_reviews', function (Blueprint $table) {
+        Schema::create('employee_performance_reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(PerformanceReview::class, "performance_review_id")->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, "assigned_to")->constrained("users")->cascadeOnDelete();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_performance_reviews');
+        Schema::dropIfExists('employee_performance_reviews');
     }
 };
