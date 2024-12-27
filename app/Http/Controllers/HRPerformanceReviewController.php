@@ -14,15 +14,32 @@ class HRPerformanceReviewController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
+
+            $attributes = $request->validate([
+                "searchKey" => ["required", "string"],
+                "searchValue" => ["nullable", "string"],
+                "sortKey" => ["required", "string"],
+                "isAsc" => ["required", "string"]
+            ]);
+
+            $searchValue = $attributes["searchValue"] ?? "";
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $sortKey = $attributes["sortKey"];
+            $searchKey = $attributes["searchKey"];
+
             $performances = DB::table("performance_reviews as pr")
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("u.id", "=", "pr.created_by")
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("pr.is_deleted", "=", false)
+                            ->whereLike($searchKey, "%$searchValue%")
+                            ->orderBy("pr.$sortKey", $sortType)
                             ->select([
                                 "pr.id as performance_review_id",
                                 "pr.title",

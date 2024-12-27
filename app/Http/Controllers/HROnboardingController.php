@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\Onboarding;
 use App\Models\OnboardingPolicyAcknowledgements;
 use App\Models\OnboardingRequiredDocuments;
@@ -15,22 +17,20 @@ class HROnboardingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
     {
         try {
 
-            $attributes = $request->validate([
-                "searchKey" => ["required", "string"],
-                "searchValue" => ["nullable", "string"],
-                "sortKey" => ["required", "string"],
-                "isAsc" => ["required", "string"],
-            ]);
+            $searcAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+            $attributes = array_merge($searcAttributes, $sortAttributes);
 
             $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
             $sortType = $isAsc ? "ASC" : "DESC";
             $sortKey = $attributes["sortKey"];
             $searchValue = $attributes["searchValue"] ?? "";
+            $searchKey = $attributes["searchKey"];
 
             $onboardings = DB::table("onboardings as o")
                             ->join("users as u",  function(JoinClause $join) {
@@ -38,14 +38,14 @@ class HROnboardingController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("o.is_deleted", "=", false)
-                            ->whereLike($attributes["searchKey"], "%{$searchValue}%")
+                            ->whereLike($searchKey, "%{$searchValue}%")
+                            ->orderBy("o.{$sortKey}", $sortType)
                             ->select([
                                 "o.id as onboarding_id",
                                 "o.created_by",
                                 "o.title",
                                 "o.description"
                             ])
-                            ->orderBy("o.{$sortKey}", $sortType)
                             ->get();
 
             return response()->json(["onboardings" => $onboardings]);
