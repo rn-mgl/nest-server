@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -15,18 +18,16 @@ class AdminHRController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
     {
 
         try {
-            $attributes = $request->validate([
-                "searchKey" => ["required", "string"],
-                "searchValue" => ["nullable", "string"], // Allows empty strings without converting to null
-                "categoryKey" => ["required", "string"],
-                "categoryValue" => ["required", "string"],
-                "sortKey" => ["required", "string"],
-                "isAsc" => ["required", "string"],
-            ]);
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+            $categoryAttributes = $categoryRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
 
             // Convert category and sort direction values to booleans
             $verified= filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);

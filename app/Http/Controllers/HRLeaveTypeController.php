@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\LeaveType;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -14,15 +16,14 @@ class HRLeaveTypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
     {
         try {
-            $attributes = $request->validate([
-                "searchKey" => ["required", "string"],
-                "searchValue" =>["nullable", "string"],
-                "sortKey" => ["required", "string"],
-                "isAsc" => ["required", "string"],
-            ]);
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes);
 
             $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
