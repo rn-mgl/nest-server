@@ -42,7 +42,7 @@ class AdminHRController extends Controller
                     ->where("role", "hr")
                     ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                     ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
-                    ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
+                    ->whereLike($attributes["searchKey"], "%{$searchValue}%")
                     ->orderBy($attributes["sortKey"], $sortType)
                     ->get();
 
