@@ -37,7 +37,7 @@ return new class extends Migration
         Schema::dropIfExists('employee_training_reviews');
         Schema::table("employee_trainings", function(Blueprint $table) {
             $table->renameColumn("employee_id", "user_id");
-            $table->addColumn("integer","score");
+            $table->integer("score")->after("status");
         });
     }
 };
