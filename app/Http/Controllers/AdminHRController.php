@@ -44,6 +44,14 @@ class AdminHRController extends Controller
                     ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                     ->whereLike($attributes["searchKey"], "%{$searchValue}%")
                     ->orderBy($attributes["sortKey"], $sortType)
+                    ->select([
+                        "id as user_id",
+                        "first_name",
+                        "last_name",
+                        "email",
+                        "email_verified_at",
+                        "created_at"
+                    ])
                     ->get();
 
             return response()->json(["hrs" => $hrs]);
