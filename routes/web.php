@@ -8,6 +8,7 @@ use App\Http\Controllers\HREmployeeController;
 use App\Http\Controllers\HRLeaveTypeController;
 use App\Http\Controllers\HROnboardingController;
 use App\Http\Controllers\HRPerformanceReviewController;
+use App\Http\Controllers\HRTrainingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserAuthController;
@@ -106,6 +107,13 @@ Route::prefix("api")->group(function() {
                 Route::get("/{performance_review}", "show")->can("updateHR", User::class);
                 Route::patch("/{performance_review}", "update")->can("updateHR", User::class);
                 Route::delete("/{performance_review}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        Route::prefix('training')->group(function() {
+            Route::controller(HRTrainingController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+                Route::post("/", "store")->can("updateHR", User::class);
             });
         });
     });

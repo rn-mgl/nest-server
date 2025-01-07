@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TrainingReview;
+use App\Models\TrainingContent;
 use Illuminate\Http\Request;
 
-class TrainingReviewController extends Controller
+class HRTrainingContentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class TrainingReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TrainingReview $trainingReview)
+    public function show(TrainingContent $trainingContent)
     {
         //
     }
@@ -42,7 +42,7 @@ class TrainingReviewController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TrainingReview $trainingReview)
+    public function edit(TrainingContent $trainingContent)
     {
         //
     }
@@ -50,7 +50,7 @@ class TrainingReviewController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TrainingReview $trainingReview)
+    public function update(Request $request, TrainingContent $trainingContent)
     {
         //
     }
@@ -58,7 +58,7 @@ class TrainingReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TrainingReview $trainingReview)
+    public function destroy(TrainingContent $trainingContent)
     {
         //
     }
