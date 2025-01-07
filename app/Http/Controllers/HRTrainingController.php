@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Training;
+use App\Models\TrainingContent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HRTrainingController extends Controller
 {
@@ -37,11 +39,14 @@ class HRTrainingController extends Controller
                 $contents[$key] = json_decode($value, true);
             }
 
-            $request["contents"] = $contents;
+            // convert json string to valid json
+            $request->merge(["contents" => $contents]);
 
             $attributes = $request->validate([
                 "title" => ["required", "string"],
                 "description" => ["required", "string"],
+                "deadline_days" => ["required", "integer"],
+                "certificate" => ["required", "file"],
                 "contents" => ["array"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
@@ -51,11 +56,39 @@ class HRTrainingController extends Controller
                 "contentFile.*" => ["required_if:contents.*.type,image,video,file"]
             ]);
 
-            $contentFile = $request->file("contentFile");
+            // $certificate = cloudinary()->upload($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+
+            $trainingAttr = [
+                "created_by" => Auth::guard("base")->id(),
+                "title" => $attributes["title"],
+                "description" => $attributes["description"],
+                "deadline_days" => $attributes["deadline_days"],
+                "certificate" => "sad"
+            ];
+
+            $training = Training::create($trainingAttr);
 
             foreach($contents as $key => $value) {
-                logger($key);
+
+                $isFile = in_array($value["type"], ["image", "video", "file"]);
+
+                $contentAttr = [
+                    "training_id" => $training->id,
+                    "title" => $value["title"],
+                    "description" => $value["description"],
+                    "content" => $value["content"],
+                    "type" => $value["type"],
+                ];
+
+                if ($isFile) {
+                    $currentContentFile = cloudinary()->upload($request->file("contentFile.$key")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+                    $contentAttr['content'] = $currentContentFile;
+                }
+
+                $trainingContent = TrainingContent::create($contentAttr);
             }
+
+            return response()->json(["success" => true]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
