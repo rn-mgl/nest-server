@@ -114,6 +114,7 @@ Route::prefix("api")->group(function() {
             Route::controller(HRTrainingController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
+                Route::get("/{training}", "show")->can("updateHR", User::class);
             });
         });
     });

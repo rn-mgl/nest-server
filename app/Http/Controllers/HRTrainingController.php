@@ -82,7 +82,7 @@ class HRTrainingController extends Controller
                 "contentFile.*" => ["required_if:contents.*.type,image,video,file"]
             ]);
 
-            $certificate = cloudinary()->upload($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+            $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
 
             $trainingAttr = [
                 "created_by" => Auth::guard("base")->id(),
@@ -107,7 +107,7 @@ class HRTrainingController extends Controller
                 ];
 
                 if ($isFile) {
-                    $currentContentFile = cloudinary()->upload($request->file("contentFile.$key")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+                    $currentContentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
                     $contentAttr['content'] = $currentContentFile;
                 }
 
@@ -126,7 +126,14 @@ class HRTrainingController extends Controller
      */
     public function show(Training $training)
     {
-        //
+
+        try {
+            $training->load("contents");
+
+            return response()->json(["training" => $training]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
