@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Training;
 use App\Models\TrainingContent;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HRTrainingController extends Controller
 {
@@ -14,7 +16,31 @@ class HRTrainingController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $trainings = DB::table("trainings as t")
+                        ->join("users as u", function(JoinClause $join) {
+                            $join->on("t.created_by", "=", "u.id")
+                            ->where("u.is_deleted", "=", false);
+                        })
+                        ->where("t.is_deleted", "=", false)
+                        ->select(
+                            [
+                            "t.id as training_id",
+                            "t.title",
+                            "t.description",
+                            "t.deadline_days",
+                            "t.certificate",
+                            "u.id as user_id",
+                            "u.first_name",
+                            "u.last_name",
+                            "u.email",
+                            ]
+                        )->get();
+
+            return response()->json(["trainings" => $trainings]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
@@ -56,14 +82,14 @@ class HRTrainingController extends Controller
                 "contentFile.*" => ["required_if:contents.*.type,image,video,file"]
             ]);
 
-            // $certificate = cloudinary()->upload($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+            $certificate = cloudinary()->upload($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
 
             $trainingAttr = [
                 "created_by" => Auth::guard("base")->id(),
                 "title" => $attributes["title"],
                 "description" => $attributes["description"],
                 "deadline_days" => $attributes["deadline_days"],
-                "certificate" => "sad"
+                "certificate" => $certificate
             ];
 
             $training = Training::create($trainingAttr);
