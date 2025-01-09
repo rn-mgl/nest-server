@@ -128,7 +128,9 @@ class HRTrainingController extends Controller
     {
 
         try {
-            $training->load("contents");
+            $training->load(["contents" => function($query) {
+                $query->where("is_deleted", "=", false);
+            }]);
 
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
@@ -157,6 +159,13 @@ class HRTrainingController extends Controller
      */
     public function destroy(Training $training)
     {
-        //
+        try {
+            $deleted = $training->update(["is_deleted" => true]);
+            $deletedContents = TrainingContent::where(["training_id", "=", $training->id])->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deleted && $deletedContents]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 }
