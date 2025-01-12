@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Training;
 use App\Models\TrainingContent;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ class HRTrainingController extends Controller
 
             return response()->json(["trainings" => $trainings]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -117,7 +118,7 @@ class HRTrainingController extends Controller
             return response()->json(["success" => true]);
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -128,13 +129,23 @@ class HRTrainingController extends Controller
     {
 
         try {
-            $training->load(["contents" => function($query) {
-                $query->where("is_deleted", "=", false);
-            }]);
+            $contents = DB::table("training_contents as tc")
+                        ->where("training_id", "=", $training->id)
+                        ->where("is_deleted", "=", false)
+                        ->select([
+                            "id as training_content_id",
+                            "title",
+                            "description",
+                            "content",
+                            "type"
+                        ])
+                        ->get();
+
+            $training->contents = $contents;
 
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -151,7 +162,89 @@ class HRTrainingController extends Controller
      */
     public function update(Request $request, Training $training)
     {
-        //
+        try {
+            logger($request->all());
+            $contents = $request->input("contents");
+
+            foreach ($contents as $key => $value) {
+                $contents[$key] = json_decode($value, true);
+            }
+
+            $request->merge(["contents" => $contents]);
+
+            $attributes = $request->validate([
+                "title" => ["required", "string"],
+                "description" => ["required", "string"],
+                "certificate" => ["required"],
+                "deadline_days" => ["required", "integer"],
+                "contents" => ["required", "array"],
+                "contents.*.training_content_id" => ["nullable"],
+                "contents.*.title" => ["required", "string"],
+                "contents.*.description" => ["required", "string"],
+                "contents.*.content" => ["required_if:content.*.type,text", "string"],
+                "contents.*.type" => ["required", "string", "in:text,image,video,file"],
+                "contentFile" => ["required", "array"],
+                "contentsToDelete" => ["array", "nullable"],
+                "contentsToDelete.*" => ["nullable", "integer"]
+            ]);
+
+            if (!$request->hasFile("certificate") && !is_string($attributes["certificate"])) {
+                throw new Exception("Invalid certificate");
+            }
+
+            $trainingAttr = [
+                "title" => $attributes["title"],
+                "description" => $attributes["description"],
+                "deadline_days" => $attributes["deadline_days"],
+                "certificate" => $attributes["certificate"]
+            ];
+
+            if ($request->hasFile("certificate")) {
+                $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $trainingAttr["certificate"] = $certificate;
+            }
+
+            $updatedTraining = $training->update($trainingAttr);
+
+            $contents = $attributes["contents"];
+
+            foreach($contents as $key => $value) {
+
+                // if training_content_id is set, perform update
+                // if not set, perform create
+
+                $contentAttr = [
+                    "training_id" => $training->id,
+                    "title" => $value["title"],
+                    "description" => $value["description"],
+                    "content" => $value["content"],
+                    "type" => $value["type"],
+                ];
+
+                if ($request->hasFile("contentFile.$key")) {
+                    $contentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath())->getSecurePath();
+                    $contentAttr["content"] = $contentFile;
+                }
+
+                if (isset($value["training_content_id"])) {
+                    $updatedContent = TrainingContent::where("id", "=", $value["training_content_id"])->update($contentAttr);
+                } else {
+                    $createdContent = TrainingContent::create($contentAttr);
+                }
+
+            }
+
+            $contentsToDelete = $attributes["contentsToDelete"] ?? [];
+
+            foreach($contentsToDelete as $toDelete) {
+                $deletedContents = TrainingContent::where("id", "=", $toDelete)->update(["is_deleted" => true]);
+            }
+
+            return response()->json(["success" => true]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -165,7 +258,7 @@ class HRTrainingController extends Controller
 
             return response()->json(["success" => $deleted && $deletedContents]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 }

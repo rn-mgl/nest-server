@@ -115,6 +115,7 @@ Route::prefix("api")->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::get("/{training}", "show")->can("updateHR", User::class);
+                Route::patch("/{training}", "update")->can("updateHR", User::class);
                 Route::delete("/{training}", "destroy")->can("updateHR", User::class);
             });
         });
