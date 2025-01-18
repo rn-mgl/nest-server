@@ -73,9 +73,9 @@ class HROnboardingController extends Controller
                 'title' => ["string", "required"],
                 'description' => ["string", "required"],
                 'required_documents' => ["array", "required"],
-                'required_documents.*' => ["string"],
+                'required_documents.*.document' => ["string"],
                 'policy_acknowledgements' => ["array", "required"],
-                'policy_acknowledgements.*' => ["string"],
+                'policy_acknowledgements.*.policy' => ["string"],
             ]);
 
             $onboardingAttributes = [
@@ -88,7 +88,7 @@ class HROnboardingController extends Controller
 
             foreach ($attributes["required_documents"] as $reqs) {
                 $documentsAttributes = [
-                    'document' => $reqs,
+                    'document' => $reqs["document"],
                     'onboarding_id' => $onboarding->id
                 ];
                 OnboardingRequiredDocuments::create($documentsAttributes);
@@ -96,7 +96,7 @@ class HROnboardingController extends Controller
 
             foreach ($attributes["policy_acknowledgements"] as $acks) {
                 $policyAttributes = [
-                    'policy' => $acks,
+                    'policy' => $acks["policy"],
                     'onboarding_id' => $onboarding->id
                 ];
                 OnboardingPolicyAcknowledgements::create($policyAttributes);
