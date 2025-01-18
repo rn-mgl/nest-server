@@ -76,7 +76,7 @@ class HRPerformanceReviewController extends Controller
                 "title" => ["required", "string"],
                 "description" => ["required", "string"],
                 "surveys" => ["required", "array"],
-                "surveys.*" => ["string"]
+                "surveys.*.survey" => ["string"]
             ]);
 
             $performanceAttr = [
@@ -92,7 +92,7 @@ class HRPerformanceReviewController extends Controller
 
             foreach($surveys as $survey) {
                 $performanceReviewAttr = [
-                    "survey" => $survey,
+                    "survey" => $survey["survey"],
                     "performance_review_id" => $createdPerformance->id
                 ];
                 PerformanceReviewContent::create($performanceReviewAttr);
@@ -114,6 +114,7 @@ class HRPerformanceReviewController extends Controller
         try {
             $contents = DB::table("performance_review_contents as prc")
                                     ->where("performance_review_id", "=", $performanceReview->id)
+                                    ->where("is_deleted", "=", false)
                                     ->select([
                                         "id as performance_review_content_id",
                                         "survey"
@@ -146,34 +147,34 @@ class HRPerformanceReviewController extends Controller
             $attributes = $request->validate([
                 "title" => ["string", "required"],
                 "description" => ["string", "required"],
-                "contents" => ["array", "required"],
-                "contents.*.survey" => ["string", "required"],
-                "contents.*.performance_review_content_id" => ["integer", "nullable"],
+                "surveys" => ["array", "required"],
+                "surveys.*.survey" => ["string", "required"],
+                "surveys.*.performance_review_content_id" => ["integer", "nullable"],
                 "surveyToDelete" => ["array"],
                 "surveyToDelete.*" => ["integer", "nullable"]
             ]);
 
             $surveyToDelete = $attributes["surveyToDelete"];
-            $contents = $attributes["contents"];
+            $surveys = $attributes["surveys"];
             $performanceReviewAttr = [
                 "title" => $attributes["title"],
                 "description" => $attributes["description"],
             ];
 
             // edit or update survey if performance_review_content_id is set
-            foreach($contents as $content) {
-                $id = $content["performance_review_content_id"] ?? null;
+            foreach($surveys as $survey) {
+                $id = $survey["performance_review_content_id"] ?? null;
                 if ($id) {
                     $performanceReviewContent = PerformanceReviewContent::find($id);
 
                     if ($performanceReviewContent) {
                         $performanceReviewContent->update([
-                            "survey" => $content["survey"]
+                            "survey" => $survey["survey"]
                         ]);
                     }
                 } else {
                     PerformanceReviewContent::create([
-                        "survey" => $content["survey"],
+                        "survey" => $survey["survey"],
                         "performance_review_id" => $performanceReview->id
                     ]);
                 }
@@ -184,7 +185,7 @@ class HRPerformanceReviewController extends Controller
                 $performanceReviewContent = PerformanceReviewContent::find($toDelete);
 
                 if ($performanceReviewContent) {
-                    $performanceReviewContent->update(["is_delete" => true]);
+                    $performanceReviewContent->update(["is_deleted" => true]);
                 }
             }
 
