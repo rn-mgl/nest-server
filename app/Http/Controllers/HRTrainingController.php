@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\Training;
 use App\Models\TrainingContent;
 use Exception;
@@ -15,15 +17,29 @@ class HRTrainingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes);
+
+            $searchKey = $attributes["searchKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
+            $sortKey = $attributes["sortKey"];
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+
             $trainings = DB::table("trainings as t")
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("t.created_by", "=", "u.id")
                             ->where("u.is_deleted", "=", false);
                         })
                         ->where("t.is_deleted", "=", false)
+                        ->whereLike("t.$searchKey", "%$searchValue%")
+                        ->orderBy("t.$sortKey", $sortType)
                         ->select(
                             [
                             "t.id as training_id",
