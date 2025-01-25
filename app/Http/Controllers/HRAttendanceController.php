@@ -29,32 +29,34 @@ class HRAttendanceController extends Controller
             $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
             $latesThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
 
-            // log ins
-            $ins = DB::table("attendances as a")
+            // get ins and outs within the day
+            $attendances = DB::table("attendances as a")
                             ->where("a.login_time", ">=", $currentDate)
                             ->where("a.login_time", "<", $tomorrowDate)
-                            ->pluck("user_id")
-                            ->toArray();
+                            ->get();
 
-            // log outs
-            $outs = DB::table("attendances as a")
-                            ->where("a.logout_time", ">=", $currentDate)
-                            ->where("a.logout_time", "<", $tomorrowDate)
-                            ->count();
+            // get all users that logged in
+            $ins = $attendances->pluck("user_id")->toArray();
+            $lates = 0;
+            $outs = 0;
 
-            // lates
-            $lates = DB::table("attendances as a")
-                            ->where("a.login_time", ">=", $currentDate)
-                            ->where("a.login_time", "<", $tomorrowDate)
-                            ->where("a.login_time", ">", $latesThreshold)
-                            ->count();
+            // process lates and outs
+            foreach ($attendances as $a) {
+                if ($a->login_time > $latesThreshold) {
+                    $lates++;
+                }
+
+                if ($a->logout_time >= $currentDate && $a->logout_time < $tomorrowDate) {
+                    $outs++;
+                }
+            }
 
             $users = DB::table("users as u")
                         ->where("is_deleted", "=", false)
                         ->pluck("id")
                         ->toArray();
 
-            // will check if user is in the ins array
+            // get users that did not log in
             $absents = array_diff($users, $ins);
 
             $attendance = [
@@ -93,26 +95,47 @@ class HRAttendanceController extends Controller
     {
         try {
             $parsedDate = Carbon::parse($requestDate);
-            $currentDate = $parsedDate->startOfDay()->format("Y-m-d H:i:s");
-            $tomorrowDate = $parsedDate->addDay()->startOfDay()->format("Y-m-d H:i:s");
-            $attendances = DB::table("users as u")
-                            ->leftJoin("attendances as a", function(JoinClause $join) use($currentDate, $tomorrowDate) {
-                                $join->on("a.user_id", "=", "u.id")
-                                ->where("a.login_time", ">=", $currentDate)
-                                ->where("a.logout_time", "<", $tomorrowDate);
-                            })
-                            ->where("u.is_deleted", "=", false)
-                            ->select([
-                                "u.id as user_id",
-                                "a.id as attendance_id",
-                                "a.login_time",
-                                "a.logout_time",
-                                "u.first_name",
-                                "u.last_name",
-                                DB::raw("CASE WHEN a.login_time IS NOT NULL AND TIME(a.login_time) > '6:00:00' OR a.login_time IS NULL AND TIME(NOW()) > '6:00:00' THEN TRUE ELSE FALSE END AS late"),
-                                DB::raw("CASE WHEN a.login_time IS NULL AND a.logout_time IS NULL AND TIME(NOW()) > '6:00:00' THEN TRUE ELSE FALSE END AS absent")
-                            ])
-                            ->get();
+            $currentDate = $parsedDate->copy()->startOfDay()->format("Y-m-d H:i:s");
+            $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
+            $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
+
+            $ins = DB::table("attendances as a")
+                    ->where("a.login_time", ">=", $currentDate)
+                    ->where("a.login_time", "<", $tomorrowDate)
+                    ->get()
+                    ->keyBy("user_id");
+
+            $users = DB::table("users as u")
+                    ->where("is_deleted", "=", false)
+                    ->get();
+
+            $attendances = $users->map(function ($user) use ($ins, $lateThreshold) {
+                $attendanceData = [
+                    "user_id" => $user->id,
+                    "first_name" => $user->first_name,
+                    "last_name" => $user->last_name,
+                    "email" => $user->email,
+                    "email_verified_at" => $user->email_verified_at,
+                    "created_at" => $user->created_at,
+                    "attendance_id" => null,
+                    "login_time" => null,
+                    "logout_time" => null,
+                    "late" => null,
+                    "absent" => true,
+                ];
+
+                if ($ins->has($user->id)) {
+                    $attendance = $ins->get($user->id);
+
+                    $attendanceData["attendance_id"] = $attendance->id;
+                    $attendanceData["login_time"] = $attendance->login_time;
+                    $attendanceData["logout_time"] = $attendance->logout_time;
+                    $attendanceData["late"] = $attendance->login_time > $lateThreshold;
+                    $attendanceData["absent"] = false;
+                }
+
+                return $attendanceData;
+            });
 
             return response()->json(["attendances" => $attendances]);
         } catch (\Throwable $th) {
