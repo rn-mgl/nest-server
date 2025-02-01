@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminHRController;
 use App\Http\Controllers\AdminSessionController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentFolderController;
 use App\Http\Controllers\HRAttendanceController;
 use App\Http\Controllers\HREmployeeController;
 use App\Http\Controllers\HRLeaveTypeController;
@@ -117,6 +119,18 @@ Route::prefix("api")->group(function() {
                 Route::get("/{training}", "show")->can("updateHR", User::class);
                 Route::patch("/{training}", "update")->can("updateHR", User::class);
                 Route::delete("/{training}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        Route::prefix("document")->group(function() {
+            Route::controller(DocumentController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+            });
+        });
+
+        Route::prefix('document_folder')->group(function() {
+            Route::controller(DocumentFolderController::class)->group(function() {
+                Route::post("/", "store")->can("updateHR", User::class);
             });
         });
     });
