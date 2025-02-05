@@ -90,4 +90,27 @@ class DocumentFolderController extends Controller
     {
         //
     }
+
+    public function get_paths(Request $request)
+    {
+        try {
+            $paths = DB::table("document_folders")
+                    ->select(
+                [
+                            "id",
+                            "name"
+                        ]
+                    )
+                    ->where("is_deleted", false)
+                    ->get()
+                    ->map(function($path) {
+                        return ["label" => $path->name, "value" => $path->id];
+                    });
+
+            return response()->json(["paths" => $paths]);
+
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
+    }
 }

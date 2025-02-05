@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DocumentController extends Controller
@@ -12,11 +13,19 @@ class DocumentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
+
+            $attributes = $request->validate([
+                "path" => ["required", "integer"]
+            ]);
+
+            $path = $attributes["path"];
+
             $documents = DB::table("documents as d")
                         ->where("d.is_deleted", false)
+                        ->where("d.path", $path)
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("u.id", "=", "d.created_by")
                             ->where("u.is_deleted", false);
@@ -37,6 +46,7 @@ class DocumentController extends Controller
 
             $compiled = DB::table("document_folders as df")
                         ->where("df.is_deleted", false)
+                        ->where("df.path", $path)
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("u.id", "=", "df.created_by")
                             ->where("u.is_deleted", false);
@@ -76,7 +86,26 @@ class DocumentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "name" => ["required", "string"],
+                "description" => ["required", "string"],
+                "type" => ["required", "string"],
+                "path" => ["required", "integer"],
+                "document" => ["required", "File"]
+            ]);
+
+            $document = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+
+            $attributes["document"] = $document;
+            $attributes["created_by"] = Auth::guard("base")->id();
+
+            $createdDocument = Document::create($attributes);
+
+            return response()->json(["success" => $createdDocument]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
