@@ -62,9 +62,21 @@ class DocumentFolderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(DocumentFolder $documentFolder)
+    public function show($documentFolder)
     {
-        //
+        try {
+
+            if (!$documentFolder) {
+                return response()->json(["folder" => []]);
+            }
+
+            $folder = DocumentFolder::find($documentFolder);
+
+
+            return response()->json(["folder" => $folder]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
