@@ -133,6 +133,7 @@ Route::prefix("api")->group(function() {
             Route::controller(DocumentFolderController::class)->group(function() {
                 Route::get("/paths", "get_paths")->can("updateHR", User::class);
                 Route::get("/{document_folder}", "show")->can("updateHR", User::class);
+                Route::patch("/{document_folder}", "update")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
         });

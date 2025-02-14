@@ -92,7 +92,19 @@ class DocumentFolderController extends Controller
      */
     public function update(Request $request, DocumentFolder $documentFolder)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "name" => ["required", "string"],
+                "path" => ["required", "integer"]
+            ]);
+
+            $updatedFolder = $documentFolder->update($attributes);
+
+            return response()->json(["success" => $updatedFolder]);
+
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     /**
@@ -106,23 +118,58 @@ class DocumentFolderController extends Controller
     public function get_paths(Request $request)
     {
         try {
+
+            $attributes = $request->validate([
+                "path" => ["required", "integer"]
+            ]);
+
+            $currentPath = $attributes["path"];
+
             $paths = DB::table("document_folders")
                     ->select(
                 [
                             "id",
-                            "name"
+                            "name",
+                            "path"
                         ]
                     )
                     ->where("is_deleted", false)
-                    ->get()
-                    ->map(function($path) {
-                        return ["label" => $path->name, "value" => $path->id];
-                    });
+                    ->where("id", "!=", $currentPath)
+                    ->get();
 
-            return response()->json(["paths" => $paths]);
+            // compile paths with same path value as current path to see if they have child paths first
+            $similarPaths = $paths->filter(function ($path) use($currentPath) {
+                return $path->path == $currentPath;
+            })->pluck("id")->toArray();
+
+            $cleanedPaths = $this->remove_child_paths($similarPaths, $paths);;
+
+            $cleanedPaths = $cleanedPaths->filter(function($path)  use($currentPath) {
+                return $path->path != $currentPath;
+            });
+
+            $parentPaths = $cleanedPaths->map(function($path) {
+                return ["label" => $path->name, "value" => $path->id];
+            })->toArray();
+
+            return response()->json(["paths" => array_values($parentPaths)]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
+    }
+
+    // function remove the child paths of a parent in the paths return
+    private function remove_child_paths($parentIds, $paths)
+    {
+        foreach($paths as $key => $path) {
+            if (in_array($path->path, $parentIds)) {
+                unset($paths[$key]);
+                $this->remove_child_paths([$path->id], $paths);
+            }
+        }
+
+        return $paths;
+
     }
 }
