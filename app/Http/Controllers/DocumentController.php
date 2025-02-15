@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -113,7 +114,11 @@ class DocumentController extends Controller
      */
     public function show(Document $document)
     {
-        //
+        try {
+            return response()->json(["document" => $document]);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**
@@ -129,7 +134,40 @@ class DocumentController extends Controller
      */
     public function update(Request $request, Document $document)
     {
-        //
+
+        try {
+            $attributes = $request->validate([
+                "name" => ["required", "string"],
+                "description" => ["required", "string"],
+                "document" => ["required"],
+                "path" => ["required", "string"],
+                "type" => ["required", "string"],
+            ]);
+
+            if (!$request->hasFile("document") && !is_string($attributes["document"])) {
+                throw new Exception("Invalid Document");
+            }
+
+            $documentAttr = [
+                "name" => $attributes["name"],
+                "description" => $attributes["description"],
+                "document" => $attributes["document"],
+                "path" => $attributes["path"],
+                "type" => $attributes["type"],
+            ];
+
+            if ($request->hasFile("document")) {
+                $file = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $documentAttr['document'] = $file;
+            }
+
+            $updatedDocument = $document->update($documentAttr);
+
+            return response()->json(["success" => $updatedDocument]);
+
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
+        }
     }
 
     /**

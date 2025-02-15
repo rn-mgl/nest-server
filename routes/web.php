@@ -125,6 +125,8 @@ Route::prefix("api")->group(function() {
         Route::prefix("document")->group(function() {
             Route::controller(DocumentController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
+                Route::get("/{document}", "show")->can("updateHR", User::class);
+                Route::patch("/{document}", "update")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
         });

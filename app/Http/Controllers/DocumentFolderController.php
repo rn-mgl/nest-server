@@ -123,7 +123,7 @@ class DocumentFolderController extends Controller
                 "path" => ["required", "integer"]
             ]);
 
-            $currentPath = $attributes["path"];
+            $currentPath = intval($attributes["path"]);
 
             $paths = DB::table("document_folders")
                     ->select(
@@ -137,22 +137,25 @@ class DocumentFolderController extends Controller
                     ->where("id", "!=", $currentPath)
                     ->get();
 
-            // compile paths with same path value as current path to see if they have child paths first
-            $similarPaths = $paths->filter(function ($path) use($currentPath) {
-                return $path->path == $currentPath;
-            })->pluck("id")->toArray();
+            // only remove child path if base path of document/folder is not home
+            if ($currentPath !== 0) {
+                // compile paths with same path value as current path to see if they have child paths first
+                $similarPaths = $paths->filter(function ($path) use($currentPath) {
+                    return $path->path == $currentPath;
+                })->pluck("id")->toArray();
 
-            $cleanedPaths = $this->remove_child_paths($similarPaths, $paths);;
+                $parentPaths = $this->remove_child_paths($similarPaths, $paths);
 
-            $cleanedPaths = $cleanedPaths->filter(function($path)  use($currentPath) {
-                return $path->path != $currentPath;
-            });
+                $paths = $parentPaths->filter(function($path)  use($currentPath) {
+                    return $path->path != $currentPath;
+                });
+            }
 
-            $parentPaths = $cleanedPaths->map(function($path) {
+            $availablePaths = $paths->map(function($path) {
                 return ["label" => $path->name, "value" => $path->id];
             })->toArray();
 
-            return response()->json(["paths" => array_values($parentPaths)]);
+            return response()->json(["paths" => array_values($availablePaths)]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
