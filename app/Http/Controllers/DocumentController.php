@@ -175,6 +175,11 @@ class DocumentController extends Controller
      */
     public function destroy(Document $document)
     {
-        //
+        try {
+            $deleted = $document->update(["is_deleted" => true]);
+            return response()->json(["success" => $deleted]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

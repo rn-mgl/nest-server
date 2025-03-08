@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentFolder;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -110,12 +111,45 @@ class DocumentFolderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DocumentFolder $documentFolder)
+    public function destroy($documentFolder)
     {
-        //
+        try {
+            // delete folder and everything below it
+            $paths = DB::table("document_folders")
+            ->select([
+                "id",
+                "path"
+            ])
+            ->where("is_deleted", false)
+            ->get();
+
+            $childPaths = $this->get_child_paths($documentFolder, $paths);
+
+            foreach($childPaths as $child) {
+                $deletedFolders = DB::table("document_folders")
+                            ->where("id", $child)
+                            ->update(["is_deleted" => true]);
+
+                $deletedDocuments = DB::table("documents")
+                                    ->where("path", $child)
+                                    ->update(["is_deleted" => true]);
+            }
+
+            $deletedFolder = DB::table("document_folders")
+                            ->where("id", $documentFolder)
+                            ->update(["is_deleted" => true]);
+
+            $deletedDocument = DB::table("documents")
+                            ->where("path", $documentFolder)
+                            ->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deletedFolder]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
-    public function get_paths(Request $request)
+    public function get_parent_paths(Request $request)
     {
         try {
 
@@ -134,7 +168,6 @@ class DocumentFolderController extends Controller
                         ]
                     )
                     ->where("is_deleted", false)
-                    ->where("id", "!=", $currentPath)
                     ->get();
 
             // only remove child path if base path of document/folder is not home
@@ -160,6 +193,19 @@ class DocumentFolderController extends Controller
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
+    }
+
+    public function get_child_paths($parent, $paths, $child = [])
+    {
+        foreach($paths as $key => $path) {
+            if ($path->path == $parent) {
+                unset($paths[$key]);
+                $child[] = $path->id;
+                return $this->get_child_paths($path->id, $paths, $child);
+            }
+        }
+
+        return $child;
     }
 
     // function remove the child paths of a parent in the paths return
