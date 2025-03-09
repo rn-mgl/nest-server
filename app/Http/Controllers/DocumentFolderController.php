@@ -201,7 +201,7 @@ class DocumentFolderController extends Controller
             if ($path->path == $parent) {
                 unset($paths[$key]);
                 $child[] = $path->id;
-                return $this->get_child_paths($path->id, $paths, $child);
+                $child = $this->get_child_paths($path->id, $paths, $child);
             }
         }
 
@@ -214,7 +214,7 @@ class DocumentFolderController extends Controller
         foreach($paths as $key => $path) {
             if (in_array($path->path, $parentIds)) {
                 unset($paths[$key]);
-                $this->remove_child_paths([$path->id], $paths);
+                $paths = $this->remove_child_paths([$path->id], $paths);
             }
         }
 
