@@ -52,7 +52,7 @@ class EnsureUserTokenIsValid
             return $next($request);
 
         } catch (\Throwable $th) {
-            throw new Exception("Something went wrong when verifying your account.");
+            throw new Exception($th->getMessage());
         }
 
     }
