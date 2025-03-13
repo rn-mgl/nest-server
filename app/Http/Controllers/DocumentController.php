@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\Document;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -14,59 +17,95 @@ class DocumentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, SearchRequest $searchRequest, CategoryRequest $categoryRequest, SortRequest $sortRequest)
     {
         try {
 
-            $attributes = $request->validate([
+            $requestAttributes = $request->validate([
                 "path" => ["required", "integer"]
             ]);
 
+            $searchAttributes = $searchRequest->validated();
+            $categoryAttributes = $categoryRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $categoryAttributes, $sortAttributes, $requestAttributes);
+
             $path = $attributes["path"];
+            $searchKey = $attributes["searchKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
+            $sortKey = $attributes["sortKey"];
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $categoryKey = $attributes["categoryKey"];
+            $categoryValue = $attributes["categoryValue"];
+
+            if ($categoryValue === "folders") {
+                $searchKey = "name";
+            }
 
             $documents = DB::table("documents as d")
-                        ->where("d.is_deleted", false)
-                        ->where("d.path", $path)
-                        ->join("users as u", function(JoinClause $join) {
-                            $join->on("u.id", "=", "d.created_by")
-                            ->where("u.is_deleted", false);
-                        })
-                        ->select([
-                            "d.id",
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "name",
-                            "description",
-                            "document",
-                            "created_by",
-                            "type",
-                            "path"
-                        ]);
+                ->where("d.is_deleted", false)
+                ->where("d.path", $path)
+                ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
+                    return $query->whereLike("d.{$searchKey}", "%{$searchValue}%")
+                    ->orderBy("d.{$sortKey}", $sortType);
+                })
+                ->join("users as u", function(JoinClause $join) {
+                    $join->on("u.id", "=", "d.created_by")
+                    ->where("u.is_deleted", false);
+                })
+                ->select([
+                    "d.id",
+                    "u.id as user_id",
+                    "u.first_name",
+                    "u.last_name",
+                    "u.email",
+                    "name",
+                    "description",
+                    "document",
+                    "created_by",
+                    "type",
+                    "path"
+                ]);
 
-            $compiled = DB::table("document_folders as df")
-                        ->where("df.is_deleted", false)
-                        ->where("df.path", $path)
-                        ->join("users as u", function(JoinClause $join) {
-                            $join->on("u.id", "=", "df.created_by")
-                            ->where("u.is_deleted", false);
-                        })
-                        ->union($documents)
-                        ->select([
-                            "df.id",
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "name",
-                            DB::raw("NULL as description"),
-                            DB::raw("NULL as document"),
-                            "created_by",
-                            DB::raw("'folder' as type"),
-                            "path"
-                        ])
-                        ->get();
+            $folders = DB::table("document_folders as df")
+                ->where("df.is_deleted", false)
+                ->where("df.path", $path)
+                ->when($categoryValue === "folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
+                    return $query->whereLike("df.{$searchKey}", "%{$searchValue}%")
+                    ->orderBy("df.{$sortKey}", $sortType);
+                })
+                ->join("users as u", function(JoinClause $join) {
+                    $join->on("u.id", "=", "df.created_by")
+                    ->where("u.is_deleted", false);
+                })
+                ->select([
+                    "df.id",
+                    "u.id as user_id",
+                    "u.first_name",
+                    "u.last_name",
+                    "u.email",
+                    "name",
+                    DB::raw("NULL as description"),
+                    DB::raw("NULL as document"),
+                    "created_by",
+                    DB::raw("'folder' as type"),
+                    "path"
+                ]);
+
+            if ($categoryValue === "all") {
+                $compiled = $documents->union($folders)
+                            ->when($categoryValue === "all", function($query) use($sortKey, $sortType) {
+                                return $query->orderBy("{$sortKey}", $sortType);
+                            })->get();
+            } else if ($categoryValue === "folders") {
+                $compiled = $folders->get();
+            } else if ($categoryValue === "documents") {
+                $compiled = $documents->get();
+            } else {
+                $compiled = null;
+            }
 
             return response()->json(["documents" => $compiled]);
         } catch (\Throwable $th) {
