@@ -10,4 +10,9 @@ class Document extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function folders()
+    {
+        return $this->belongsTo(DocumentFolder::class, "path");
+    }
 }

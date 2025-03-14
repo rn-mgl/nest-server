@@ -62,6 +62,7 @@ class DocumentController extends Controller
                     "u.last_name",
                     "u.email",
                     "name",
+                    "d.created_at",
                     "description",
                     "document",
                     "created_by",
@@ -87,6 +88,7 @@ class DocumentController extends Controller
                     "u.last_name",
                     "u.email",
                     "name",
+                    "df.created_at",
                     DB::raw("NULL as description"),
                     DB::raw("NULL as document"),
                     "created_by",
@@ -154,7 +156,7 @@ class DocumentController extends Controller
     public function show(Document $document)
     {
         try {
-            return response()->json(["document" => $document]);
+            return response()->json(["document" => $document->load("folders")]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
