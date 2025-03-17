@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Employee;
 
-use App\Models\EmployeeTrainingReview;
+use App\Http\Controllers\Controller;
+use App\Models\EmployeePerformanceReview;
 use Illuminate\Http\Request;
 
-class EmployeeTrainingReviewController extends Controller
+class EmployeePerformanceReviewController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class EmployeeTrainingReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeTrainingReview $employeeTrainingReview)
+    public function show(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
     {
         //
     }
@@ -42,7 +43,7 @@ class EmployeeTrainingReviewController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeTrainingReview $employeeTrainingReview)
+    public function edit(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
     {
         //
     }
@@ -50,7 +51,7 @@ class EmployeeTrainingReviewController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeTrainingReview $employeeTrainingReview)
+    public function update(Request $request, EmployeePerformanceReviewController $EmployeePerformanceReviewController)
     {
         //
     }
@@ -58,7 +59,7 @@ class EmployeeTrainingReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeTrainingReview $employeeTrainingReview)
+    public function destroy(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
     {
         //
     }

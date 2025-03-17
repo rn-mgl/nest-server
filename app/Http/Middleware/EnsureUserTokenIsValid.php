@@ -22,17 +22,17 @@ class EnsureUserTokenIsValid
      */
     public function handle(Request $request, Closure $next): Response
     {
-
-        $authToken = $request->header("Authorization");
-
-        if (!$authToken || !Str::startsWith($authToken, "Bearer ")) {
-            throw new UnauthorizedException("You are unauthorized to proceed.");
-        }
-
-        $token = explode(" ", $authToken)[1];
-        $key = env("SESSION_KEY");
-
         try {
+
+            $authToken = $request->header("Authorization");
+
+            if (!$authToken || !Str::startsWith($authToken, "Bearer ")) {
+                throw new UnauthorizedException("You are unauthorized to proceed.");
+            }
+
+            $token = explode(" ", $authToken)[1];
+            $key = env("SESSION_KEY");
+
             $decoded = JWT::decode($token, new Key($key, "HS256"));
 
             $user = User::findOrFail($decoded->user);

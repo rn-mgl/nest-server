@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Employee;
 
-use App\Models\EmployeeOnboarding;
+use App\Http\Controllers\Controller;
+use App\Models\EmployeeTrainingReview;
 use Illuminate\Http\Request;
 
-class EmployeeOnboardingController extends Controller
+class EmployeeTrainingReviewController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeOnboarding $employeeOnboarding)
+    public function show(EmployeeTrainingReview $employeeTrainingReview)
     {
         //
     }
@@ -42,7 +43,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeOnboarding $employeeOnboarding)
+    public function edit(EmployeeTrainingReview $employeeTrainingReview)
     {
         //
     }
@@ -50,7 +51,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeOnboarding $employeeOnboarding)
+    public function update(Request $request, EmployeeTrainingReview $employeeTrainingReview)
     {
         //
     }
@@ -58,7 +59,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeOnboarding $employeeOnboarding)
+    public function destroy(EmployeeTrainingReview $employeeTrainingReview)
     {
         //
     }

@@ -8,14 +8,41 @@ use App\Models\Admin;
 use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
-
+use Firebase\JWT\JWT;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
 class AdminAuthController extends Controller
 {
+
+    public function register(Request $request)
+    {
+        try {
+            $attributes = $request->validate([
+                "first_name" => ["required", "string"],
+                "last_name" => ["required", "string"],
+                "email" => ["required", "string", "email", "unique:admins,email"],
+                "password" => ["required", "string", Password::min(8)],
+            ]);
+
+            $admin = Admin::create($attributes);
+            $tokens = new Tokens(true);
+            $token = $tokens->createVerificationToken($admin->id, "{$admin->first_name} {$admin->last_name}", $admin->email, "admin");
+
+            Auth::guard("admin")->login($admin);
+
+            event(new AdminRegistered($admin, $token));
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     public function verify(Request $request)
     {
 
@@ -48,6 +75,45 @@ class AdminAuthController extends Controller
 
     }
 
+    public function login(Request $request)
+    {
+        try {
+            $attributes = $request->validate([
+                "email" => ["required", "string", "email"],
+                "password" => ["required"],
+            ]);
+
+            if (!Auth::guard('admin')->attempt($attributes)) {
+                throw new AuthorizationException("Invalid Credentials");
+            }
+
+            $request->session()->regenerateToken();
+
+            $id = Auth::guard("admin")->id();
+
+            $admin = Admin::find($id);
+
+            $isVerified = $admin->email_verified_at;
+
+            $payload = [
+                "admin" => $admin->id,
+                "name" => "{$admin->first_name} {$admin->last_name}",
+                "email" => $admin->email,
+                "role" => "admin",
+                "iss" => "Nest",
+                "aud" => env("APP_URL"),
+                "iat" => Carbon::now()->timestamp,
+                "exp" => Carbon::now()->addDay()->timestamp,
+            ];
+
+            $token = JWT::encode($payload, env("ADMIN_SESSION_KEY"), "HS256");
+
+            return response()->json(["success" => true, "token" => $token, "current" => $admin->id, "isVerified" => $isVerified, "role" => "admin"]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     public function resend_verification()
     {
         try {
@@ -58,6 +124,21 @@ class AdminAuthController extends Controller
             $token = $tokens->createVerificationToken($admin->id, "{$admin->first_name} {$admin->last_name}", $admin->email, "admin");
 
             event(new AdminRegistered($admin, $token));
+
+            return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+            Auth::guard("admin")->logout();
+
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {

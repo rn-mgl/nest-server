@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminHRController;
-use App\Http\Controllers\Admin\AdminSessionController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
 use App\Http\Controllers\HR\HRAttendanceController;
@@ -11,13 +10,9 @@ use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
-use App\Http\Controllers\Local\AdminRegisterController;
-use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\SessionController;
 use App\Http\Controllers\BaseAuthController;
 use App\Models\Admin;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function() {
@@ -32,15 +27,9 @@ Route::prefix("api")->group(function() {
 
     // base auth
     Route::prefix("auth")->group(function() {
-        Route::controller(RegisterController::class)->group(function() {
-            Route::post("/register", "store");
-        });
-
-        Route::controller(SessionController::class)->group(function() {
-            Route::post("/login", "store");
-        });
-
         Route::controller(BaseAuthController::class)->group(function() {
+            Route::post("/login", "login");
+            Route::post("/register", "register");
             Route::patch('/verify', "verify");
             Route::post("/verification-notification", "resend_verification")->middleware(["auth:base", "throttle:6,1"]);
         });
@@ -48,17 +37,11 @@ Route::prefix("api")->group(function() {
 
     // admin auth
     Route::prefix("admin_auth")->group(function() {
-        Route::controller(AdminRegisterController::class)->group(function() {
-            Route::post("/register", "store");
-        });
-
-        Route::controller(AdminSessionController::class)->group(function() {
-            Route::post("/login", "store");
-        });
-
         Route::controller(AdminAuthController::class)->group(function() {
+            Route::post("/register", "register");
+            Route::post("/login", "login");
             Route::patch("/verify", "verify");
-            Route::post("/verification-notification", "resend_verification")->middleware(["auth:admin", "throttle:6,1"]);
+            Route::post("/verification-notification", "rwesend_verification")->middleware(["auth:admin", "throttle:6,1"]);
         });
     });
 
@@ -66,8 +49,8 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth:base", "valid_user_token"])->prefix("hr")->group(function() {
         // session routes
         Route::prefix("auth")->group(function() {
-            Route::controller(SessionController::class)->group(function() {
-                Route::post("/logout", "destroy");
+            Route::controller(BaseAuthController::class)->group(function() {
+                Route::post("/logout", "logout");
             });
         });
 
@@ -151,8 +134,8 @@ Route::prefix("api")->group(function() {
     // employee routes
     Route::middleware(["auth:base", "valid_user_token"])->prefix("employee")->group(function() {
         Route::prefix("auth")->group(function() {
-            Route::controller(SessionController::class)->group(function() {
-                Route::post("/logout", "destroy");
+            Route::controller(BaseAuthController::class)->group(function() {
+                Route::post("/logout", "logout");
             });
         });
     });
@@ -160,14 +143,14 @@ Route::prefix("api")->group(function() {
     // admin routes
     Route::middleware(["auth:admin", "valid_admin_token"])->prefix("admin")->group(function() {
         Route::prefix("auth")->group(function() {
-            Route::controller(AdminSessionController::class)->group(function() {
-                Route::post("/logout", "destroy");
+            Route::controller(AdminAuthController::class)->group(function() {
+                Route::post("/logout", "logout");
             });
         });
 
         Route::prefix("hr")->group(function() {
-            Route::controller(RegisterController::class)->group(function() {
-                Route::post("/register", "store")->can("update", Admin::class);
+            Route::controller(BaseAuthController::class)->group(function() {
+                Route::post("/register", "register")->can("update", Admin::class);
             });
 
             Route::controller(AdminHRController::class)->group(function() {
