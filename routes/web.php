@@ -1,19 +1,20 @@
 <?php
 
-use App\Http\Controllers\AdminAuthController;
-use App\Http\Controllers\AdminHRController;
-use App\Http\Controllers\AdminSessionController;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminHRController;
+use App\Http\Controllers\Admin\AdminSessionController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
-use App\Http\Controllers\HRAttendanceController;
-use App\Http\Controllers\HREmployeeController;
-use App\Http\Controllers\HRLeaveTypeController;
-use App\Http\Controllers\HROnboardingController;
-use App\Http\Controllers\HRPerformanceReviewController;
-use App\Http\Controllers\HRTrainingController;
+use App\Http\Controllers\HR\HRAttendanceController;
+use App\Http\Controllers\HR\HREmployeeController;
+use App\Http\Controllers\HR\HRLeaveTypeController;
+use App\Http\Controllers\HR\HROnboardingController;
+use App\Http\Controllers\HR\HRPerformanceReviewController;
+use App\Http\Controllers\HR\HRTrainingController;
+use App\Http\Controllers\Local\AdminRegisterController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
-use App\Http\Controllers\UserAuthController;
+use App\Http\Controllers\BaseAuthController;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ Route::prefix("api")->group(function() {
             Route::post("/login", "store");
         });
 
-        Route::controller(UserAuthController::class)->group(function() {
+        Route::controller(BaseAuthController::class)->group(function() {
             Route::patch('/verify', "verify");
             Route::post("/verification-notification", "resend_verification")->middleware(["auth:base", "throttle:6,1"]);
         });
@@ -47,6 +48,10 @@ Route::prefix("api")->group(function() {
 
     // admin auth
     Route::prefix("admin_auth")->group(function() {
+        Route::controller(AdminRegisterController::class)->group(function() {
+            Route::post("/register", "store");
+        });
+
         Route::controller(AdminSessionController::class)->group(function() {
             Route::post("/login", "store");
         });
@@ -139,6 +144,15 @@ Route::prefix("api")->group(function() {
                 Route::patch("/{document_folder}", "update")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::delete("/{document_folder}", "destroy")->can("updateHR", User::class);
+            });
+        });
+    });
+
+    // employee routes
+    Route::middleware(["auth:base", "valid_user_token"])->prefix("employee")->group(function() {
+        Route::prefix("auth")->group(function() {
+            Route::controller(SessionController::class)->group(function() {
+                Route::post("/logout", "destroy");
             });
         });
     });

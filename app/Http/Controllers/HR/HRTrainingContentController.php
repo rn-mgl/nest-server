@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\HR;
 
-use App\Models\UserTraining;
+use App\Http\Controllers\Controller;
+use App\Models\TrainingContent;
 use Illuminate\Http\Request;
 
-class UserTrainingController extends Controller
+class HRTrainingContentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class UserTrainingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(UserTraining $userTraining)
+    public function show(TrainingContent $trainingContent)
     {
         //
     }
@@ -42,7 +43,7 @@ class UserTrainingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(UserTraining $userTraining)
+    public function edit(TrainingContent $trainingContent)
     {
         //
     }
@@ -50,7 +51,7 @@ class UserTrainingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, UserTraining $userTraining)
+    public function update(Request $request, TrainingContent $trainingContent)
     {
         //
     }
@@ -58,7 +59,7 @@ class UserTrainingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(UserTraining $userTraining)
+    public function destroy(TrainingContent $trainingContent)
     {
         //
     }

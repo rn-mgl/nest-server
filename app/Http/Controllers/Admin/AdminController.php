@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\TrainingReview;
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 
-class HRTrainingReviewController extends Controller
+class AdminController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class HRTrainingReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TrainingReview $trainingReview)
+    public function show(Admin $admin)
     {
         //
     }
@@ -42,7 +43,7 @@ class HRTrainingReviewController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TrainingReview $trainingReview)
+    public function edit(Admin $admin)
     {
         //
     }
@@ -50,7 +51,7 @@ class HRTrainingReviewController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TrainingReview $trainingReview)
+    public function update(Request $request, Admin $admin)
     {
         //
     }
@@ -58,7 +59,7 @@ class HRTrainingReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TrainingReview $trainingReview)
+    public function destroy(Admin $admin)
     {
         //
     }

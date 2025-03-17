@@ -50,7 +50,7 @@ class SessionController extends Controller
 
             $id = Auth::guard("base")->id();
 
-            $user = User::find($id);
+            $user = User::findOrFail($id);
 
             $isVerified = $user->email_verified_at;
 

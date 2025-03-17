@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TrainingContent;
+use App\Models\EmployeeTraining;
 use Illuminate\Http\Request;
 
-class HRTrainingContentController extends Controller
+class EmployeeTrainingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class HRTrainingContentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TrainingContent $trainingContent)
+    public function show(EmployeeTraining $employeeTraining)
     {
         //
     }
@@ -42,7 +42,7 @@ class HRTrainingContentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TrainingContent $trainingContent)
+    public function edit(EmployeeTraining $employeeTraining)
     {
         //
     }
@@ -50,7 +50,7 @@ class HRTrainingContentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TrainingContent $trainingContent)
+    public function update(Request $request, EmployeeTraining $employeeTraining)
     {
         //
     }
@@ -58,7 +58,7 @@ class HRTrainingContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TrainingContent $trainingContent)
+    public function destroy(EmployeeTraining $employeeTraining)
     {
         //
     }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\HR;
 
+use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Database\Query\JoinClause;

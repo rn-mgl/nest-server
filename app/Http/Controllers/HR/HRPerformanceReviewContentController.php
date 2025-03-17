@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\HR;
 
-use App\Models\UserPerformanceReview;
+use App\Http\Controllers\Controller;
+use App\Models\PerformanceReviewContent;
 use Illuminate\Http\Request;
 
-class UserPerformanceReviewController extends Controller
+class HRPerformanceReviewContentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class UserPerformanceReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(UserPerformanceReview $userPerformanceReview)
+    public function show(PerformanceReviewContent $performanceReviewContent)
     {
         //
     }
@@ -42,7 +43,7 @@ class UserPerformanceReviewController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(UserPerformanceReview $userPerformanceReview)
+    public function edit(PerformanceReviewContent $performanceReviewContent)
     {
         //
     }
@@ -50,7 +51,7 @@ class UserPerformanceReviewController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, UserPerformanceReview $userPerformanceReview)
+    public function update(Request $request, PerformanceReviewContent $performanceReviewContent)
     {
         //
     }
@@ -58,7 +59,7 @@ class UserPerformanceReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(UserPerformanceReview $userPerformanceReview)
+    public function destroy(PerformanceReviewContent $performanceReviewContent)
     {
         //
     }

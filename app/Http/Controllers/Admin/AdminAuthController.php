@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Events\Registered;
-use App\Models\User;
+use App\Events\AdminRegistered;
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
@@ -13,15 +14,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\UnauthorizedException;
 
-class UserAuthController extends Controller
+class AdminAuthController extends Controller
 {
     public function verify(Request $request)
     {
 
         try {
             $token = $request->get("token");
-
-            $tokens = new Tokens();
+            $tokens = new Tokens(true);
             $decoded = $tokens->decodeVerificationToken($token);
             $correctMetadata = $tokens->verifyTokenMetadata($decoded);
 
@@ -29,15 +29,16 @@ class UserAuthController extends Controller
                 throw new UnauthorizedException("The token you used is invalid");
             }
 
-            $user = User::findOrFail($decoded->user);
+            $admin = Admin::findOrFail($decoded->admin);
+            $adminName = "{$admin->first_name} {$admin->last_name}";
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
+            if ($admin->id !== $decoded->admin || $admin->email !== $decoded->email || $adminName !== $decoded->name) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            $verify = DB::table("users")
-                        ->where("id", "=", $user->id)
+            $verify = DB::table("admins")
+                        ->where("id", "=", $admin->id)
                         ->update(["email_verified_at" => Carbon::now()]);
 
             return response()->json(["success" => $verify > 0]);
@@ -50,13 +51,13 @@ class UserAuthController extends Controller
     public function resend_verification()
     {
         try {
-            $id = Auth::guard("base")->id();
-            $user = User::findOrFail($id);
+            $id = Auth::guard("admin")->id();
+            $admin = Admin::findOrFail($id);
 
-            $tokens = new Tokens();
-            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+            $tokens = new Tokens(true);
+            $token = $tokens->createVerificationToken($admin->id, "{$admin->first_name} {$admin->last_name}", $admin->email, "admin");
 
-            event(new Registered($user, $token));
+            event(new AdminRegistered($admin, $token));
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {

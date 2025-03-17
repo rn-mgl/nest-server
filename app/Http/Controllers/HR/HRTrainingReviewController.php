@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\HR;
 
-use App\Models\PerformanceReviewContent;
+use App\Http\Controllers\Controller;
+use App\Models\TrainingReview;
 use Illuminate\Http\Request;
 
-class HRPerformanceReviewContentController extends Controller
+class HRTrainingReviewController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class HRPerformanceReviewContentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PerformanceReviewContent $performanceReviewContent)
+    public function show(TrainingReview $trainingReview)
     {
         //
     }
@@ -42,7 +43,7 @@ class HRPerformanceReviewContentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PerformanceReviewContent $performanceReviewContent)
+    public function edit(TrainingReview $trainingReview)
     {
         //
     }
@@ -50,7 +51,7 @@ class HRPerformanceReviewContentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PerformanceReviewContent $performanceReviewContent)
+    public function update(Request $request, TrainingReview $trainingReview)
     {
         //
     }
@@ -58,7 +59,7 @@ class HRPerformanceReviewContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PerformanceReviewContent $performanceReviewContent)
+    public function destroy(TrainingReview $trainingReview)
     {
         //
     }
