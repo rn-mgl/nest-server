@@ -11,6 +11,7 @@ use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
 use App\Http\Controllers\BaseAuthController;
+use App\Http\Controllers\Employee\EmployeeAttendance;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -136,6 +137,12 @@ Route::prefix("api")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
                 Route::post("/logout", "logout");
+            });
+        });
+
+        Route::prefix("attendance")->group(function() {
+            Route::controller(EmployeeAttendance::class)->group(callback: function() {
+                Route::post("/","store")->can("updateEmployee", User::class);
             });
         });
     });
