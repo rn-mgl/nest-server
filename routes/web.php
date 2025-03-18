@@ -142,6 +142,7 @@ Route::prefix("api")->group(function() {
 
         Route::prefix("attendance")->group(function() {
             Route::controller(EmployeeAttendance::class)->group(callback: function() {
+                Route::get("/{attendance}","show")->can("updateEmployee", User::class);
                 Route::post("/","store")->can("updateEmployee", User::class);
             });
         });

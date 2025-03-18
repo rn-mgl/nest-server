@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeAttendance extends Controller
 {
@@ -16,7 +17,7 @@ class EmployeeAttendance extends Controller
      */
     public function index()
     {
-        //
+
     }
 
     /**
@@ -34,7 +35,8 @@ class EmployeeAttendance extends Controller
     {
         try {
             $attributes = $request->validate([
-                "type" => ["string", "required"]
+                "type" => ["string", "required"],
+                "attendance_id" => ["integer", "nullable"]
             ]);
 
             $type = $attributes["type"] === "in" ? "login_time" : "logout_time";
@@ -44,7 +46,12 @@ class EmployeeAttendance extends Controller
                 $type => Carbon::now()
             ];
 
-            $loggedAttendance = Attendance::create($attendanceAttr);
+            if ($type === "login_time") {
+                $loggedAttendance = Attendance::create($attendanceAttr);
+            } else if ($type === "logout_time") {
+                $loggedAttendance = Attendance::where("id", $attributes["attendance_id"])
+                                    ->update([$type => $attendanceAttr[$type]]);
+            }
 
             return response()->json(["success" => $loggedAttendance]);
 
@@ -56,9 +63,43 @@ class EmployeeAttendance extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($requestDate)
     {
-        //
+        try {
+            $parsedDate = Carbon::parse($requestDate);
+            $currentDate = $parsedDate->copy()->startOfDay()->format("Y-m-d H:i:s");
+            $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
+            $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
+            $user = Auth::id();
+
+            $attendance = [
+                "attendance_id" => null,
+                "login_time" => null,
+                "logout_time" => null,
+                "late" => true,
+                "absent" => true
+            ];
+
+            $log = DB::table("attendances")
+                            ->where("login_time", ">=", $currentDate)
+                            ->where("login_time", "<", $tomorrowDate)
+                            ->where("user_id", "=", $user)
+                            ->first();
+
+            if (!empty($log)) {
+                $attendance["attendance_id"] = $log->id;
+                $attendance["login_time"] = $log->login_time;
+                $attendance["logout_time"] = $log->logout_time;
+                $attendance["late"] = $log->login_time > $lateThreshold;
+            }
+
+            $attendance["absent"] = empty($log) && Carbon::now() > $lateThreshold;
+
+            return response()->json(["attendance" => $attendance]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
