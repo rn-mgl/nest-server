@@ -81,8 +81,14 @@ class EmployeeAttendance extends Controller
             ];
 
             $log = DB::table("attendances")
-                            ->where("login_time", ">=", $currentDate)
-                            ->where("login_time", "<", $tomorrowDate)
+                            ->where(function($query) use($currentDate, $tomorrowDate) {
+                                $query->where("login_time", ">=", $currentDate)
+                                        ->where("login_time", "<", $tomorrowDate);
+                            })
+                            ->orWhere(function($query) use($currentDate, $tomorrowDate) {
+                                $query->where("logout_time", ">=", $currentDate)
+                                        ->where("logout_time", "<", $tomorrowDate);
+                            })
                             ->where("user_id", "=", $user)
                             ->first();
 
@@ -91,9 +97,8 @@ class EmployeeAttendance extends Controller
                 $attendance["login_time"] = $log->login_time;
                 $attendance["logout_time"] = $log->logout_time;
                 $attendance["late"] = $log->login_time > $lateThreshold;
+                $attendance["absent"] = false;
             }
-
-            $attendance["absent"] = empty($log) && Carbon::now() > $lateThreshold;
 
             return response()->json(["attendance" => $attendance]);
 
