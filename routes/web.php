@@ -11,7 +11,8 @@ use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
 use App\Http\Controllers\BaseAuthController;
-use App\Http\Controllers\Employee\EmployeeAttendance;
+use App\Http\Controllers\Employee\EmployeeAttendanceController;
+use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -84,6 +85,15 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // employee onboarding route
+        Route::prefix("employee_onboarding")->group(function() {
+            Route::controller(HREmployeeOnboardingController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+                Route::post("/", "store")->can("updateHR", User::class);
+            });
+        });
+
+        // attendance route
         Route::prefix('attendance')->group(function() {
             Route::controller(HRAttendanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
@@ -91,6 +101,7 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // performance review route
         Route::prefix('performance_review')->group(function() {
             Route::controller(HRPerformanceReviewController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
@@ -101,6 +112,7 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // training route
         Route::prefix('training')->group(function() {
             Route::controller(HRTrainingController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
@@ -111,6 +123,7 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // document route
         Route::prefix("document")->group(function() {
             Route::controller(DocumentController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
@@ -121,6 +134,7 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // document folder route
         Route::prefix('document_folder')->group(function() {
             Route::controller(DocumentFolderController::class)->group(function() {
                 Route::get("/paths", "get_parent_paths")->can("updateHR", User::class);
@@ -141,7 +155,7 @@ Route::prefix("api")->group(function() {
         });
 
         Route::prefix("attendance")->group(function() {
-            Route::controller(EmployeeAttendance::class)->group(callback: function() {
+            Route::controller(EmployeeAttendanceController::class)->group(callback: function() {
                 Route::get("/{attendance}","show")->can("updateEmployee", User::class);
                 Route::post("/","store")->can("updateEmployee", User::class);
             });
