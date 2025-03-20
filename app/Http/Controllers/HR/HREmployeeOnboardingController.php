@@ -29,6 +29,7 @@ class HREmployeeOnboardingController extends Controller
                             ->where("u.is_deleted", "=", false)
                             ->where("onboarding_id", "=", $attributes["onboarding_id"]);
                         })
+                        ->where("u.role", "=", "employee")
                         ->select([
                             "u.id as user_id",
                             "u.first_name",

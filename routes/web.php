@@ -13,6 +13,7 @@ use App\Http\Controllers\HR\HRTrainingController;
 use App\Http\Controllers\BaseAuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
+use App\Http\Controllers\HR\HRLeaveBalanceController;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,13 @@ Route::prefix("api")->group(function() {
                 Route::get("/{leaveType}", "show")->can("updateHR", User::class);
                 Route::patch("/{leaveType}", "update")->can("updateHR", User::class);
                 Route::delete("/{leaveType}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        // leave balance route
+        Route::prefix("leave_balance")->group(function() {
+            Route::controller(HRLeaveBalanceController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
             });
         });
 
