@@ -9,6 +9,7 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 class HRLeaveBalanceController extends Controller
 {
@@ -26,8 +27,7 @@ class HRLeaveBalanceController extends Controller
             $users = DB::table("users as u")
                     ->leftJoin("leave_balances as lb", function(JoinClause $join) use($attributes) {
                         $join->on("u.id", "=", "lb.user_id")
-                        ->where("lb.leave_type_id", "=", $attributes["leave_type_id"])
-                        ->where("lb.is_deleted", "=", false);
+                        ->where("lb.leave_type_id", "=", $attributes["leave_type_id"]);
                     })
                     ->where("u.is_deleted", "=", false)
                     ->select([
@@ -39,9 +39,16 @@ class HRLeaveBalanceController extends Controller
                         "u.created_at",
                         "lb.id as leave_balance_id",
                         "lb.leave_type_id",
-                        "lb.balance"
+                        "lb.balance",
+                        "lb.is_deleted"
                     ])
-                    ->get();
+                    ->get()
+                    ->map(function($leave) {
+                        if ($leave->is_deleted) {
+                            $leave->leave_balance_id = null;
+                        }
+                        return $leave;
+                    });
 
         return response()->json(["users" => $users]);
 
@@ -78,31 +85,58 @@ class HRLeaveBalanceController extends Controller
                             ->select([
                                 "id as leave_balance_id",
                                 "user_id",
-                                "balance"
+                                "balance",
+                                "is_deleted"
                             ])
                             ->get()
                             ->keyBy("user_id");
 
+            $alreadyAssigned = $leaveBalances->pluck("user_id")->toArray();
+
             $leave_type_id = $attributes["leave_type_id"];
 
+            // assign
+            foreach ($attributes["employee_ids"] as $employee) {
+                if (!in_array($employee, $alreadyAssigned)) {
+                    $leaveBalanceAttr = [
+                        "user_id" => $employee,
+                        "provided_by" => Auth::guard("base")->id(),
+                        "leave_type_id" => $leave_type_id,
+                        "balance" => 0
+                    ];
+                    $assigned = LeaveBalance::create($leaveBalanceAttr);
+
+                    // make std class for uniformity in $leaveBalances collection
+                    $newLeaveBalance = new stdClass();
+                    $newLeaveBalance->leave_balance_id = $assigned->id;
+                    $newLeaveBalance->user_id = $employee;
+                    $newLeaveBalance->balance = 0;
+                    $leaveBalances->put($employee, $newLeaveBalance);
+                }
+            }
+
+            // delete
+            foreach($alreadyAssigned as $id) {
+                if (!in_array($id, $attributes["employee_ids"])) {
+                    $leaveBalanceId = $leaveBalances->get($id);
+                    $leaveBalance = LeaveBalance::find($leaveBalanceId->leave_balance_id);
+                    $deleted = $leaveBalance->update(["is_deleted" => true]);
+                    // remove user in leaveBalances
+                    $leaveBalances->forget($id);
+                }
+            }
+
+            // update balance of assigned
+            // check employee_leaves array if the id is in leaveBalances and update the applied balance
             foreach($attributes["employee_leaves"] as $leaves) {
-
                 $currUser = $leaves["user_id"];
-
                 if ($leaveBalances->has($currUser)) {
                     $balance = $leaveBalances->get($currUser);
                     $leaveBalance = LeaveBalance::find($balance->leave_balance_id);
                     $updated = $leaveBalance->update([
-                        "balance" => $leaves["balance"]
+                        "balance" => $leaves["balance"],
+                        "is_deleted" => false
                     ]);
-                } else {
-                    $leaveBalanceAttr = [
-                        "user_id" => $currUser,
-                        "provided_by" => Auth::guard("base")->id(),
-                        "leave_type_id" => $leave_type_id,
-                        "balance" => $leaves["balance"]
-                    ];
-                    $created = LeaveBalance::create($leaveBalanceAttr);
                 }
             }
 
