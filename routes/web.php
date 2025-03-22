@@ -79,6 +79,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("leave_balance")->group(function() {
             Route::controller(HRLeaveBalanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
+                Route::post("/", "store")->can("updateHR", User::class);
             });
         });
 

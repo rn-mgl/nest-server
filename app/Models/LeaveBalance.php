@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class LeaveBalance extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
 }
