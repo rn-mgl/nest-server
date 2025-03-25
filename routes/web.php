@@ -24,7 +24,7 @@ Route::prefix("api")->group(function() {
         return redirect(env("NEST_URL"));
     });
 
-    Route::get('sanctum/csrf-cookie', function() {
+    Route::get('csrf-cookie', function() {
         return response()->json(["token" => csrf_token()]);
     });
 
