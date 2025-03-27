@@ -43,10 +43,9 @@ Route::prefix("api")->group(function() {
     // admin auth
     Route::prefix("admin_auth")->group(function() {
         Route::controller(AdminAuthController::class)->group(function() {
-            Route::post("/register", "register");
             Route::post("/login", "login");
             Route::patch("/verify", "verify");
-            Route::post("/verification-notification", "rwesend_verification")->middleware(["auth:admin", "throttle:6,1"]);
+            Route::post("/verification-notification", "resend_verification")->middleware(["auth:admin", "throttle:6,1"]);
         });
     });
 

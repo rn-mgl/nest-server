@@ -19,30 +19,6 @@ use Illuminate\Validation\UnauthorizedException;
 class AdminAuthController extends Controller
 {
 
-    public function register(Request $request)
-    {
-        try {
-            $attributes = $request->validate([
-                "first_name" => ["required", "string"],
-                "last_name" => ["required", "string"],
-                "email" => ["required", "string", "email", "unique:admins,email"],
-                "password" => ["required", "string", Password::min(8)],
-            ]);
-
-            $admin = Admin::create($attributes);
-            $tokens = new Tokens(true);
-            $token = $tokens->createVerificationToken($admin->id, "{$admin->first_name} {$admin->last_name}", $admin->email, "admin");
-
-            Auth::guard("admin")->login($admin);
-
-            event(new AdminRegistered($admin, $token));
-
-            return response()->json(["success" => true]);
-        } catch (\Throwable $th) {
-            throw new Exception($th->getMessage());
-        }
-    }
-
     public function verify(Request $request)
     {
 
