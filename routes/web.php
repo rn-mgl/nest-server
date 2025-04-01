@@ -190,10 +190,11 @@ Route::prefix("api")->group(function() {
             });
         });
 
-        // onboarding route
-        Route::prefix("onboarding")->group(function() {
+        // employee onboarding route
+        Route::prefix("employee_onboarding")->group(function() {
             Route::controller(EmployeeOnboardingController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
+                Route::get("/{employee_onboarding}", "show")->can("updateEmployee", User::class);
             });
         });
     });

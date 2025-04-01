@@ -76,7 +76,11 @@ class EmployeeOnboardingController extends Controller
      */
     public function show(EmployeeOnboarding $employeeOnboarding)
     {
-        //
+        try {
+            return response()->json(["onboarding" => $employeeOnboarding->load(["onboarding", "onboarding.policyAcknowledgements", "onboarding.requiredDocuments"])]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**

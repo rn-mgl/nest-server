@@ -18,6 +18,6 @@ class EmployeeOnboarding extends Model
 
     public function onboarding()
     {
-        return $this->belongsTo(Onboarding::class);
+        return $this->belongsTo(Onboarding::class, "onboarding_id");
     }
 }
