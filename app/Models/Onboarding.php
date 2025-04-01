@@ -10,4 +10,9 @@ class Onboarding extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, "created_by");
+    }
 }

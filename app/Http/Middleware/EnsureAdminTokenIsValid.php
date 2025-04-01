@@ -10,6 +10,7 @@ use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Str;
@@ -43,7 +44,7 @@ class EnsureAdminTokenIsValid
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            $admin = Admin::findOrFail($decoded->admin);
+            $admin = Auth::guard("admin")->user();
 
             $adminName = "{$admin->first_name} {$admin->last_name}";
 

@@ -45,7 +45,11 @@ class HROnboardingController extends Controller
                                 "o.id as onboarding_id",
                                 "o.created_by",
                                 "o.title",
-                                "o.description"
+                                "o.description",
+                                "u.first_name",
+                                "u.last_name",
+                                "u.email",
+                                "u.id as user_id"
                             ])
                             ->get();
 

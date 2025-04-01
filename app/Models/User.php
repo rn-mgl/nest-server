@@ -41,4 +41,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function createdOnboarding()
+    {
+        return $this->hasMany(Onboarding::class, "created_by");
+    }
 }

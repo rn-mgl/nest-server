@@ -12,6 +12,7 @@ use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
 use App\Http\Controllers\BaseAuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
+use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -181,10 +182,18 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // attendance route
         Route::prefix("attendance")->group(function() {
-            Route::controller(EmployeeAttendanceController::class)->group(callback: function() {
+            Route::controller(EmployeeAttendanceController::class)->group(function() {
                 Route::get("/{attendance}","show")->can("updateEmployee", User::class);
                 Route::post("/","store")->can("updateEmployee", User::class);
+            });
+        });
+
+        // onboarding route
+        Route::prefix("onboarding")->group(function() {
+            Route::controller(EmployeeOnboardingController::class)->group(function() {
+                Route::get("/", "index")->can("updateEmployee", User::class);
             });
         });
     });

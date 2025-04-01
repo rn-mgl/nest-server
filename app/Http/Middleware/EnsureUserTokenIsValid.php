@@ -11,6 +11,7 @@ use Firebase\JWT\Key;
 use Carbon\Carbon;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\UnauthorizedException;
 
 class EnsureUserTokenIsValid
@@ -35,7 +36,7 @@ class EnsureUserTokenIsValid
 
             $decoded = JWT::decode($token, new Key($key, "HS256"));
 
-            $user = User::findOrFail($decoded->user);
+            $user = Auth::guard("base")->user();
 
             // check if payload match db
             if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
