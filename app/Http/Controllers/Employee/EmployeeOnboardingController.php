@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\EmployeeOnboarding;
 use App\Models\Onboarding;
 use Exception;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeOnboardingController extends Controller
 {
@@ -20,7 +22,32 @@ class EmployeeOnboardingController extends Controller
 
             $user = Auth::guard("base")->id();
 
-            $onboardings = EmployeeOnboarding::with(["onboarding", "assignedBy"])->get();
+            $onboardings = DB::table("employee_onboardings as eo")
+                            ->join("onboardings as o", function(JoinClause $join) {
+                                $join->on("eo.onboarding_id", "=", "o.id")
+                                ->where("o.is_deleted", "=", false);
+                            })
+                            ->join("users as u", function(JoinClause $join) {
+                                $join->on("o.created_by", "=", "u.id")
+                                ->where("u.is_deleted", "=", false);
+                            })
+                            ->where("employee_id", "=", $user)
+                            ->select([
+                                'eo.id as employee_onboarding_id',
+                                'eo.completed_documents',
+                                'eo.policy_acknowledged',
+                                'o.id as onboarding_id',
+                                'o.title',
+                                'o.description',
+                                'o.created_by',
+                                'u.id as user_id',
+                                'u.first_name',
+                                'u.last_name',
+                                'u.email',
+                                'u.email_verified_at',
+                                'u.created_at',
+                            ])
+                            ->get();
 
             return response()->json(["onboardings" => $onboardings]);
         } catch (\Throwable $th) {
