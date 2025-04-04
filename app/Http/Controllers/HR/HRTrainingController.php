@@ -271,7 +271,7 @@ class HRTrainingController extends Controller
     {
         try {
             $deleted = $training->update(["is_deleted" => true]);
-            $deletedContents = TrainingContent::where(["training_id", "=", $training->id])->update(["is_deleted" => true]);
+            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deleted && $deletedContents]);
         } catch (\Throwable $th) {
