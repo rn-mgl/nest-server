@@ -69,7 +69,7 @@ class HREmployeeOnboardingController extends Controller
             ]);
 
             $employeeOnboardingAttr = [
-                "onboarded_by" => Auth::guard("base")->id(),
+                "assigned_by" => Auth::guard("base")->id(),
                 "onboarding_id" => $attributes["onboarding_id"]
             ];
 
