@@ -195,6 +195,7 @@ Route::prefix("api")->group(function() {
             Route::controller(EmployeeOnboardingController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
                 Route::get("/{employee_onboarding}", "show")->can("updateEmployee", User::class);
+                Route::patch("/{employee_onboarding}", "update")->can("updateEmployee", User::class);
             });
         });
     });

@@ -77,7 +77,12 @@ class EmployeeOnboardingController extends Controller
     public function show(EmployeeOnboarding $employeeOnboarding)
     {
         try {
-            return response()->json(["onboarding" => $employeeOnboarding->load(["onboarding", "onboarding.policyAcknowledgements", "onboarding.requiredDocuments"])]);
+            return response()->json(["onboarding" => $employeeOnboarding->load([
+                "onboarding",
+                "onboarding.policyAcknowledgements",
+                "onboarding.requiredDocuments",
+                "assignedBy"
+                ])]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -96,7 +101,18 @@ class EmployeeOnboardingController extends Controller
      */
     public function update(Request $request, EmployeeOnboarding $employeeOnboarding)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "policy_acknowledged" => ["boolean", "required"]
+            ]);
+
+            $acknowledged = $employeeOnboarding->update($attributes);
+
+            return response()->json(["success" => $acknowledged]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
