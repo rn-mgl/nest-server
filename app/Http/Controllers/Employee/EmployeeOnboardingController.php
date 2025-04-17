@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\EmployeeOnboarding;
 use App\Models\Onboarding;
 use Exception;
@@ -16,9 +19,24 @@ class EmployeeOnboardingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+            $categoryAttributes = $categoryRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
+
+            $searchKey = $attributes['searchKey'];
+            $searchValue = $attributes['searchValue'] ?? "";
+            $sortKey = $attributes['sortKey'];
+            $isAsc = filter_var($attributes['isAsc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $categoryKey = $attributes['categoryKey'] ?? "";
+            $categoryValue = $attributes['categoryValue'] ?? "";
+            $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
             $user = Auth::guard("base")->id();
 
@@ -32,6 +50,9 @@ class EmployeeOnboardingController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("employee_id", "=", $user)
+                            ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                            ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
+                            ->orderBy("{$sortKey}", $sortType)
                             ->select([
                                 'eo.id as employee_onboarding_id',
                                 'eo.completed_documents',
