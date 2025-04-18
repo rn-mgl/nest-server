@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
 use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
+use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HREmployeeController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
@@ -208,9 +209,17 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // employee leave balance route
         Route::prefix("leave_balance")->group(function() {
             Route::controller(EmployeeLeaveBalanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
+            });
+        });
+
+        // employee leave request route
+        Route::prefix("leave_request")->group(function() {
+            Route::controller(EmployeeLeaveRequestController::class)->group(function() {
+                Route::post("/", "store")->can("updateEmployee", User::class);
             });
         });
     });

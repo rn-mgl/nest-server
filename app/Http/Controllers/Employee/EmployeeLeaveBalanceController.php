@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,7 @@ class EmployeeLeaveBalanceController extends Controller
         return response()->json(["leave_balances" => $leaveBalances]);
 
         } catch (\Throwable $th) {
-            throw $th;
+            throw new Exception($th->getMessage());
         }
     }
 
