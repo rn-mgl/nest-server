@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
+use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
 use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HREmployeeController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\HR\HRTrainingController;
 use App\Http\Controllers\BaseAuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
+use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -196,6 +198,19 @@ Route::prefix("api")->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
                 Route::get("/{employee_onboarding}", "show")->can("updateEmployee", User::class);
                 Route::patch("/{employee_onboarding}", "update")->can("updateEmployee", User::class);
+            });
+        });
+
+        // employee performance review route
+        Route::prefix("employee_performance_review")->group(function() {
+            Route::controller(EmployeePerformanceReviewController::class)->group(function() {
+                Route::get("/", "index")->can("updateEmployee", User::class);
+            });
+        });
+
+        Route::prefix("leave_balance")->group(function() {
+            Route::controller(EmployeeLeaveBalanceController::class)->group(function() {
+                Route::get("/", "index")->can("updateEmployee", User::class);
             });
         });
     });

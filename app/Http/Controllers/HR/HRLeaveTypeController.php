@@ -42,7 +42,7 @@ class HRLeaveTypeController extends Controller
                 [
                             "type",
                             "description",
-                            "lt.id as leave_id",
+                            "lt.id as leave_type_id",
                             "lt.created_at",
                             "lt.created_by",
                             "u.first_name",
