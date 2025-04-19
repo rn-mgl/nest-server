@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Admin;
 use App\Utils\Tokens;
 use Carbon\Carbon;
 use Closure;
