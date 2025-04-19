@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\EmployeePerformanceReview;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class EmployeePerformanceReviewController extends Controller
@@ -13,9 +16,22 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes);
+
+            $searchKey = $attributes["searchKey"];
+            $sortKey = $attributes["sortKey"];
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $searchValue = $attributes["searchValue"] ?? "";
+
+            $user = Auth::guard("base")->id();
 
             $performanceReviews = DB::table("employee_performance_reviews as epr")
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
@@ -26,6 +42,9 @@ class EmployeePerformanceReviewController extends Controller
                                         $join->on("u.id", "=", "epr.assigned_by")
                                         ->where("u.is_deleted", "=", false);
                                     })
+                                    ->where("epr.employee_id", "=", $user)
+                                    ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                                    ->orderBy("{$sortKey}", "{$sortType}")
                                     ->select([
                                         'epr.id as employee_performance_revied_id',
                                         'pr.id as performance_review_id',
