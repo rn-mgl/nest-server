@@ -76,8 +76,8 @@ class AdminAuthController extends Controller
                 "name" => "{$admin->first_name} {$admin->last_name}",
                 "email" => $admin->email,
                 "role" => "admin",
-                "iss" => "Nest",
-                "aud" => env("APP_URL"),
+                "iss" => env("TOKEN_ISSUER"),
+                "aud" => env("TOKEN_AUDIENCE"),
                 "iat" => Carbon::now()->timestamp,
                 "exp" => Carbon::now()->addDay()->timestamp,
             ];

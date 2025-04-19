@@ -108,7 +108,7 @@ class BaseAuthController extends Controller
                 "email" => $user->email,
                 "role" => $user->role,
                 "iss" => env("TOKEN_ISSUER"),
-                "aud" => env("TOKEN_AUDIENNCE"),
+                "aud" => env("TOKEN_AUDIENCE"),
                 "iat" => Carbon::now()->timestamp,
                 "exp" => Carbon::now()->addDay()->timestamp,
             ];

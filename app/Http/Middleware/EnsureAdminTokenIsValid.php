@@ -41,7 +41,7 @@ class EnsureAdminTokenIsValid
             $isCorrectMetadata = $tokens->verifyTokenMetadata($decoded);
 
             if (!$isCorrectMetadata) {
-                throw new UnauthorizedException("You are unauthorized to proceed.");
+                throw new UnauthorizedException("Your token is invalid. Please log in again.");
             }
 
             $admin = Auth::guard("admin")->user();

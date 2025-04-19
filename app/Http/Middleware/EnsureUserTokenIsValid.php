@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Utils\Tokens;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,10 +32,17 @@ class EnsureUserTokenIsValid
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
+            $tokens = new Tokens();
             $token = explode(" ", $authToken)[1];
             $key = env("SESSION_KEY");
 
             $decoded = JWT::decode($token, new Key($key, "HS256"));
+
+            $isCorrectMetadata = $tokens->verifyTokenMetadata($decoded);
+
+            if (!$isCorrectMetadata) {
+                throw new UnauthorizedException("Your token is invalid. Please log in again.");
+            }
 
             $user = Auth::guard("base")->user();
 
