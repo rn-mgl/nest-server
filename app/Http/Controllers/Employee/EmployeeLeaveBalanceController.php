@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -14,9 +16,20 @@ class EmployeeLeaveBalanceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes);
+
+            $searchKey = $attributes["searchKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $sortKey = $attributes["sortKey"];
 
             $user = Auth::guard("base")->id();
 
@@ -29,6 +42,9 @@ class EmployeeLeaveBalanceController extends Controller
                                 $join->on("lt.id", "=", "lb.leave_type_id")
                                 ->where("lt.is_deleted", "=", false);
                             })
+                            ->where("lb.user_id", "=", $user)
+                            ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                            ->orderBy("{$sortKey}", "{$sortType}")
                             ->select([
                                 'lb.id as leave_balance_id',
                                 'lb.balance',
@@ -43,7 +59,6 @@ class EmployeeLeaveBalanceController extends Controller
                                 'u.email_verified_at',
                                 'u.created_at',
                             ])
-                            ->where("lb.user_id", "=", $user)
                             ->get();
 
         return response()->json(["leave_balances" => $leaveBalances]);
