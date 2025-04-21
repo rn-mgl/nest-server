@@ -206,6 +206,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("employee_performance_review")->group(function() {
             Route::controller(EmployeePerformanceReviewController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
+                Route::get("/{employee_performance_review}", "show")->can("updateEmployee", User::class);
             });
         });
 

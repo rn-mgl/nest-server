@@ -10,4 +10,9 @@ class EmployeePerformanceReview extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function performanceReview()
+    {
+        return $this->belongsTo(PerformanceReview::class, "performance_review_id");
+    }
 }

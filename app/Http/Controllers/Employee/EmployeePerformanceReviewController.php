@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\EmployeePerformanceReview;
+use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,7 @@ class EmployeePerformanceReviewController extends Controller
                                     ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                                     ->orderBy("{$sortKey}", "{$sortType}")
                                     ->select([
-                                        'epr.id as employee_performance_revied_id',
+                                        'epr.id as employee_performance_review_id',
                                         'pr.id as performance_review_id',
                                         'pr.title',
                                         'pr.description',
@@ -86,9 +87,17 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
+    public function show(EmployeePerformanceReview $employeePerformanceReview)
     {
-        //
+        try {
+
+            $performanceReview = $employeePerformanceReview->load(["performanceReview", "performanceReview.contents"]);
+
+            return response()->json(["performance_review" => $performanceReview]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
