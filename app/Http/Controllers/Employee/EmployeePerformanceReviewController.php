@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
-use App\Models\EmployeePerformanceReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -87,11 +86,40 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeePerformanceReview $employeePerformanceReview)
+    public function show($employeePerformanceReview)
     {
         try {
 
-            $performanceReview = $employeePerformanceReview->load(["performanceReview", "performanceReview.contents"]);
+            $user = Auth::guard("base")->id();
+
+            $performanceReview = DB::table("employee_performance_reviews as epr")
+                                ->join("performance_reviews as pr", function(JoinClause $join) {
+                                    $join->on("epr.performance_review_id", "=", "pr.id")
+                                    ->where("pr.is_deleted", "=", false);
+                                })
+                                ->select([
+                                    "pr.id as performance_review_id",
+                                    "pr.title",
+                                    "pr.description",
+                                    "pr.created_by"
+                                ])
+                                ->where("epr.id", "=", $employeePerformanceReview)
+                                ->first();
+
+            $performanceReview->contents = DB::table("performance_review_contents as prc")
+                                            ->leftJoin("performance_review_responses as prr", function(JoinClause $join) use ($user) {
+                                                $join->on("prc.id", "=", "prr.review_content_id")
+                                                ->where("prr.response_by", "=", $user)
+                                                ->where("prc.is_deleted", "=", false);
+                                            })
+                                            ->where("prc.performance_review_id", "=", $performanceReview->performance_review_id)
+                                            ->select([
+                                                "prc.id as performance_review_content_id",
+                                                "prc.survey",
+                                                "prr.id as performance_review_response_id",
+                                                "prr.response",
+                                            ])
+                                            ->get();
 
             return response()->json(["performance_review" => $performanceReview]);
 
