@@ -16,6 +16,7 @@ use App\Http\Controllers\BaseAuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
+use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -207,6 +208,12 @@ Route::prefix("api")->group(function() {
             Route::controller(EmployeePerformanceReviewController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
                 Route::get("/{employee_performance_review}", "show")->can("updateEmployee", User::class);
+            });
+        });
+
+        Route::prefix("employee_performance_review_response")->group(function() {
+            Route::controller(EmployeePerformanceReviewResponseController::class)->group(function() {
+                Route::post("/", "store")->can("updateEmployee", User::class);
             });
         });
 

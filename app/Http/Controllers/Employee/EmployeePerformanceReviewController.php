@@ -107,17 +107,17 @@ class EmployeePerformanceReviewController extends Controller
                                 ->first();
 
             $performanceReview->contents = DB::table("performance_review_contents as prc")
-                                            ->leftJoin("performance_review_responses as prr", function(JoinClause $join) use ($user) {
-                                                $join->on("prc.id", "=", "prr.review_content_id")
-                                                ->where("prr.response_by", "=", $user)
+                                            ->leftJoin("employee_performance_review_responses as eprr", function(JoinClause $join) use ($user) {
+                                                $join->on("prc.id", "=", "eprr.performance_review_content_id")
+                                                ->where("eprr.response_by", "=", $user)
                                                 ->where("prc.is_deleted", "=", false);
                                             })
                                             ->where("prc.performance_review_id", "=", $performanceReview->performance_review_id)
                                             ->select([
                                                 "prc.id as performance_review_content_id",
                                                 "prc.survey",
-                                                "prr.id as performance_review_response_id",
-                                                "prr.response",
+                                                "eprr.id as employee_performance_review_response_id",
+                                                "eprr.response",
                                             ])
                                             ->get();
 

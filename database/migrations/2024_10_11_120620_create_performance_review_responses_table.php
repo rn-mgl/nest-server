@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('performance_review_responses', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(PerformanceReviewContent::class, "review_content_id")->constrained("performance_review_contents")->cascadeOnDelete();
+            $table->foreignIdFor(PerformanceReviewContent::class, "performance_review_content_id")->constrained("performance_review_contents")->cascadeOnDelete();
             $table->foreignIdFor(User::class, "response_by")->constrained("users")->cascadeOnDelete();
             $table->longText("response");
             $table->timestamp("created_at")->useCurrent();
