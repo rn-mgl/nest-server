@@ -17,6 +17,7 @@ use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
+use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -211,6 +212,7 @@ Route::prefix("api")->group(function() {
             });
         });
 
+        // employee performance review response
         Route::prefix("employee_performance_review_response")->group(function() {
             Route::controller(EmployeePerformanceReviewResponseController::class)->group(function() {
                 Route::post("/", "store")->can("updateEmployee", User::class);
@@ -228,6 +230,13 @@ Route::prefix("api")->group(function() {
         Route::prefix("leave_request")->group(function() {
             Route::controller(EmployeeLeaveRequestController::class)->group(function() {
                 Route::post("/", "store")->can("updateEmployee", User::class);
+            });
+        });
+
+        // employee training
+        Route::prefix("employee_training")->group(function() {
+            Route::controller(EmployeeTrainingController::class)->group(function() {
+                Route::get("/", "index")->can("updateEmployee", User::class);
             });
         });
     });
