@@ -75,9 +75,43 @@ class EmployeeTrainingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeTraining $employeeTraining)
+    public function show($employeeTraining)
     {
-        //
+        try {
+            $training = DB::table("employee_trainings as et")
+                        ->join("trainings as t", function(JoinClause $join) {
+                            $join->on("et.training_id", "=", "t.id")
+                            ->where("t.is_deleted", "=", false);
+                        })
+                        ->where("et.id", "=", $employeeTraining)
+                        ->select([
+                            "t.id as training_id",
+                            "t.title",
+                            "t.description",
+                            "t.deadline_days",
+                            DB::raw("CASE WHEN et.status != 'Done' THEN NULL ELSE t.certificate END as certificate"),
+                            "et.id as employee_training_id",
+                            "et.status",
+                            "et.deadline",
+                        ])
+                        ->first();
+
+            $training->contents = DB::table("training_contents as t")
+                                ->where("training_id", "=", $training->training_id)
+                                ->where("is_deleted", "=", false)
+                                ->select([
+                                    "id as training_content_id",
+                                    "title",
+                                    "description",
+                                    "content",
+                                    "type"
+                                ])
+                                ->get();
+
+            return response()->json(["training" => $training]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**

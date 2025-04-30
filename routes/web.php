@@ -237,6 +237,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("employee_training")->group(function() {
             Route::controller(EmployeeTrainingController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
+                Route::get("/{employee_training}", "show")->can("updateEmployee", User::class);
             });
         });
     });
