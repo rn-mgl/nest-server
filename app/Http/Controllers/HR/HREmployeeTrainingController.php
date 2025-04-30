@@ -4,6 +4,8 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeTraining;
+use App\Models\Training;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -38,6 +40,8 @@ class HREmployeeTrainingController extends Controller
                             "u.email_verified_at",
                             "u.created_at",
                             "et.id as employee_training_id",
+                            "et.status",
+                            "et.deadline"
                         ])
                         ->get();
 
@@ -69,6 +73,8 @@ class HREmployeeTrainingController extends Controller
 
             $employeeIds = $attributes["employee_ids"];
             $trainingId = $attributes["training_id"];
+            $training = Training::find($trainingId);
+            $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
             $employeeTrainings = DB::table("employee_trainings")
                                 ->where("training_id", "=", $trainingId)
@@ -83,7 +89,8 @@ class HREmployeeTrainingController extends Controller
                     $employeeTrainingAttr = [
                         "employee_id" => $employee,
                         "assigned_by" => Auth::guard("base")->id(),
-                        "training_id" => $trainingId
+                        "training_id" => $trainingId,
+                        "deadline" => $deadline
                     ];
 
                     $created = EmployeeTraining::create($employeeTrainingAttr);
