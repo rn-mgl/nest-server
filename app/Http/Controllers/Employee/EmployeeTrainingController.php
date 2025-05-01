@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\EmployeeTraining;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -15,9 +18,23 @@ class EmployeeTrainingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+            $categoryAttributes = $categoryRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
+
+            $searchKey = $attributes["searchKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
+            $sortKey = $attributes["sortKey"];
+            $isAsc = filter_var($attributes["sortKey"], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
+            $categoryKey = $attributes["categoryKey"];
+            $categoryValue = $attributes["categoryValue"] ==="all" ? "" : $attributes["categoryValue"];
 
             $user = Auth::guard("base")->id();
 
@@ -30,7 +47,10 @@ class EmployeeTrainingController extends Controller
                             $join->on("et.training_id", "=", "t.id")
                             ->where("t.is_deleted", "=", false);
                         })
+                        ->where("et.is_deleted", "=", false)
                         ->where("et.employee_id", "=", $user)
+                        ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                        ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
                         ->select([
                             'et.id as employee_training_id',
                             'et.status',
@@ -47,6 +67,7 @@ class EmployeeTrainingController extends Controller
                             'u.email_verified_at',
                             'u.created_at',
                         ])
+                        ->orderBy("{$sortKey}", $sortType)
                         ->get();
 
         return response()->json(["trainings" => $trainings]);
