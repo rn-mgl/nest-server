@@ -240,6 +240,13 @@ Route::prefix("api")->group(function() {
                 Route::get("/{employee_training}", "show")->can("updateEmployee", User::class);
             });
         });
+
+        // employee document
+        Route::prefix("document")->group(function() {
+            Route::controller(DocumentController::class)->group(function() {
+                Route::get("/", "index")->can("updateEmployee", User::class);
+            });
+        });
     });
 
     // admin routes
