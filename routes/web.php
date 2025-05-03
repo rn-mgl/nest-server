@@ -247,6 +247,13 @@ Route::prefix("api")->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
             });
         });
+
+        // employee document folder
+        Route::prefix("document_folder")->group(function() {
+            Route::controller(DocumentFolderController::class)->group(function() {
+                Route::get("/{document_folder}", "show")->can("updateEmployee", User::class);
+            });
+        });
     });
 
     // admin routes
