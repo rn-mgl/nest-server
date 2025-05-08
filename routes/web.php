@@ -150,7 +150,6 @@ Route::prefix("api")->group(function() {
         // employee training route
         Route::prefix('employee_training')->group(function() {
             Route::controller(HREmployeeTrainingController::class)->group(function() {
-
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
