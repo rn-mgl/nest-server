@@ -191,6 +191,21 @@ class HRTrainingController extends Controller
 
             $training->contents = $contents;
 
+            $reviews = DB::table("training_reviews as tr")
+                        ->where("training_id", "=", $training->id)
+                        ->where("is_deleted", "=", false)
+                        ->select([
+                            "question",
+                            "answer",
+                            "choice_1",
+                            "choice_2",
+                            "choice_3",
+                            "choice_4",
+                        ])
+                        ->get();
+
+            $training->reviews = $reviews;
+
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
