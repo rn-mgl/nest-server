@@ -7,6 +7,7 @@ use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\Training;
 use App\Models\TrainingContent;
+use App\Models\TrainingReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -83,8 +84,14 @@ class HRTrainingController extends Controller
                 $contents[$key] = json_decode($value, true);
             }
 
+            $reviews = $request->input("reviews");
+
+            foreach($reviews as $key => $value) {
+                $reviews[$key] = json_decode($value, true);
+            }
+
             // convert json string to valid json
-            $request->merge(["contents" => $contents]);
+            $request->merge(["contents" => $contents, "reviews" => $reviews]);
 
             $attributes = $request->validate([
                 "title" => ["required", "string"],
@@ -97,7 +104,14 @@ class HRTrainingController extends Controller
                 "contents.*.content" => ["required_if:contents.*.type,text", "string"],
                 "contents.*.type" => ["required", "string", "in:text,image,video,file"],
                 "contentFile" => ["nullable", "array"],
-                "contentFile.*" => ["required_if:contents.*.type,image,video,file"]
+                "contentFile.*" => ["required_if:contents.*.type,image,video,file"],
+                "reviews" => ["array"],
+                "reviews.*.answer" => ["required", "integer"],
+                "reviews.*.choice_1" => ["required", "string"],
+                "reviews.*.choice_2" => ["required", "string"],
+                "reviews.*.choice_3" => ["required", "string"],
+                "reviews.*.choice_4" => ["required", "string"],
+                "reviews.*.question" => ["required", "string"],
             ]);
 
             $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
@@ -130,6 +144,23 @@ class HRTrainingController extends Controller
                 }
 
                 $trainingContent = TrainingContent::create($contentAttr);
+            }
+
+            foreach($reviews as $key => $value) {
+
+                $reviewAttr = [
+                    "training_id" => $training->id,
+                    "created_by" => Auth::guard("base")->id(),
+                    "answer" => $value["answer"],
+                    "choice_1" => $value["choice_1"],
+                    "choice_2" => $value["choice_2"],
+                    "choice_3" => $value["choice_3"],
+                    "choice_4" => $value["choice_4"],
+                    "question" => $value["question"],
+                ];
+
+                $trainingReview = TrainingReview::create($reviewAttr);
+
             }
 
             return response()->json(["success" => true]);
