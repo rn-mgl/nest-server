@@ -14,4 +14,8 @@ class Training extends Model
     public function contents() {
         return $this->hasMany(TrainingContent::class);
     }
+
+    public function reviews() {
+        return $this->hasMany(TrainingReview::class);
+    }
 }

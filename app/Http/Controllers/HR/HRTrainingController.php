@@ -84,7 +84,7 @@ class HRTrainingController extends Controller
                 $contents[$key] = json_decode($value, true);
             }
 
-            $reviews = $request->input("reviews");
+            $reviews = $request->input("reviews") ?? [];
 
             foreach($reviews as $key => $value) {
                 $reviews[$key] = json_decode($value, true);
@@ -195,6 +195,7 @@ class HRTrainingController extends Controller
                         ->where("training_id", "=", $training->id)
                         ->where("is_deleted", "=", false)
                         ->select([
+                            "tr.id as training_review_id",
                             "question",
                             "answer",
                             "choice_1",
@@ -226,14 +227,19 @@ class HRTrainingController extends Controller
     public function update(Request $request, Training $training)
     {
         try {
-            logger($request->all());
             $contents = $request->input("contents");
 
             foreach ($contents as $key => $value) {
                 $contents[$key] = json_decode($value, true);
             }
 
-            $request->merge(["contents" => $contents]);
+            $reviews = $request->input("reviews") ?? [];
+
+            foreach ($reviews as $key => $value) {
+                $reviews[$key] = json_decode($value, true);
+            }
+
+            $request->merge(["contents" => $contents, "reviews" => $reviews]);
 
             $attributes = $request->validate([
                 "title" => ["required", "string"],
@@ -248,7 +254,17 @@ class HRTrainingController extends Controller
                 "contents.*.type" => ["required", "string", "in:text,image,video,file"],
                 "contentFile" => ["required", "array"],
                 "contentsToDelete" => ["array", "nullable"],
-                "contentsToDelete.*" => ["nullable", "integer"]
+                "contentsToDelete.*" => ["nullable", "integer"],
+                "reviews" => ["array"],
+                "reviews.*.answer" => ["required", "integer", "in:1,2,3,4"],
+                "reviews.*.question" => ["required", "string"],
+                "reviews.*.choice_1" => ["required", "string"],
+                "reviews.*.choice_2" => ["required", "string"],
+                "reviews.*.choice_3" => ["required", "string"],
+                "reviews.*.choice_4" => ["required", "string"],
+                "reviews.*.training_review_id" => ["nullable"],
+                "reviewsToDelete" => ["array", "nullable"],
+                "reviewsToDelete.*" => ["integer"]
             ]);
 
             if (!$request->hasFile("certificate") && !is_string($attributes["certificate"])) {
@@ -289,7 +305,7 @@ class HRTrainingController extends Controller
                     $contentAttr["content"] = $contentFile;
                 }
 
-                if (isset($value["training_content_id"])) {
+                if (!empty($value["training_content_id"])) {
                     $updatedContent = TrainingContent::where("id", "=", $value["training_content_id"])->update($contentAttr);
                 } else {
                     $createdContent = TrainingContent::create($contentAttr);
@@ -301,6 +317,36 @@ class HRTrainingController extends Controller
 
             foreach($contentsToDelete as $toDelete) {
                 $deletedContents = TrainingContent::where("id", "=", $toDelete)->update(["is_deleted" => true]);
+            }
+
+            $reviews = $attributes["reviews"];
+
+            foreach($reviews as $key => $value) {
+
+                $reviewAttr = [
+                    "training_id" => $training->id,
+                    "question" => $value["question"],
+                    "answer" => $value["answer"],
+                    "choice_1" => $value["choice_1"],
+                    "choice_2" => $value["choice_2"],
+                    "choice_3" => $value["choice_3"],
+                    "choice_4" => $value["choice_4"],
+                ];
+
+                if (!empty($value['training_review_id'])) {
+                    $updatedReview = TrainingReview::where("id", "=", $value['training_review_id'])->update($reviewAttr);
+                } else {
+                    $createdReview = TrainingReview::create($reviewAttr);
+                }
+
+            }
+
+            $reviewsToDelete = $attributes["reviewsToDelete"] ?? [];
+
+            foreach ($reviewsToDelete as $toDelete) {
+
+                $deletedReviews = TrainingReview::where("id", "=", $toDelete)->update(["is_deleted" => true]);
+
             }
 
             return response()->json(["success" => true]);
