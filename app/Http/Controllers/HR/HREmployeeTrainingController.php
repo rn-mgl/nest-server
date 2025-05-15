@@ -4,6 +4,7 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeTraining;
+use App\Models\EmployeeTrainingReview;
 use App\Models\Training;
 use Carbon\Carbon;
 use Exception;
@@ -66,7 +67,7 @@ class HREmployeeTrainingController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "employee_ids" => ["required", "array"],
+                "employee_ids" => ["array"],
                 "employee_ids.*" => ["integer", "exists:users,id"],
                 "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
@@ -95,6 +96,15 @@ class HREmployeeTrainingController extends Controller
 
                     $created = EmployeeTraining::create($employeeTrainingAttr);
 
+                    $employeeTrainingReviewAttr = [
+                        "employee_id" => $employee,
+                        "assigned_by" => Auth::guard("base")->id(),
+                        "training_id" => $trainingId,
+                        "deadline" => $deadline
+                    ];
+
+                    $createdEmployeeTrainingReview = EmployeeTrainingReview::create($employeeTrainingReviewAttr);
+
                 }
 
             }
@@ -102,10 +112,15 @@ class HREmployeeTrainingController extends Controller
             foreach ($alreadyAssigned as $id) {
 
                 if (!in_array($id, $employeeIds)) {
-                    $deleted = DB::table("employee_trainings")
+                    $deletedEmployeeTraining = DB::table("employee_trainings")
                                 ->where("employee_id", "=", $id)
                                 ->where("training_id", "=", $trainingId)
                                 ->delete();
+
+                    $deletedEmployeeTrainingReview = DB::table("employee_training_reviews")
+                                                    ->where("employee_id", "=", $id)
+                                                    ->where("training_id", "=", $trainingId)
+                                                    ->delete();
                 }
 
             }
