@@ -95,16 +95,6 @@ class HREmployeeTrainingController extends Controller
                     ];
 
                     $created = EmployeeTraining::create($employeeTrainingAttr);
-
-                    $employeeTrainingReviewAttr = [
-                        "employee_id" => $employee,
-                        "assigned_by" => Auth::guard("base")->id(),
-                        "training_id" => $trainingId,
-                        "deadline" => $deadline
-                    ];
-
-                    $createdEmployeeTrainingReview = EmployeeTrainingReview::create($employeeTrainingReviewAttr);
-
                 }
 
             }
@@ -116,11 +106,6 @@ class HREmployeeTrainingController extends Controller
                                 ->where("employee_id", "=", $id)
                                 ->where("training_id", "=", $trainingId)
                                 ->delete();
-
-                    $deletedEmployeeTrainingReview = DB::table("employee_training_reviews")
-                                                    ->where("employee_id", "=", $id)
-                                                    ->where("training_id", "=", $trainingId)
-                                                    ->delete();
                 }
 
             }

@@ -129,6 +129,19 @@ class EmployeeTrainingController extends Controller
                                 ])
                                 ->get();
 
+            $training->reviews = DB::table("training_reviews as tr")
+                                ->where("training_id", "=", $training->training_id)
+                                ->where("is_deleted", "=", false)
+                                ->select([
+                                    "tr.id as training_review_id",
+                                    "tr.question",
+                                    "tr.choice_1",
+                                    "tr.choice_2",
+                                    "tr.choice_3",
+                                    "tr.choice_4",
+                                ])
+                                ->get();
+
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
