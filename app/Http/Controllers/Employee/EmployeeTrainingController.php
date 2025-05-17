@@ -141,7 +141,7 @@ class EmployeeTrainingController extends Controller
                                     "etrr.id as employee_training_review_response_id",
                                     "tr.id as training_review_id",
                                     DB::raw("CASE WHEN etrr.answer IS NULL THEN NULL ELSE etrr.answer END as employee_answer"),
-                                    DB::raw("CASE WHEN etrr.id IS NULL THEN NULL ELSE tr.answer END as answer"),
+                                    DB::raw("CASE WHEN etrr.answer = tr.answer THEN true ELSE false END as is_correct"),
                                     "tr.question",
                                     "tr.choice_1",
                                     "tr.choice_2",
