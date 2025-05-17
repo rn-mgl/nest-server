@@ -111,6 +111,7 @@ class EmployeeTrainingController extends Controller
                             "t.description",
                             "t.deadline_days",
                             DB::raw("CASE WHEN et.status != 'Done' THEN NULL ELSE t.certificate END as certificate"),
+                            "et.score",
                             "et.id as employee_training_id",
                             "et.status",
                             "et.deadline",
@@ -130,10 +131,17 @@ class EmployeeTrainingController extends Controller
                                 ->get();
 
             $training->reviews = DB::table("training_reviews as tr")
-                                ->where("training_id", "=", $training->training_id)
-                                ->where("is_deleted", "=", false)
+                                ->leftJoin("employee_training_review_responses as etrr", function(JoinClause $join) {
+                                    $join->on("tr.id", "=", "etrr.training_review_id")
+                                    ->where("etrr.is_deleted", "=", false);
+                                })
+                                ->where("tr.training_id", "=", $training->training_id)
+                                ->where("tr.is_deleted", "=", false)
                                 ->select([
+                                    "etrr.id as employee_training_review_response_id",
                                     "tr.id as training_review_id",
+                                    DB::raw("CASE WHEN etrr.answer IS NULL THEN NULL ELSE etrr.answer END as employee_answer"),
+                                    DB::raw("CASE WHEN etrr.id IS NULL THEN NULL ELSE tr.answer END as answer"),
                                     "tr.question",
                                     "tr.choice_1",
                                     "tr.choice_2",
