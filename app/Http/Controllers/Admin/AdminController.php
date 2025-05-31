@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use Exception;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -37,7 +38,11 @@ class AdminController extends Controller
      */
     public function show(Admin $admin)
     {
-        //
+        try {
+            return response()->json(["profile" => $admin]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -53,7 +58,19 @@ class AdminController extends Controller
      */
     public function update(Request $request, Admin $admin)
     {
-        //
+        try {
+            $attributes = $request->validate([
+                "first_name" => ["string", "required"],
+                "last_name" => ["string", "required"]
+            ]);
+
+            $updated = $admin->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**

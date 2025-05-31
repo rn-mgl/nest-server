@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
@@ -279,7 +280,14 @@ Route::prefix("api")->group(function() {
 
             Route::controller(AdminHRController::class)->group(function() {
                 Route::get("/", "index")->can("update", Admin::class);
-                Route::patch("/update/{hr}", "update")->can("update", Admin::class);
+                Route::patch("/{hr}", "update")->can("update", Admin::class);
+            });
+        });
+
+        Route::prefix("profile")->group(function() {
+            Route::controller(AdminController::class)->group(function() {
+                Route::get("/{admin}", "show")->can("update", Admin::class);
+                Route::patch("/{admin}", "update")->can("update", Admin::class);
             });
         });
     });

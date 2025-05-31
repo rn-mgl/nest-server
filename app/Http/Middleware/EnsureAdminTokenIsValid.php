@@ -45,10 +45,8 @@ class EnsureAdminTokenIsValid
 
             $admin = Auth::guard("admin")->user();
 
-            $adminName = "{$admin->first_name} {$admin->last_name}";
-
             // check if payload match db
-            if ($admin->id !== $decoded->admin || $admin->email !== $decoded->email || $adminName !== $decoded->name) {
+            if ($admin->id !== $decoded->admin) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
@@ -62,7 +60,7 @@ class EnsureAdminTokenIsValid
             return $next($request);
 
         } catch (\Throwable $th) {
-            throw new Exception("You are unauthorized to proceed.");
+            throw new Exception($th->getMessage());
         }
 
     }
