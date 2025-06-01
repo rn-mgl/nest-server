@@ -60,9 +60,15 @@ class AdminController extends Controller
     {
         try {
             $attributes = $request->validate([
+                "image" => ["nullable"],
                 "first_name" => ["string", "required"],
                 "last_name" => ["string", "required"]
             ]);
+
+            if ($request->hasFile("image")) {
+                $uploadedFile = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $attributes["image"] = $uploadedFile;
+            }
 
             $updated = $admin->update($attributes);
 
