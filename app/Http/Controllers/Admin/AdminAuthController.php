@@ -13,6 +13,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -117,6 +118,35 @@ class AdminAuthController extends Controller
             $request->session()->regenerateToken();
 
             return response()->json(["success" => true]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    public function change_password(Request $request)
+    {
+        try {
+            $attributes = $request->validate([
+                "current_password" => ["required", "string"],
+                "new_password" => ["required", "confirmed", "string", Password::min(8)]
+            ]);
+
+            $user = Auth::guard("admin")->user();
+
+            if (!Hash::check($attributes["current_password"], $user->password)) {
+                throw new Exception("Entered Current Password did not match your record.");
+            }
+
+            $changed = Admin::find($user->id)->update(["password" => $attributes["new_password"]]);
+
+            if ($changed) {
+                Auth::guard("admin")->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+
+            return  response()->json(["success" => $changed]);
+
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

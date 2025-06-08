@@ -269,6 +269,7 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth:admin", "valid_admin_token"])->prefix("admin")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(AdminAuthController::class)->group(function() {
+                Route::post("/change_password", "change_password");
                 Route::post("/logout", "logout");
             });
         });
