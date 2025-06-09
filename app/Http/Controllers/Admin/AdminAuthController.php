@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Events\AdminRegistered;
 use App\Http\Controllers\Controller;
+use App\Mail\AdminPasswordResetLink;
 use App\Models\Admin;
 use App\Utils\Tokens;
 use Carbon\Carbon;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -147,6 +149,35 @@ class AdminAuthController extends Controller
 
             return  response()->json(["success" => $changed]);
 
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    public function forgot_password(Request $request) {
+        try {
+            $attributes = $request->validate([
+                "email" => ["required", "string", "email"]
+            ]);
+
+            $admin = Admin::where("email", "=", $attributes["email"])->firstOrFail();
+
+            $payload = [
+                "admin" => $admin->id,
+                "name" => "{$admin->first_name} {$admin->last_name}",
+                "email" => $admin->email,
+                "role" => "admin",
+                "iss" => env("TOKEN_ISSUER"),
+                "aud" => env("TOKEN_AUDIENCE"),
+                "iat" => Carbon::now()->timestamp,
+                "exp" => Carbon::now()->addDay()->timestamp,
+            ];
+
+            $token = JWT::encode($payload, env("ADMIN_RESET_KEY"), "HS256");
+
+            Mail::to($admin->email, "{$admin->first_name} {$admin->last_name}")->send(new AdminPasswordResetLink($token));
+
+            return response()->json(["success" => true]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

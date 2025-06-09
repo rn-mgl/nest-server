@@ -3,7 +3,7 @@
 
 Welcome to Nest! We’re excited to have you join our team. To complete your account setup and gain access to your employee dashboard, please verify your email by clicking the link below:
 
-<x-mail::button :url="url(config('app.nest_url') . '/control/verify/' . $token)">
+<x-mail::button :url="config('app.nest_url') . '/control/verify/' . $token">
 Verify Account
 </x-mail::button>
 
