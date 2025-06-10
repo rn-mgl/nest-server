@@ -10,6 +10,7 @@ use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,10 @@ class AdminAuthController extends Controller
     {
 
         try {
-            $token = $request->get("token");
+            $attributes = $request->validate([
+                "token" => ["required", "string"]
+            ]);
+            $token = $attributes["token"];
             $tokens = new Tokens(true);
             $decoded = $tokens->decodeVerificationToken($token);
             $correctMetadata = $tokens->verifyTokenMetadata($decoded);
@@ -170,16 +174,47 @@ class AdminAuthController extends Controller
                 "iss" => env("TOKEN_ISSUER"),
                 "aud" => env("TOKEN_AUDIENCE"),
                 "iat" => Carbon::now()->timestamp,
-                "exp" => Carbon::now()->addDay()->timestamp,
+                "exp" => Carbon::now()->addMinutes(30)->timestamp,
             ];
 
             $token = JWT::encode($payload, env("ADMIN_RESET_KEY"), "HS256");
 
-            Mail::to($admin->email, "{$admin->first_name} {$admin->last_name}")->send(new AdminPasswordResetLink($token));
+            Mail::to($admin->email, "{$admin->first_name} {$admin->last_name}")->queue(new AdminPasswordResetLink($token));
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
+    }
+
+    public function reset_password(Request $request){
+
+        try {
+
+            $attributes = $request->validate([
+                "new_password" => ["required", "string", "confirmed", Password::min(8)],
+                "reset_token" => ["required", "string"]
+            ]);
+
+            $resetToken = $attributes["reset_token"];
+
+            $decoded = JWT::decode($resetToken, new Key(env("ADMIN_RESET_KEY"), "HS256"));
+
+            $tokens = new Tokens(true);
+
+            $correctMetadata = $tokens->verifyTokenMetadata($decoded);
+
+            if (!$correctMetadata) {
+                throw new UnauthorizedException("The token you used is not valid.");
+            }
+
+            $reset = Admin::findOrFail($decoded->admin)->update(["password" => $attributes["new_password"]]);
+
+            return response()->json(["success" => $reset]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+
     }
 }

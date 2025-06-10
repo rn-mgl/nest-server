@@ -7,7 +7,7 @@ We received a request to reset your password. Click the link below to set a new 
 Reset Password
 </x-mail::button>
 
-This link will expire in 24 hours. If you didn’t request this, please ignore this message.
+This link will expire in 30 minutes. If you didn’t request this, please ignore this message.
 
 Regards,<br>
 {{ config('app.name') }}

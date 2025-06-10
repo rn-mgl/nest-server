@@ -55,6 +55,7 @@ Route::prefix("api")->group(function() {
             Route::patch("/verify", "verify");
             Route::post("/verification-notification", "resend_verification")->middleware(["auth:admin", "throttle:6,1"]);
             Route::post("/forgot-password", "forgot_password");
+            Route::patch("/reset-password", "reset_password");
         });
     });
 
