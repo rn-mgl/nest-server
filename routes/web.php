@@ -20,6 +20,7 @@ use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\EmployeeTrainingReviewResponseController;
+use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -178,6 +179,12 @@ Route::prefix("api")->group(function() {
                 Route::patch("/{document_folder}", "update")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
                 Route::delete("/{document_folder}", "destroy")->can("updateHR", User::class);
+            });
+        });
+
+        Route::prefix("profile")->group(function() {
+            Route::controller(HRController::class)->group(function() {
+                Route::get("/{hr}", "show")->can("updateHR", User::class);
             });
         });
     });

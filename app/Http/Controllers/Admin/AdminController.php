@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\UnauthorizedException;
 
 class AdminController extends Controller
 {
@@ -39,6 +41,13 @@ class AdminController extends Controller
     public function show(Admin $admin)
     {
         try {
+
+            $authenticated = Auth::guard("admin")->user();
+
+            if ($authenticated->id !== $admin->id) {
+                throw new UnauthorizedException("The client session you use does not match our server.");
+            }
+
             return response()->json(["profile" => $admin]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
