@@ -185,6 +185,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("profile")->group(function() {
             Route::controller(HRController::class)->group(function() {
                 Route::get("/{hr}", "show")->can("updateHR", User::class);
+                Route::patch("/{hr}", "update")->can("updateHR", User::class);
             });
         });
     });

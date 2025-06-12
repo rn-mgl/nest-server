@@ -66,9 +66,34 @@ class HRController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $hr)
     {
-        //
+        try {
+
+            $authenticated = Auth::guard("base")->user();
+
+            if ($authenticated->id !== $hr->id) {
+                throw new UnauthorizedException("Your session does not match our server.");
+            }
+
+            $attributes = $request->validate([
+                "first_name" => ["required", "string"],
+                "last_name" => ["required", "string"],
+                "image" => ["nullable"]
+            ]);
+
+            if ($request->hasFile("image")) {
+                $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $attributes["image"] = $uploaded;
+            }
+
+            $updated = $hr->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**

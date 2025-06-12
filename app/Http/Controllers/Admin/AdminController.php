@@ -68,6 +68,13 @@ class AdminController extends Controller
     public function update(Request $request, Admin $admin)
     {
         try {
+
+            $authenticated = Auth::guard("admin")->user();
+
+            if ($authenticated->id !== $admin->id) {
+                throw new UnauthorizedException("Your session does not match our server.");
+            }
+
             $attributes = $request->validate([
                 "image" => ["nullable"],
                 "first_name" => ["string", "required"],
