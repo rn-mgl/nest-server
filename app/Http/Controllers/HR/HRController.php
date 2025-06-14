@@ -70,12 +70,6 @@ class HRController extends Controller
     {
         try {
 
-            $authenticated = Auth::guard("base")->user();
-
-            if ($authenticated->id !== $hr->id) {
-                throw new UnauthorizedException("Your session does not match our server.");
-            }
-
             $attributes = $request->validate([
                 "first_name" => ["required", "string"],
                 "last_name" => ["required", "string"],

@@ -66,6 +66,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
                 Route::post("/logout", "logout");
+                Route::patch("/change-password", "change_password")->can("updateHR", User::class);
             });
         });
 

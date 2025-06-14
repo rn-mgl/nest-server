@@ -13,6 +13,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -153,5 +154,29 @@ class BaseAuthController extends Controller
             throw new Exception($th->getMessage());
         }
 
+    }
+
+    public function change_password(Request $request)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "current_password" => ["required", "string"],
+                "new_password" => ["required", "string", "confirmed", Password::min(8)],
+            ]);
+
+            $authenticated = Auth::guard("base")->user();
+
+            if (!Hash::check($attributes["current_password"], $authenticated->password)) {
+                throw new UnauthorizedException("The current password you entered does not match our record.");
+            }
+
+            $updated = User::findOrFail($authenticated->id)->update(["password" => $attributes["new_password"]]);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }
