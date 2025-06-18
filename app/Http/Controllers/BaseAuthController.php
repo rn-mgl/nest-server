@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\Registered;
+use App\Mail\PasswordResetLink;
 use App\Models\User;
 use App\Utils\Tokens;
 use Carbon\Carbon;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -174,6 +176,38 @@ class BaseAuthController extends Controller
             $updated = User::findOrFail($authenticated->id)->update(["password" => $attributes["new_password"]]);
 
             return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    public function forgot_password(Request $request)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "email" => ["required", "string", "email"]
+            ]);
+
+            $user = User::where("email", "=", $attributes["email"])->firstOrFail();
+
+            $payload = [
+                "user" => $user->id,
+                "name" => "{$user->first_name} {$user->last_name}",
+                "email" => $user->email,
+                "role" => $user->role,
+                "iss" => env("TOKEN_ISSUER"),
+                "aud" => env("TOKEN_AUDIENCE"),
+                "iat" => Carbon::now()->timestamp,
+                "exp" => Carbon::now()->addMinutes(30)->timestamp,
+            ];
+
+            $token = JWT::encode($payload, env("RESET_KEY"), "HS256");
+
+            Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
+
+            return response()->json(["success" => true]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
