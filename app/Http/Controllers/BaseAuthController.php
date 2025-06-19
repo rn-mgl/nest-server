@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Exception;
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -173,7 +174,9 @@ class BaseAuthController extends Controller
                 throw new UnauthorizedException("The current password you entered does not match our record.");
             }
 
-            $updated = User::findOrFail($authenticated->id)->update(["password" => $attributes["new_password"]]);
+            $user = User::findOrFail($authenticated->id);
+
+            $updated = $user->update(["password" => $attributes["new_password"]]);
 
             return response()->json(["success" => $updated]);
 
@@ -208,6 +211,34 @@ class BaseAuthController extends Controller
             Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
 
             return response()->json(["success" => true]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    public function reset_password(Request $request)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "new_password" => ["required", "string", "confirmed", Password::min(8)],
+                "reset_token" => ["required", "string"]
+            ]);
+
+            $token = JWT::decode($attributes["reset_token"], new Key(env("RESET_KEY"), "HS256"));
+
+            $tokens = new Tokens();
+
+            if (!$tokens->verifyTokenMetadata($token)) {
+                throw new UnauthorizedException("The token you used is invalid.");
+            }
+
+            $user = User::findOrFail($token->user);
+
+            $updated = $user->update(["password" => $attributes["new_password"]]);
+
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
