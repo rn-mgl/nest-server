@@ -151,6 +151,10 @@ class AdminAuthController extends Controller
                 $request->session()->regenerateToken();
             }
 
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
+
             return  response()->json(["success" => $changed]);
 
         } catch (\Throwable $th) {
@@ -181,6 +185,10 @@ class AdminAuthController extends Controller
 
             Mail::to($admin->email, "{$admin->first_name} {$admin->last_name}")->queue(new AdminPasswordResetLink($token));
 
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
+
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -209,6 +217,10 @@ class AdminAuthController extends Controller
             }
 
             $reset = Admin::findOrFail($decoded->admin)->update(["password" => $attributes["new_password"]]);
+
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
 
             return response()->json(["success" => $reset]);
 

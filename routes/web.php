@@ -68,7 +68,7 @@ Route::prefix("api")->group(function() {
         // session routes
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
-                Route::post("/logout", "logout");
+                Route::post("/logout", "logout")->can("updateHR", User::class);
                 Route::patch("/change-password", "change_password")->can("updateHR", User::class);
             });
         });
@@ -198,7 +198,8 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth:base", "valid_user_token"])->prefix("employee")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
-                Route::post("/logout", "logout");
+                Route::post("/logout", "logout")->can("updateEmployee", User::class);
+                Route::patch("/change-password", "change_password")->can("updateEmployee", User::class);
             });
         });
 

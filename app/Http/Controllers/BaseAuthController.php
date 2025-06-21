@@ -178,6 +178,10 @@ class BaseAuthController extends Controller
 
             $updated = $user->update(["password" => $attributes["new_password"]]);
 
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
+
             return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
@@ -210,6 +214,10 @@ class BaseAuthController extends Controller
 
             Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
 
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
+
             return response()->json(["success" => true]);
 
         } catch (\Throwable $th) {
@@ -237,6 +245,10 @@ class BaseAuthController extends Controller
             $user = User::findOrFail($token->user);
 
             $updated = $user->update(["password" => $attributes["new_password"]]);
+
+            $request->session()->invalidate();
+
+            $request->session()->regenerateToken();
 
             return response()->json(["success" => $updated]);
 
