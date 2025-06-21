@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminHRController;
@@ -274,6 +275,13 @@ Route::prefix("api")->group(function() {
         Route::prefix("document_folder")->group(function() {
             Route::controller(DocumentFolderController::class)->group(function() {
                 Route::get("/{document_folder}", "show")->can("updateEmployee", User::class);
+            });
+        });
+
+        Route::prefix("profile")->group(function() {
+            Route::controller(EmployeeController::class)->group(function() {
+                Route::get("/{employee}", "show")->can("updateEmployee", User::class);
+                Route::patch("/{employee}", "update")->can("updateEmployee", User::class);
             });
         });
     });
