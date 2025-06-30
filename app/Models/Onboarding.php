@@ -23,11 +23,11 @@ class Onboarding extends Model
 
     public function policyAcknowledgements()
     {
-        return $this->hasMany(OnboardingPolicyAcknowledgements::class);
+        return $this->hasMany(OnboardingPolicyAcknowledgements::class)->where("is_deleted", false);
     }
 
     public function requiredDocuments()
     {
-        return $this->hasMany(OnboardingRequiredDocuments::class);
+        return $this->hasMany(OnboardingRequiredDocuments::class)->where("is_deleted", false);
     }
 }

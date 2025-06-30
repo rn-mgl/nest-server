@@ -78,9 +78,11 @@ class HROnboardingController extends Controller
                 'title' => ["string", "required"],
                 'description' => ["string", "required"],
                 'required_documents' => ["array", "required"],
-                'required_documents.*.document' => ["string"],
+                'required_documents.*.title' => ["string"],
+                'required_documents.*.description' => ["string"],
                 'policy_acknowledgements' => ["array", "required"],
-                'policy_acknowledgements.*.policy' => ["string"],
+                'policy_acknowledgements.*.title' => ["string"],
+                'policy_acknowledgements.*.description' => ["string"],
             ]);
 
             $onboardingAttributes = [
@@ -91,17 +93,19 @@ class HROnboardingController extends Controller
 
             $onboarding = Onboarding::create($onboardingAttributes);
 
-            foreach ($attributes["required_documents"] as $reqs) {
+            foreach ($attributes["required_documents"] as $req) {
                 $documentsAttributes = [
-                    'document' => $reqs["document"],
+                    'title' => $req["title"],
+                    'description' => $req["description"],
                     'onboarding_id' => $onboarding->id
                 ];
                 OnboardingRequiredDocuments::create($documentsAttributes);
             }
 
-            foreach ($attributes["policy_acknowledgements"] as $acks) {
+            foreach ($attributes["policy_acknowledgements"] as $ack) {
                 $policyAttributes = [
-                    'policy' => $acks["policy"],
+                    'title' => $ack["title"],
+                    'description' => $ack["description"],
                     'onboarding_id' => $onboarding->id
                 ];
                 OnboardingPolicyAcknowledgements::create($policyAttributes);
@@ -127,7 +131,8 @@ class HROnboardingController extends Controller
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_required_documents_id',
-                                        'document'
+                                        'title',
+                                        'description'
                                     ])
                                     ->get();
 
@@ -137,7 +142,8 @@ class HROnboardingController extends Controller
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_policy_acknowledgements_id',
-                                        'policy'
+                                        'title',
+                                        'description'
                                     ])
                                     ->get();
             $onboarding->required_documents = $required_documents;
@@ -168,10 +174,12 @@ class HROnboardingController extends Controller
                 "title" => ["required", "string"],
                 "description" => ["required", "string"],
                 "required_documents" => ["array", "required"],
-                "required_documents.*.document" => ["string"],
+                "required_documents.*.title" => ["string"],
+                "required_documents.*.description" => ["string"],
                 "required_documents.*.onboarding_required_documents_id" => ["integer", "nullable"],
                 "policy_acknowledgements" => ["array", "required"],
-                "policy_acknowledgements.*.policy" => ["string"],
+                "policy_acknowledgements.*.title" => ["string"],
+                "policy_acknowledgements.*.description" => ["string"],
                 "policy_acknowledgements.*.onboarding_policy_acknowledgements_id" => ["integer", "nullable"],
                 "documentsToDelete" => ["array"],
                 "documentsToDelete.*" => ["integer", "nullable"],
@@ -189,20 +197,18 @@ class HROnboardingController extends Controller
 
                 logger($requirement);
 
+                $documentAttributes = [
+                    'onboarding_id' => $onboarding->id,
+                    'title' => $requirement['title'],
+                    'description' => $requirement['description'],
+                ];
+
                 if ($id) {
                     $document = OnboardingRequiredDocuments::find($id);
-                    $documentAttributes = [
-                        'onboarding_id' => $onboarding->id,
-                        'document' => $requirement['document']
-                    ];
                     if ($document) {
                         $document->update($documentAttributes);
                     }
                 } else {
-                    $documentAttributes = [
-                        'onboarding_id' => $onboarding->id,
-                        'document' => $requirement['document']
-                    ];
                     OnboardingRequiredDocuments::create($documentAttributes);
                 }
             }
@@ -210,20 +216,18 @@ class HROnboardingController extends Controller
             foreach($policies as $acknowledgement) {
                 $id = $acknowledgement['onboarding_policy_acknowledgements_id'] ?? null;
 
+                $acknowledgementAttributes = [
+                    "onboarding_id" => $onboarding->id,
+                    "title" => $acknowledgement['title'],
+                    "description" => $acknowledgement['description'],
+                ];
+
                 if ($id) {
                     $acknowledgement = OnboardingPolicyAcknowledgements::find($id);
-                    $acknowledgementAttributes = [
-                        "onboarding_id" => $onboarding->id,
-                        "policy" => $acknowledgement['policy']
-                    ];
                     if ($acknowledgement) {
                         $acknowledgement->update($acknowledgementAttributes);
                     }
                 } else {
-                    $acknowledgementAttributes = [
-                        "onboarding_id" => $onboarding->id,
-                        "policy" => $acknowledgement['policy']
-                    ];
                     OnboardingPolicyAcknowledgements::create($acknowledgementAttributes);
                 }
             }
