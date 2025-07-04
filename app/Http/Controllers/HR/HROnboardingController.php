@@ -176,11 +176,11 @@ class HROnboardingController extends Controller
                 "required_documents" => ["array", "required"],
                 "required_documents.*.title" => ["string"],
                 "required_documents.*.description" => ["string"],
-                "required_documents.*.onboarding_required_documents_id" => ["integer", "nullable"],
+                "required_documents.*.onboarding_required_document_id" => ["integer", "nullable"],
                 "policy_acknowledgements" => ["array", "required"],
                 "policy_acknowledgements.*.title" => ["string"],
                 "policy_acknowledgements.*.description" => ["string"],
-                "policy_acknowledgements.*.onboarding_policy_acknowledgements_id" => ["integer", "nullable"],
+                "policy_acknowledgements.*.onboarding_policy_acknowledgement_id" => ["integer", "nullable"],
                 "documentsToDelete" => ["array"],
                 "documentsToDelete.*" => ["integer", "nullable"],
                 "policiesToDelete" => ["array"],
@@ -193,7 +193,7 @@ class HROnboardingController extends Controller
             $policiesToDelete = $attributes["policiesToDelete"];
 
             foreach($documents as $requirement) {
-                $id = $requirement['onboarding_required_documents_id'] ?? null;
+                $id = $requirement['onboarding_required_document_id'] ?? null;
 
                 logger($requirement);
 
@@ -214,7 +214,7 @@ class HROnboardingController extends Controller
             }
 
             foreach($policies as $acknowledgement) {
-                $id = $acknowledgement['onboarding_policy_acknowledgements_id'] ?? null;
+                $id = $acknowledgement['onboarding_policy_acknowledgement_id'] ?? null;
 
                 $acknowledgementAttributes = [
                     "onboarding_id" => $onboarding->id,

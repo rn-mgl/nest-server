@@ -18,6 +18,7 @@ use App\Http\Controllers\BaseAuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
+use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
@@ -223,6 +224,13 @@ Route::prefix("api")->group(function() {
         // employee onboarding policy acknowledgement
         Route::prefix("employee_onboarding_policy_acknowledgement")->group(function() {
             Route::controller(EmployeeOnboardingPolicyAcknowledgementController::class)->group(function() {
+                Route::post("/", "store")->can("updateEmployee", User::class);
+            });
+        });
+
+        // employee onboarding required documents
+        Route::prefix("employee_onboarding_required_documents")->group(function() {
+            Route::controller(EmployeeOnboardingRequiredDocumentsController::class)->group(function() {
                 Route::post("/", "store")->can("updateEmployee", User::class);
             });
         });
