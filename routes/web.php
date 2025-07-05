@@ -232,6 +232,8 @@ Route::prefix("api")->group(function() {
         Route::prefix("employee_onboarding_required_documents")->group(function() {
             Route::controller(EmployeeOnboardingRequiredDocumentsController::class)->group(function() {
                 Route::post("/", "store")->can("updateEmployee", User::class);
+                Route::patch("/{required_document_id}", "update")->can("updateEmployee", User::class);
+                Route::delete("/{required_document_id}", "destroy")->can("updateEmployee", User::class);
             });
         });
 

@@ -7,6 +7,7 @@ use App\Models\EmployeeOnboardingRequiredDocuments;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeOnboardingRequiredDocumentsController extends Controller
 {
@@ -80,16 +81,45 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function update(Request $request, $employeeOnboardingRequiredDocumentId)
     {
-        //
+        try {
+
+            $request->validate([
+                "document" => ["required", "File"]
+            ]);
+
+            $uploaded = null;
+
+            if ($request->hasFile("document")) {
+                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
+            }
+
+            $updated = DB::table("employee_onboarding_required_documents")
+                        ->where("id", "=", $employeeOnboardingRequiredDocumentId)
+                        ->update(["document" => $uploaded]);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function destroy($employeeOnboardingRequiredDocumentId)
     {
-        //
+        try {
+            $deleted = DB::table("employee_onboarding_required_documents")
+                        ->where("id", "=", $employeeOnboardingRequiredDocumentId)
+                        ->update(["document" => null]);
+
+            return response()->json(["success" => $deleted]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

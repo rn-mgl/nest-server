@@ -127,6 +127,7 @@ class EmployeeOnboardingController extends Controller
                                                     ->where("eopa.is_deleted", "=", false);
                                                 })
                                                 ->where("opa.onboarding_id", "=", $employee_onboarding->onboarding_id)
+                                                ->orderBy("opa.id")
                                                 ->get();
 
             // get required documents
@@ -143,6 +144,7 @@ class EmployeeOnboardingController extends Controller
                                                     ->where("eord.is_deleted", "=", false);
                                                 })
                                                 ->where("ord.onboarding_id", "=", $employee_onboarding->onboarding_id)
+                                                ->orderBy("ord.id")
                                                 ->get();
 
             return response()->json(["onboarding" => $employee_onboarding, "policy_acknowledgements" => $onboarding_policy_acknowledgements, "required_documents" => $onboarding_required_documents]);
