@@ -48,6 +48,7 @@ class HRLeaveTypeController extends Controller
                             "u.first_name",
                             "u.last_name",
                             "u.email",
+                            "u.id as user_id"
                         ]
                     )
                     ->orderBy($attributes["sortKey"], $sortType)
