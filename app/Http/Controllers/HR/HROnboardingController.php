@@ -265,10 +265,20 @@ class HROnboardingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Onboarding $onboarding)
+    public function destroy(string $onboarding)
     {
         try {
-            $deletedOnboarding = $onboarding->update(["is_deleted" => true]);
+            $deletedOnboarding = DB::table("onboardings")
+                                ->where("id", "=", $onboarding)
+                                ->update(["is_deleted" => true]);
+
+            $deletedRequiredDocuments = DB::table("onboarding_required_documents")
+                                ->where("onboarding_id", "=", $onboarding)
+                                ->update(["is_deleted" => true]);
+
+            $deletedPolicyAcknowledgements = DB::table("onboarding_policy_acknowledgements")
+                                            ->where("onboarding_id", "=", $onboarding)
+                                            ->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deletedOnboarding]);
         } catch (\Throwable $th) {
