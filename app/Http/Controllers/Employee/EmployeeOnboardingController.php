@@ -55,6 +55,7 @@ class EmployeeOnboardingController extends Controller
                             ->orderBy("{$sortKey}", $sortType)
                             ->select([
                                 'eo.id as employee_onboarding_id',
+                                'eo.status',
                                 'o.id as onboarding_id',
                                 'o.title',
                                 'o.description',
