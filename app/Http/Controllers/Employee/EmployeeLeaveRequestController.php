@@ -38,7 +38,7 @@ class EmployeeLeaveRequestController extends Controller
                 "start_date" => ["required", "date"],
                 "end_date" => ["required", "date"],
                 "reason" => ["required", "string"],
-                "leave_type" => ["required", "integer", "exists:leave_types,id"]
+                "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
             $attributes["user_id"] = Auth::guard("base")->id();
