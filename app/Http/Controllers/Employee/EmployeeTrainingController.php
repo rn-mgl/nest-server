@@ -59,6 +59,7 @@ class EmployeeTrainingController extends Controller
                             't.title',
                             't.description',
                             't.deadline_days',
+                            't.created_by',
                             DB::raw("CASE WHEN et.status != 'Done' THEN NULL ELSE t.certificate END as certificate"),
                             'u.id as user_id',
                             'u.first_name',

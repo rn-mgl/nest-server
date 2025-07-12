@@ -48,6 +48,7 @@ class HRTrainingController extends Controller
                             "t.title",
                             "t.description",
                             "t.deadline_days",
+                            "t.created_by",
                             "t.certificate",
                             "u.id as user_id",
                             "u.first_name",

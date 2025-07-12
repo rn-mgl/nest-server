@@ -79,6 +79,7 @@ Route::prefix("api")->group(function() {
         Route::prefix("employee")->group(function() {
             Route::controller(HREmployeeController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
+                Route::get("/{employee}", "show")->can("updateHR", User::class);
             });
         });
 
