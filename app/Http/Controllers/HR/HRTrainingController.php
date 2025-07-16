@@ -231,7 +231,15 @@ class HRTrainingController extends Controller
             $contents = $request->input("contents");
 
             foreach ($contents as $key => $value) {
-                $contents[$key] = json_decode($value, true);
+                $decoded = json_decode($value, true);
+                $type = $decoded['type'];
+                $isFile = in_array($type, ['image','video','file']);
+
+                if ($isFile && empty($decoded['content']) && !$request->hasFile("contentFile.{$key}")) {
+                    throw new Exception("No file attached for {$type} Content " . $key + 1);
+                }
+
+                $contents[$key] = $decoded;
             }
 
             $reviews = $request->input("reviews") ?? [];
