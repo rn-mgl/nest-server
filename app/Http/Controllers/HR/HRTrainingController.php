@@ -235,6 +235,7 @@ class HRTrainingController extends Controller
                 $type = $decoded['type'];
                 $isFile = in_array($type, ['image','video','file']);
 
+                // if the content is a file, the content is empty, and there is no file for in this index - throw an error
                 if ($isFile && empty($decoded['content']) && !$request->hasFile("contentFile.{$key}")) {
                     throw new Exception("No file attached for {$type} Content " . $key + 1);
                 }
