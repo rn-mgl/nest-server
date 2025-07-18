@@ -16,15 +16,19 @@ class HREmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index(Request $request, SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
     {
         try {
+
+            $validated = $request->validate([
+                "tab" => ["required", "string", "in:employees,onboardings,leaves,performances,trainings"]
+            ]);
 
             $searchAttributes = $searchRequest->validated();
             $sortAttributes = $sortRequest->validated();
             $categoryAttributes = $categoryRequest->validated();
 
-            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes,);
+            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes, $validated);
 
             $verified = filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
@@ -32,24 +36,54 @@ class HREmployeeController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $searchValue = $attributes["searchValue"] ?? "";
 
-            $employees = DB::table("users as u")
-                        ->where("role", "=", "employee")
-                        ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
-                        ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
-                        ->whereLike($attributes["searchKey"], "%$searchValue%")
-                        ->select([
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "u.image",
-                            "u.email_verified_at",
-                            "u.created_at",
-                        ])
-                        ->orderBy($attributes["sortKey"], $sortType)
-                        ->get();
+            $tab = $attributes["tab"];
 
-            return response()->json(["employees" => $employees]);
+            $data = match ($tab) {
+                "employees" => DB::table("users as u")
+                                ->where("role", "=", "employee")
+                                ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
+                                ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
+                                ->whereLike($attributes["searchKey"], "%$searchValue%")
+                                ->select([
+                                    "u.id as user_id",
+                                    "u.first_name",
+                                    "u.last_name",
+                                    "u.email",
+                                    "u.image",
+                                    "u.email_verified_at",
+                                    "u.created_at",
+                                ])
+                                ->orderBy($attributes["sortKey"], $sortType)
+                                ->get(),
+
+                "onboardings" => DB::table("employee_onboardings as eo")
+                                    ->select([
+                                        "eo.id as employee_onboarding_id",
+                                        "eo.assigned_by",
+                                        "eo.status",
+                                        "eo.created_at",
+                                        "o.id as onboarding_id",
+                                        "o.title",
+                                        "o.description",
+                                        "u.id as user_id",
+                                        "u.first_name as first_name",
+                                        "u.last_name as last_name",
+                                        "u.email as email",
+                                        "u.image"
+                                    ])
+                                    ->join("onboardings as o", function(JoinClause $join) {
+                                        $join->on("o.id", "=", "eo.onboarding_id")
+                                        ->where("o.is_deleted", "=", false);
+                                    })
+                                    ->join("users as u", function(JoinClause $join) {
+                                        $join->on("u.id", "=", "eo.employee_id")
+                                        ->where("u.is_deleted", "=", false);
+                                    })
+                                    ->where("eo.is_deleted", "=", false)
+                                    ->get(),
+            };
+
+            return response()->json(["data" => $data]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
