@@ -30,20 +30,22 @@ class HREmployeeController extends Controller
 
             $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes, $validated);
 
-            $verified = filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
             $sortType = $isAsc ? "ASC" : "DESC";
+            $sortKey = $attributes["sortKey"];
+
+            $searchKey = $attributes["searchKey"];
             $searchValue = $attributes["searchValue"] ?? "";
+
+            $categoryKey = $attributes["categoryKey"];
+            $categoryValue = $attributes["categoryValue"];
 
             $tab = $attributes["tab"];
 
-            $data = match ($tab) {
-                "employees" => DB::table("users as u")
-                                ->where("role", "=", "employee")
-                                ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
-                                ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
-                                ->whereLike($attributes["searchKey"], "%$searchValue%")
+            if ($tab === "employees") {
+                $verified = filter_var($categoryValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                $employees = DB::table("users as u")
                                 ->select([
                                     "u.id as user_id",
                                     "u.first_name",
@@ -53,10 +55,20 @@ class HREmployeeController extends Controller
                                     "u.email_verified_at",
                                     "u.created_at",
                                 ])
-                                ->orderBy($attributes["sortKey"], $sortType)
-                                ->get(),
+                                ->where("role", "=", "employee")
+                                ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
+                                ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
+                                ->whereLike($searchKey, "%$searchValue%")
+                                ->orderBy($sortKey, $sortType)
+                                ->get();
 
-                "onboardings" => DB::table("employee_onboardings as eo")
+                return response()->json(["employees" => $employees]);
+            }
+
+            if ($tab === "onboardings") {
+                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
+
+                $onboardings = DB::table("employee_onboardings as eo")
                                     ->select([
                                         "eo.id as employee_onboarding_id",
                                         "eo.assigned_by",
@@ -80,13 +92,18 @@ class HREmployeeController extends Controller
                                         ->where("u.is_deleted", "=", false);
                                     })
                                     ->where("eo.is_deleted", "=", false)
-                                    ->get(),
-            };
+                                    ->whereLike($searchKey,"%{$searchValue}%")
+                                    ->whereLike($categoryKey, "%{$categoryValue}%")
+                                    ->orderBy($sortKey, $sortType)
+                                    ->get();
 
-            return response()->json(["data" => $data]);
+                return response()->json(["onboardings" => $onboardings]);
+            }
+
+            return response()->json(["data" => []]);
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
