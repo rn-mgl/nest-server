@@ -100,6 +100,45 @@ class HREmployeeController extends Controller
                 return response()->json(["onboardings" => $onboardings]);
             }
 
+            if ($tab === "leaves") {
+                $leaves = DB::table("leave_requests as lr")
+                            ->select([
+                                "lr.id as leave_request_id",
+                                "lr.approved_by",
+                                "lr.start_date",
+                                "lr.end_date",
+                                "lr.status",
+                                "lr.reason",
+                                "lr.created_at",
+                                "lb.id as leave_balance_id",
+                                "lb.balance",
+                                "lt.id as leave_type_id",
+                                "lt.type",
+                                "u.id as user_id",
+                                "u.first_name",
+                                "u.last_name",
+                                "u.email",
+                                "u.image"
+                            ])
+                            ->join("leave_types as lt", function(JoinClause $join) {
+                                $join->on("lt.id", "=", "lr.leave_type_id")
+                                ->where("lt.is_deleted", "=", false);
+                            })
+                            ->join("leave_balances as lb", function(JoinClause $join) {
+                                $join->on("lb.leave_type_id", "=", "lt.id")
+                                ->where("lb.is_deleted", "=", false)
+                                ->whereColumn("lb.user_id", "=", "lr.user_id");
+                            })
+                            ->join("users as u", function(JoinClause $join) {
+                                $join->on("u.id", "=", "lr.user_id")
+                                ->where("u.is_deleted", "=", false);
+                            })
+                            ->where("lr.is_deleted", "=", false)
+                            ->get();
+
+                return response()->json(["leaves" => $leaves]);
+            }
+
             return response()->json(["data" => []]);
 
         } catch (\Throwable $th) {
