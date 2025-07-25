@@ -66,7 +66,7 @@ class HREmployeeController extends Controller
             }
 
             if ($tab === "onboardings") {
-                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
+                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
 
                 $onboardings = DB::table("employee_onboardings as eo")
                                     ->select([

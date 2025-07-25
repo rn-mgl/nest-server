@@ -36,7 +36,7 @@ class EmployeeOnboardingController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $categoryKey = $attributes['categoryKey'] ?? "";
             $categoryValue = $attributes['categoryValue'] ?? "";
-            $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
+            $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
 
             $user = Auth::guard("base")->id();
 

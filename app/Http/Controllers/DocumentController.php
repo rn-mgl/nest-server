@@ -40,14 +40,14 @@ class DocumentController extends Controller
             $categoryKey = $attributes["categoryKey"];
             $categoryValue = $attributes["categoryValue"];
 
-            if ($categoryValue === "folders") {
+            if ($categoryValue === "Folders") {
                 $searchKey = "name";
             }
 
             $documents = DB::table("documents as d")
                 ->where("d.is_deleted", false)
                 ->where("d.path", $path)
-                ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
+                ->when(in_array($categoryValue, ["Documents", "All"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
                     return $query->whereLike("d.{$searchKey}", "%{$searchValue}%")
                     ->orderBy("d.{$sortKey}", $sortType);
                 })
@@ -73,7 +73,7 @@ class DocumentController extends Controller
             $folders = DB::table("document_folders as df")
                 ->where("df.is_deleted", false)
                 ->where("df.path", $path)
-                ->when($categoryValue === "folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
+                ->when($categoryValue === "Folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
                     return $query->whereLike("df.{$searchKey}", "%{$searchValue}%")
                     ->orderBy("df.{$sortKey}", $sortType);
                 })
@@ -96,14 +96,14 @@ class DocumentController extends Controller
                     "path"
                 ]);
 
-            if ($categoryValue === "all") {
+            if ($categoryValue === "All") {
                 $compiled = $documents->union($folders)
-                            ->when($categoryValue === "all", function($query) use($sortKey, $sortType) {
+                            ->when($categoryValue === "All", function($query) use($sortKey, $sortType) {
                                 return $query->orderBy("{$sortKey}", $sortType);
                             })->get();
-            } else if ($categoryValue === "folders") {
+            } else if ($categoryValue === "Folders") {
                 $compiled = $folders->get();
-            } else if ($categoryValue === "documents") {
+            } else if ($categoryValue === "Documents") {
                 $compiled = $documents->get();
             } else {
                 $compiled = null;
