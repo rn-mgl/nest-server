@@ -30,8 +30,10 @@ class AdminHRController extends Controller
 
             $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
 
+            $categoryValue = $attributes["categoryValue"];
+
             // Convert category and sort direction values to booleans
-            $verified= filter_var($attributes["categoryValue"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $verified= $categoryValue === "All" ? "" : $categoryValue === "Verified";
             $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
             // Determine the sort direction

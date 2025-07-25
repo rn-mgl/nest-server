@@ -34,7 +34,7 @@ class EmployeeOnboardingController extends Controller
             $sortKey = $attributes['sortKey'];
             $isAsc = filter_var($attributes['isAsc'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             $sortType = $isAsc ? "ASC" : "DESC";
-            $categoryKey = $attributes['categoryKey'] ?? "";
+            $categoryKey = $attributes['categoryKey'];
             $categoryValue = $attributes['categoryValue'] ?? "";
             $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
 

@@ -43,7 +43,7 @@ class HREmployeeController extends Controller
             $tab = $attributes["tab"];
 
             if ($tab === "employees") {
-                $verified = filter_var($categoryValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                $verified = $categoryValue === "All" ? "" : $categoryValue === "Verified";
 
                 $employees = DB::table("users as u")
                                 ->select([
