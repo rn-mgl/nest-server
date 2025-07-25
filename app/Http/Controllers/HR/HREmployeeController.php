@@ -101,6 +101,9 @@ class HREmployeeController extends Controller
             }
 
             if ($tab === "leaves") {
+
+                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+
                 $leaves = DB::table("leave_requests as lr")
                             ->select([
                                 "lr.id as leave_request_id",
@@ -109,7 +112,6 @@ class HREmployeeController extends Controller
                                 "lr.end_date",
                                 "lr.status",
                                 "lr.reason",
-                                "lr.created_at",
                                 "lb.id as leave_balance_id",
                                 "lb.balance",
                                 "lt.id as leave_type_id",
@@ -134,6 +136,9 @@ class HREmployeeController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("lr.is_deleted", "=", false)
+                            ->where($searchKey, "LIKE", "%{$searchValue}%")
+                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
+                            ->orderBy($sortKey, $sortType)
                             ->get();
 
                 return response()->json(["leaves" => $leaves]);
