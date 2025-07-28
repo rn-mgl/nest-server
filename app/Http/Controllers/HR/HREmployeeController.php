@@ -181,6 +181,47 @@ class HREmployeeController extends Controller
 
             }
 
+            if ($tab === "trainings") {
+
+                $sortKey = "et.{$sortKey}";
+                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+
+                $trainings = DB::table("employee_trainings as et")
+                            ->select([
+                                "et.id as employee_training_id",
+                                "et.status",
+                                "et.score",
+                                "et.deadline",
+                                "et.created_at",
+                                "t.id as training_id",
+                                "t.title",
+                                "t.description",
+                                "t.deadline_days",
+                                "t.certificate",
+                                "u.id as user_id",
+                                "u.first_name",
+                                "u.last_name",
+                                "u.email",
+                                "u.image"
+                            ])
+                            ->join("trainings as t", function (JoinClause $join) {
+                                $join->on("t.id", "=", "et.training_id")
+                                ->where("t.is_deleted", "=", false);
+                            })
+                            ->join("users as u", function (JoinClause $join) {
+                                $join->on("u.id", "=", "et.employee_id")
+                                ->where("u.is_deleted", "=", false);
+                            })
+                            ->where("et.is_deleted", "=", false)
+                            ->where($searchKey, "LIKE", "%{$searchValue}%")
+                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
+                            ->orderBy($sortKey, $sortType)
+                            ->get();
+
+                return response()->json(["trainings" => $trainings]);
+
+            }
+
             return response()->json(["data" => []]);
 
         } catch (\Throwable $th) {
