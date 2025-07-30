@@ -10,6 +10,7 @@ use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HREmployeeController;
+use App\Http\Controllers\HR\HRLeaveRequestController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
@@ -99,6 +100,13 @@ Route::prefix("api")->group(function() {
             Route::controller(HRLeaveBalanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
+            });
+        });
+
+        // leave request route
+        Route::prefix("leave_request")->group(function() {
+            Route::controller(HRLeaveRequestController::class)->group(function() {
+                Route::patch("/{leave_request}", "update")->can("updateHR", User::class);
             });
         });
 
