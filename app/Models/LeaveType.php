@@ -10,4 +10,9 @@ class LeaveType extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function requests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
 }

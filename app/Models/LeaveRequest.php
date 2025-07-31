@@ -10,4 +10,9 @@ class LeaveRequest extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function leaves()
+    {
+        return $this->belongsTo(LeaveType::class, "leave_type_id");
+    }
 }

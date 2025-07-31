@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use Exception;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeLeaveRequestController extends Controller
 {
@@ -16,7 +18,35 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function index()
     {
-        //
+        try {
+
+            $user = Auth::id();
+
+            $leaveRequests = DB::table("leave_requests as lr")
+                            ->select([
+                                "lr.id as leave_request_id",
+                                "lr.approved_by",
+                                "lr.start_date",
+                                "lr.end_date",
+                                "lr.reason",
+                                "lr.status",
+                                "lt.id as leave_type_id",
+                                "lt.type",
+                                "lt.description",
+                            ])
+                            ->join("leave_types as lt", function (JoinClause $join) {
+                                $join->on("lt.id", "=", "lr.leave_type_id")
+                                ->where("lt.is_deleted", "=", false);
+                            })
+                            ->where("lr.is_deleted", "=", false)
+                            ->where("lr.user_id", "=", $user)
+                            ->get();
+
+            return response()->json(["requests" => $leaveRequests]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
