@@ -30,6 +30,8 @@ class EmployeeLeaveRequestController extends Controller
                                 "lr.end_date",
                                 "lr.reason",
                                 "lr.status",
+                                "lr.user_id",
+                                "lr.created_at as requested_at",
                                 "lt.id as leave_type_id",
                                 "lt.type",
                                 "lt.description",
@@ -88,9 +90,13 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(LeaveRequest $leave_request)
     {
-        //
+        try {
+            return response()->json(["request" => $leave_request]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -104,16 +110,38 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, LeaveRequest $leave_request)
     {
-        //
+        try {
+
+            $attributes = $request->validate([
+                "start_date" => ["required", "string", "date"],
+                "end_date" => ["required", "string", "date"],
+                "reason" => ["required", "string"]
+            ]);
+
+            $updated = $leave_request->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(LeaveRequest $leave_request)
     {
-        //
+        try {
+
+            $deleted = $leave_request->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deleted]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

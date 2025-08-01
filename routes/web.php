@@ -273,6 +273,9 @@ Route::prefix("api")->group(function() {
             Route::controller(EmployeeLeaveRequestController::class)->group(function() {
                 Route::get("/", "index")->can("updateEmployee", User::class);
                 Route::post("/", "store")->can("updateEmployee", User::class);
+                Route::get("/{leave_request}", "show")->can("updateEmployee", User::class);
+                Route::patch("/{leave_request}", "update")->can("updateEmployee", User::class);
+                Route::delete("/{leave_request}", "destroy")->can("updateEmployee", User::class);
             });
         });
 
