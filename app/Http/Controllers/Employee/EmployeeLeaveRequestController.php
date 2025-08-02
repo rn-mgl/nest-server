@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\SearchRequest;
+use App\Http\Requests\SortRequest;
 use App\Models\LeaveRequest;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -16,9 +19,25 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
     {
         try {
+
+            $searchAttributes = $searchRequest->validated();
+            $sortAttributes = $sortRequest->validated();
+            $categoryAttributes = $categoryRequest->validated();
+
+            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
+
+            $searchKey = $searchAttributes["searchKey"];
+            $searchValue = $searchAttributes["searchValue"] ?? "";
+
+            $categoryKey = $categoryAttributes["categoryKey"];
+            $categoryValue = $categoryAttributes["categoryValue"] === "All" ? "" : $categoryAttributes["categoryValue"];
+
+            $sortKey = $sortAttributes["sortKey"];
+            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
 
             $user = Auth::id();
 
@@ -42,6 +61,9 @@ class EmployeeLeaveRequestController extends Controller
                             })
                             ->where("lr.is_deleted", "=", false)
                             ->where("lr.user_id", "=", $user)
+                            ->where($searchKey, "LIKE", "%{$searchValue}%")
+                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
+                            ->orderBy("lr.{$sortKey}", $sortType)
                             ->get();
 
             return response()->json(["requests" => $leaveRequests]);
