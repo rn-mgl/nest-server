@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HRLeaveRequestController extends Controller
 {
@@ -16,7 +18,35 @@ class HRLeaveRequestController extends Controller
      */
     public function index()
     {
-        //
+        try {
+
+            $user = Auth::id();
+
+            $requests = DB::table("leave_requests as lr")
+                        ->select([
+                            "lr.id as leave_request_id",
+                            "lr.created_at as requested_at",
+                            "lr.start_date",
+                            "lr.end_date",
+                            "lr.status",
+                            "lr.reason",
+                            "lt.id as leave_type_id",
+                            "lt.type",
+                            "lt.description"
+                        ])
+                        ->join("leave_types as lt", function (JoinClause $join) {
+                            $join->on("lt.id", "=", "lr.leave_type_id")
+                            ->where("lt.is_deleted", "=", false);
+                        })
+                        ->where("lr.is_deleted", "=", false)
+                        ->where("user_id", "=", $user)
+                        ->get();
+
+            return response()->json(["requests" => $requests]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -58,9 +88,15 @@ class HRLeaveRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(LeaveRequest $leave_request)
     {
-        //
+        try {
+
+            return response()->json(["request" => $leave_request]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
@@ -74,16 +110,41 @@ class HRLeaveRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, LeaveRequest $leave_request)
     {
-        //
+        try {
+
+            $attributes = $request->validate([
+                "start_date" => ["required", "string", "date"],
+                "end_date" => ["required", "string", "date"],
+                "reason" => ["required", "string"]
+            ]);
+
+            $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
+            $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
+
+            $updated = $leave_request->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(LeaveRequest $leave_request)
     {
-        //
+        try {
+
+            $deleted = $leave_request->update(["is_deleted" => true]);
+
+            return response()->json(["success" => $deleted]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }

@@ -117,6 +117,9 @@ Route::prefix("api")->group(function() {
             Route::controller(HRLeaveRequestController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
+                Route::get("/{leave_request}", "show")->can("updateHR", User::class);
+                Route::patch("/{leave_request}", "update")->can("updateHR", User::class);
+                Route::delete("/{leave_request}", "destroy")->can("updateHR", User::class);
             });
         });
 
