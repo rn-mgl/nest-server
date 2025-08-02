@@ -23,16 +23,31 @@ class HRLeaveBalanceController extends Controller
 
             $searchAttributes = $searchRequest->validated();
             $sortAttributes = $sortRequest->validated();
-            // $categoryAttributes = $categoryRequest->validated();
+
+            $searchKey = $searchAttributes["searchKey"];
+            $searchValue = $searchAttributes["searchValue"] ?? "";
+
+            $sortKey = $sortAttributes["sortKey"];
+            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortType = $isAsc ? "ASC" : "DESC";
 
             $user = Auth::id();
 
             $balances = DB::table("leave_balances as lb")
+                        ->select([
+                            "lb.id as leave_balance_id",
+                            "lb.balance",
+                            "lt.id as leave_type_id",
+                            "lt.type",
+                            "lt.description"
+                        ])
                         ->join("leave_types as lt", function (JoinClause $join) {
                             $join->on("lt.id", "=", "lb.leave_type_id")
                             ->where("lt.is_deleted", "=", false);
                         })
                         ->where("lb.user_id", "=", $user)
+                        ->where($searchKey, "LIKE", "%{$searchValue}%")
+                        ->orderBy($sortKey, $sortType)
                         ->get();
 
             return response()->json(["balances" => $balances]);
