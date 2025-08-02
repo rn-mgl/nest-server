@@ -10,7 +10,7 @@ use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HREmployeeController;
-use App\Http\Controllers\HR\HRLeaveRequestController;
+use App\Http\Controllers\HR\HREmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
@@ -28,7 +28,9 @@ use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
+use App\Http\Controllers\HR\HREmployeeLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveBalanceController;
+use App\Http\Controllers\HR\HRLeaveRequestController;
 use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -96,16 +98,31 @@ Route::prefix("api")->group(function() {
         });
 
         // leave balance route
-        Route::prefix("leave_balance")->group(function() {
+        Route::prefix("leave_balance")->group(function () {
             Route::controller(HRLeaveBalanceController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+            });
+        });
+
+        // employee and hr leave balance route
+        Route::prefix("employee_leave_balance")->group(function() {
+            Route::controller(HREmployeeLeaveBalanceController::class)->group(function() {
                 Route::get("/", "index")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
             });
         });
 
-        // leave request route
+        // leave request
         Route::prefix("leave_request")->group(function() {
             Route::controller(HRLeaveRequestController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+                Route::post("/", "store")->can("updateHR", User::class);
+            });
+        });
+
+        // employee leave request route
+        Route::prefix("employee_leave_request")->group(function() {
+            Route::controller(HREmployeeLeaveRequestController::class)->group(function() {
                 Route::patch("/{leave_request}", "update")->can("updateHR", User::class);
             });
         });
