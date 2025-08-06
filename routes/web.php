@@ -25,6 +25,7 @@ use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\EmployeeTrainingReviewResponseController;
 use App\Http\Controllers\HR\HRController;
+use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
@@ -70,6 +71,14 @@ Route::prefix("api")->group(function() {
 
     // hr routes
     Route::middleware(["auth:base", "valid_user_token"])->prefix("hr")->group(function() {
+
+        // dashboard route
+        Route::prefix("/dashboard")->group(function () {
+            Route::controller(HRDashboardController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
+            });
+        });
+
         // session routes
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
