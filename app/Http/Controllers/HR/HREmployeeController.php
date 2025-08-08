@@ -43,7 +43,7 @@ class HREmployeeController extends Controller
             $tab = $attributes["tab"];
 
             if ($tab === "employees") {
-                $verified = $categoryValue === "All" ? "" : $categoryValue === "Verified";
+                $verified = $categoryValue === "all" ? "" : $categoryValue === "verified";
 
                 $employees = DB::table("users as u")
                                 ->select([
@@ -66,7 +66,7 @@ class HREmployeeController extends Controller
             }
 
             if ($tab === "onboardings") {
-                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
                 $onboardings = DB::table("employee_onboardings as eo")
                                     ->select([
@@ -102,7 +102,7 @@ class HREmployeeController extends Controller
 
             if ($tab === "leaves") {
 
-                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
                 $leaves = DB::table("leave_requests as lr")
                             ->select([
@@ -148,7 +148,7 @@ class HREmployeeController extends Controller
             if ($tab === "performances") {
 
                 $sortKey = $sortKey === "created_at" ? "epr.{$sortKey}" : "pr.{$sortKey}";
-                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
                 $performances = DB::table("employee_performance_reviews as epr")
                                 ->select([
@@ -185,7 +185,7 @@ class HREmployeeController extends Controller
             if ($tab === "trainings") {
 
                 $sortKey = "et.{$sortKey}";
-                $categoryValue = $categoryValue === "All" ? "" : $categoryValue;
+                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
                 $trainings = DB::table("employee_trainings as et")
                             ->select([

@@ -35,7 +35,7 @@ class HRLeaveRequestController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
 
             $categoryKey = $categoryAttributes["categoryKey"];
-            $categoryValue = $categoryAttributes["categoryValue"] === "All" ? "" : $categoryAttributes["categoryValue"];
+            $categoryValue = $categoryAttributes["categoryValue"] === "all" ? "" : $categoryAttributes["categoryValue"];
 
             $user = Auth::id();
 

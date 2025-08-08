@@ -33,7 +33,7 @@ class EmployeeLeaveRequestController extends Controller
             $searchValue = $searchAttributes["searchValue"] ?? "";
 
             $categoryKey = $categoryAttributes["categoryKey"];
-            $categoryValue = $categoryAttributes["categoryValue"] === "All" ? "" : $categoryAttributes["categoryValue"];
+            $categoryValue = $categoryAttributes["categoryValue"] === "all" ? "" : $categoryAttributes["categoryValue"];
 
             $sortKey = $sortAttributes["sortKey"];
             $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);

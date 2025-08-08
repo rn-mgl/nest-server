@@ -34,7 +34,7 @@ class EmployeeTrainingController extends Controller
             $isAsc = filter_var($attributes["sortKey"], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
             $sortType = $isAsc ? "ASC" : "DESC";
             $categoryKey = $attributes["categoryKey"];
-            $categoryValue = $attributes["categoryValue"] ==="All" ? "" : $attributes["categoryValue"];
+            $categoryValue = $attributes["categoryValue"] ==="all" ? "" : $attributes["categoryValue"];
 
             $user = Auth::guard("base")->id();
 
