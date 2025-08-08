@@ -136,7 +136,7 @@ class HREmployeeController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("lr.is_deleted", "=", false)
-                            ->whereIn("lr.status", ["Pending", "In Progress", "Done"])
+                            ->whereIn("lr.status", ["pending", "in_progress", "done"])
                             ->where($searchKey, "LIKE", "%{$searchValue}%")
                             ->where($categoryKey, "LIKE", "%{$categoryValue}%")
                             ->orderBy($sortKey, $sortType)

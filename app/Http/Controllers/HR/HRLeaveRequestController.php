@@ -92,7 +92,7 @@ class HRLeaveRequestController extends Controller
             ]);
 
             $attributes["user_id"] = Auth::id();
-            $attributes["status"] = "Pending";
+            $attributes["status"] = "pending";
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
 

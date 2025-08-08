@@ -60,7 +60,7 @@ class HREmployeeLeaveRequestController extends Controller
                 "approved" => ["required", "boolean"]
             ]);
 
-            $status = $attributes["approved"] ? "Approved" : "Rejected";
+            $status = $attributes["approved"] ? "approved" : "rejected";
 
             $updated = $leave_request->update(["status" => $status]);
 

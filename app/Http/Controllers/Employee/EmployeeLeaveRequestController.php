@@ -96,7 +96,7 @@ class EmployeeLeaveRequestController extends Controller
             ]);
 
             $attributes["user_id"] = Auth::guard("base")->id();
-            $attributes["status"] = "Pending";
+            $attributes["status"] = "pending";
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
 
