@@ -23,7 +23,7 @@ use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
 use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
-use App\Http\Controllers\EmployeeTrainingReviewResponseController;
+use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
