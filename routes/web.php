@@ -3,6 +3,7 @@
 use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentFolderController;
@@ -360,6 +361,12 @@ Route::prefix("api")->group(function() {
             Route::controller(AdminAuthController::class)->group(function() {
                 Route::post("/change_password", "change_password");
                 Route::post("/logout", "logout");
+            });
+        });
+
+        Route::prefix("/dashboard")->group(function() {
+            Route::controller(AdminDashboardController::class)->group(function() {
+                Route::get("/", "index")->can("update", Admin::class);
             });
         });
 
