@@ -5,6 +5,7 @@ namespace App\Http\Controllers\HR;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
+use App\Models\DocumentFolder;
 use App\Models\EmployeeOnboarding;
 use App\Models\EmployeePerformanceReview;
 use App\Models\EmployeeTraining;
@@ -67,10 +68,10 @@ class HRDashboardController extends Controller
             }
 
             $attendanceStatus = [
-                "In" => $attendances->count(),
-                "Out" => $outs,
-                "Late" => $lates,
-                "Absent" => count($absents)
+                "in" => $attendances->count(),
+                "out" => $outs,
+                "late" => $lates,
+                "absent" => count($absents)
             ];
 
             $onboardings = EmployeeOnboarding::where("is_deleted", "=", false)
@@ -95,15 +96,24 @@ class HRDashboardController extends Controller
 
             $documents = Document::where("is_deleted", "=", false)->get()->count();
 
+            $folders = DocumentFolder::where("is_deleted", "=", false)->get()->count();
+
+            $users = $users->groupBy("role")->map(fn($user) => $user->count());
+
+            $documentAndFolders = [
+                'documents' => $documents,
+                'folders' => $folders
+            ];
+
             return response()->json(
                 [
-                    "users" => $users->count(),
+                    "users" => $users,
                     "attendances" => $attendanceStatus,
                     "onboardings" => $onboardings,
                     "leaves" => $leaves,
                     "performances" => $performances,
                     "trainings" => $trainings,
-                    "documents" => $documents
+                    "documents" => $documentAndFolders
                 ]);
 
         } catch (\Throwable $th) {
