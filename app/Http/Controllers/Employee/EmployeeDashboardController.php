@@ -35,15 +35,15 @@ class EmployeeDashboardController extends Controller
                             ->first();
 
             $late = Carbon::now()->greaterThan(Carbon::now()->startOfDay()->addHours(6));
-            $login_time = $attendance->login_time ?? null;
+            $login_time = $attendance?->login_time;
 
             if ($login_time) {
                 $late = Carbon::parse($login_time)->greaterThan(Carbon::now()->startOfDay()->addHours(6));
             }
 
             $attendances = [
-                "in" => $attendance->login_time !== null,
-                "out" => $attendance->logout_time !== null,
+                "in" => $login_time,
+                "out" => $attendance?->logout_time,
                 "late" => $late,
                 "absent" => empty($attendance)
             ];
