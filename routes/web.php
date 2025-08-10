@@ -137,6 +137,7 @@ Route::prefix("api")->group(function() {
         // employee leave request route
         Route::prefix("employee_leave_request")->group(function() {
             Route::controller(HREmployeeLeaveRequestController::class)->group(function() {
+                Route::get("/", "index")->can("updateHR", User::class);
                 Route::patch("/{leave_request}", "update")->can("updateHR", User::class);
             });
         });
