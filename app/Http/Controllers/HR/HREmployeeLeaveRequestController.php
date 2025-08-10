@@ -3,69 +3,18 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\LeaveRequest;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class HREmployeeLeaveRequestController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index()
     {
-        try {
-
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-
-            $searchKey = $searchAttributes["searchKey"];
-            $searchValue = $searchAttributes["searchValue"] ?? "";
-
-            $sortKey = $sortAttributes["sortKey"];
-            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-
-            $categoryKey = $categoryAttributes["categoryKey"];
-            $categoryValue = $categoryAttributes["categoryValue"] === "all" ? "" : $categoryAttributes["categoryValue"];
-
-            $user = Auth::id();
-
-            $requests = DB::table("leave_requests as lr")
-                        ->select([
-                            "lr.id as leave_request_id",
-                            "lr.created_at as requested_at",
-                            "lr.start_date",
-                            "lr.end_date",
-                            "lr.status",
-                            "lr.reason",
-                            "lt.id as leave_type_id",
-                            "lt.type",
-                            "lt.description"
-                        ])
-                        ->join("leave_types as lt", function (JoinClause $join) {
-                            $join->on("lt.id", "=", "lr.leave_type_id")
-                            ->where("lt.is_deleted", "=", false);
-                        })
-                        ->where("lr.is_deleted", "=", false)
-                        ->where("user_id", "=", $user)
-                        ->where($searchKey, "LIKE", "%{$searchValue}%")
-                        ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                        ->orderBy("lr.{$sortKey}", $sortType)
-                        ->get();
-
-            return response()->json(["requests" => $requests]);
-
-        } catch (\Throwable $th) {
-            throw new Exception($th->getMessage());
-        }
+        //
     }
 
     /**
