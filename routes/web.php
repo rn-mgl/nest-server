@@ -257,6 +257,7 @@ Route::prefix("api")->group(function() {
             Route::controller(EmployeeAttendanceController::class)->group(function() {
                 Route::get("/{attendance}","show")->can("updateEmployee", User::class);
                 Route::post("/","store")->can("updateEmployee", User::class);
+                Route::patch("/{attendance}", "update")->can("updateEmployee", User::class);
             });
         });
 

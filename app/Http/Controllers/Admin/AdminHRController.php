@@ -6,13 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\UnauthorizedException;
-use Illuminate\Validation\ValidationException;
 
 class AdminHRController extends Controller
 {
@@ -41,8 +38,7 @@ class AdminHRController extends Controller
             $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
 
             // Query the 'users' table, applying search and sorting filters
-            $hrs = DB::table("users")
-                    ->where("role", "hr")
+            $hrs = User::where("role", "hr")
                     ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                     ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                     ->whereLike($attributes["searchKey"], "%{$searchValue}%")
@@ -133,8 +129,8 @@ class AdminHRController extends Controller
 
     private function deactivate(string $id) {
         try {
-            $hr = DB::table("users")
-                    ->where("role", "=", "hr")
+
+            $hr = User::where("role", "=", "hr")
                     ->where("id", "=", $id)
                     ->update(["email_verified_at" => null]);
 
@@ -146,8 +142,7 @@ class AdminHRController extends Controller
 
     private function verify(string $id) {
         try {
-            $hr = DB::table("users")
-                    ->where("role", "=", "hr")
+            $hr = User::where("role", "=", "hr")
                     ->where("id", "=", $id)
                     ->update(["email_verified_at" => Carbon::now()]);
 

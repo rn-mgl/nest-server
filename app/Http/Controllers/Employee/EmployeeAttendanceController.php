@@ -31,29 +31,17 @@ class EmployeeAttendanceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store()
     {
         try {
-            $attributes = $request->validate([
-                "type" => ["string", "required"],
-                "attendance_id" => ["integer", "nullable"]
-            ]);
-
-            $type = $attributes["type"] === "in" ? "login_time" : "logout_time";
-
             $attendanceAttr = [
                 "user_id" => Auth::id(),
-                $type => Carbon::now()
+                "login_time" => Carbon::now()
             ];
 
-            if ($type === "login_time") {
-                $loggedAttendance = Attendance::create($attendanceAttr);
-            } else if ($type === "logout_time") {
-                $loggedAttendance = Attendance::where("id", $attributes["attendance_id"])
-                                    ->update([$type => $attendanceAttr[$type]]);
-            }
+            $loggedAttendance = Attendance::create($attendanceAttr);
 
-            return response()->json(["success" => $loggedAttendance]);
+            return response()->json(["success" => !empty($loggedAttendance)]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -121,9 +109,16 @@ class EmployeeAttendanceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Attendance $attendance)
     {
-        //
+        try {
+            $updated = $attendance->update(["logout_time" => Carbon::now()]);
+
+            return response()->json(["success" => !empty($updated)]);
+
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     /**
