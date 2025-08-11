@@ -81,16 +81,19 @@ class EmployeeAttendanceController extends Controller
             ];
 
             $log = DB::table("attendances")
-                            ->where(function($query) use($currentDate, $tomorrowDate) {
-                                $query->where("login_time", ">=", $currentDate)
-                                        ->where("login_time", "<", $tomorrowDate);
-                            })
-                            ->orWhere(function($query) use($currentDate, $tomorrowDate) {
-                                $query->where("logout_time", ">=", $currentDate)
-                                        ->where("logout_time", "<", $tomorrowDate);
-                            })
-                            ->where("user_id", "=", $user)
-                            ->first();
+                    ->where(function($query) use($currentDate, $tomorrowDate) {
+                        $query->where("login_time", ">=", $currentDate)
+                                ->where("login_time", "<", $tomorrowDate);
+                    })
+                    ->where(function($query) use($currentDate, $tomorrowDate) {
+                        $query->where(function ($query2) use ($currentDate, $tomorrowDate) {
+                            $query2->where("logout_time", ">=", $currentDate)
+                                    ->where("logout_time", "<", $tomorrowDate);
+                        })
+                        ->orWhereNull("logout_time");
+                    })
+                    ->where("user_id", "=", $user)
+                    ->first();
 
             if (!empty($log)) {
                 $attendance["attendance_id"] = $log->id;
