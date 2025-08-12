@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
-use App\Models\DocumentFolder;
+use App\Models\Folder;
 use App\Models\EmployeeOnboarding;
 use App\Models\EmployeePerformanceReview;
 use App\Models\EmployeeTraining;
@@ -74,7 +74,7 @@ class EmployeeDashboardController extends Controller
 
             $documents = Document::where("is_deleted", "=", false)->count();
 
-            $folders = DocumentFolder::where("is_deleted", "=", false)->count();
+            $folders = Folder::where("is_deleted", "=", false)->count();
 
             $documentsAndFolders = [
                 "documents" => $documents,

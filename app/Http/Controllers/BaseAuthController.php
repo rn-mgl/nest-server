@@ -68,8 +68,7 @@ class BaseAuthController extends Controller
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            $verify = DB::table("users")
-                        ->where("id", "=", $user->id)
+            $verify = User::where("id", "=", $user->id)
                         ->update(["email_verified_at" => Carbon::now()]);
 
             return response()->json(["success" => $verify > 0]);

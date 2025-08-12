@@ -5,7 +5,7 @@ namespace App\Http\Controllers\HR;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
-use App\Models\DocumentFolder;
+use App\Models\Folder;
 use App\Models\EmployeeOnboarding;
 use App\Models\EmployeePerformanceReview;
 use App\Models\EmployeeTraining;
@@ -96,7 +96,7 @@ class HRDashboardController extends Controller
 
             $documents = Document::where("is_deleted", "=", false)->get()->count();
 
-            $folders = DocumentFolder::where("is_deleted", "=", false)->get()->count();
+            $folders = Folder::where("is_deleted", "=", false)->get()->count();
 
             $users = $users->groupBy("role")->map(fn($user) => $user->count());
 

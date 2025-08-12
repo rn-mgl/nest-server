@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DocumentFolder;
+use App\Models\Folder;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class DocumentFolderController extends Controller
+class FolderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,7 +16,7 @@ class DocumentFolderController extends Controller
     public function index()
     {
         try {
-            $folders = DB::table("document_folders as df")
+            $folders = DB::table("folders as df")
                         ->where("df.is_deleted", "=", false)
                         ->get();
 
@@ -51,7 +51,7 @@ class DocumentFolderController extends Controller
                 "created_by" => Auth::guard("base")->id()
             ];
 
-            $createdFolder = DocumentFolder::create($folderAttr);
+            $createdFolder = Folder::create($folderAttr);
 
             return response()->json(["success" => true]);
 
@@ -63,15 +63,15 @@ class DocumentFolderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($documentFolder)
+    public function show($folder)
     {
         try {
 
-            if (!$documentFolder) {
+            if (!$folder) {
                 return response()->json(["folder" => []]);
             }
 
-            $folder = DocumentFolder::find($documentFolder);
+            $folder = Folder::find($folder);
 
 
             return response()->json(["folder" => $folder]);
@@ -83,7 +83,7 @@ class DocumentFolderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(DocumentFolder $documentFolder)
+    public function edit(Folder $folder)
     {
         //
     }
@@ -91,7 +91,7 @@ class DocumentFolderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DocumentFolder $documentFolder)
+    public function update(Request $request, Folder $folder)
     {
         try {
             $attributes = $request->validate([
@@ -99,7 +99,7 @@ class DocumentFolderController extends Controller
                 "path" => ["required", "integer"]
             ]);
 
-            $updatedFolder = $documentFolder->update($attributes);
+            $updatedFolder = $folder->update($attributes);
 
             return response()->json(["success" => $updatedFolder]);
 
@@ -111,11 +111,11 @@ class DocumentFolderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($documentFolder)
+    public function destroy($folder)
     {
         try {
             // delete folder and everything below it
-            $paths = DB::table("document_folders")
+            $paths = DB::table("folders")
             ->select([
                 "id",
                 "path"
@@ -123,10 +123,10 @@ class DocumentFolderController extends Controller
             ->where("is_deleted", false)
             ->get();
 
-            $childPaths = $this->get_child_paths($documentFolder, $paths);
+            $childPaths = $this->get_child_paths($folder, $paths);
 
             foreach($childPaths as $child) {
-                $deletedFolders = DB::table("document_folders")
+                $deletedFolders = DB::table("folders")
                             ->where("id", $child)
                             ->update(["is_deleted" => true]);
 
@@ -135,12 +135,12 @@ class DocumentFolderController extends Controller
                                     ->update(["is_deleted" => true]);
             }
 
-            $deletedFolder = DB::table("document_folders")
-                            ->where("id", $documentFolder)
+            $deletedFolder = DB::table("folders")
+                            ->where("id", $folder)
                             ->update(["is_deleted" => true]);
 
             $deletedDocument = DB::table("documents")
-                            ->where("path", $documentFolder)
+                            ->where("path", $folder)
                             ->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deletedFolder]);
@@ -159,7 +159,7 @@ class DocumentFolderController extends Controller
 
             $currentPath = intval($attributes["path"]);
 
-            $paths = DB::table("document_folders")
+            $paths = DB::table("folders")
                     ->select(
                 [
                             "id",

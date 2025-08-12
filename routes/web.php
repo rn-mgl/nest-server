@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\DocumentFolderController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRAttendanceController;
@@ -218,13 +218,13 @@ Route::prefix("api")->group(function() {
         });
 
         // document folder route
-        Route::prefix('document_folder')->group(function() {
-            Route::controller(DocumentFolderController::class)->group(function() {
+        Route::prefix('folder')->group(function() {
+            Route::controller(FolderController::class)->group(function() {
                 Route::get("/paths", "get_parent_paths")->can("updateHR", User::class);
-                Route::get("/{document_folder}", "show")->can("updateHR", User::class);
-                Route::patch("/{document_folder}", "update")->can("updateHR", User::class);
+                Route::get("/{folder}", "show")->can("updateHR", User::class);
+                Route::patch("/{folder}", "update")->can("updateHR", User::class);
                 Route::post("/", "store")->can("updateHR", User::class);
-                Route::delete("/{document_folder}", "destroy")->can("updateHR", User::class);
+                Route::delete("/{folder}", "destroy")->can("updateHR", User::class);
             });
         });
 
@@ -342,9 +342,9 @@ Route::prefix("api")->group(function() {
         });
 
         // employee document folder
-        Route::prefix("document_folder")->group(function() {
-            Route::controller(DocumentFolderController::class)->group(function() {
-                Route::get("/{document_folder}", "show")->can("updateEmployee", User::class);
+        Route::prefix("folder")->group(function() {
+            Route::controller(FolderController::class)->group(function() {
+                Route::get("/{folder}", "show")->can("updateEmployee", User::class);
             });
         });
 

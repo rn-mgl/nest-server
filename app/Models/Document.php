@@ -13,6 +13,6 @@ class Document extends Model
 
     public function folders()
     {
-        return $this->belongsTo(DocumentFolder::class, "path");
+        return $this->belongsTo(Folder::class, "path");
     }
 }

@@ -47,8 +47,7 @@ class AdminAuthController extends Controller
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            $verify = DB::table("admins")
-                        ->where("id", "=", $admin->id)
+            $verify = Admin::where("id", "=", $admin->id)
                         ->update(["email_verified_at" => Carbon::now()]);
 
             return response()->json(["success" => $verify > 0]);

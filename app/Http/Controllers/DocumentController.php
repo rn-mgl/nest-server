@@ -6,6 +6,7 @@ use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\Document;
+use App\Models\Folder;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -44,25 +45,24 @@ class DocumentController extends Controller
                 $searchKey = "name";
             }
 
-            $documents = DB::table("documents as d")
-                ->where("d.is_deleted", false)
-                ->where("d.path", $path)
+            $documents = Document::where("documents.is_deleted", false)
+                ->where("documents.path", $path)
                 ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
-                    return $query->whereLike("d.{$searchKey}", "%{$searchValue}%")
-                    ->orderBy("d.{$sortKey}", $sortType);
+                    return $query->whereLike("documents.{$searchKey}", "%{$searchValue}%")
+                    ->orderBy("documents.{$sortKey}", $sortType);
                 })
                 ->join("users as u", function(JoinClause $join) {
-                    $join->on("u.id", "=", "d.created_by")
+                    $join->on("u.id", "=", "documents.created_by")
                     ->where("u.is_deleted", false);
                 })
                 ->select([
-                    "d.id",
+                    "documents.id",
                     "u.id as user_id",
                     "u.first_name",
                     "u.last_name",
                     "u.email",
                     "name",
-                    "d.created_at",
+                    "documents.created_at",
                     "description",
                     "document",
                     "created_by",
@@ -70,25 +70,24 @@ class DocumentController extends Controller
                     "path"
                 ]);
 
-            $folders = DB::table("document_folders as df")
-                ->where("df.is_deleted", false)
-                ->where("df.path", $path)
+            $folders = Folder::where("folders.is_deleted", false)
+                ->where("folders.path", $path)
                 ->when($categoryValue === "folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
-                    return $query->whereLike("df.{$searchKey}", "%{$searchValue}%")
-                    ->orderBy("df.{$sortKey}", $sortType);
+                    return $query->whereLike("folders.{$searchKey}", "%{$searchValue}%")
+                    ->orderBy("folders.{$sortKey}", $sortType);
                 })
                 ->join("users as u", function(JoinClause $join) {
-                    $join->on("u.id", "=", "df.created_by")
+                    $join->on("u.id", "=", "folders.created_by")
                     ->where("u.is_deleted", false);
                 })
                 ->select([
-                    "df.id",
+                    "folders.id",
                     "u.id as user_id",
                     "u.first_name",
                     "u.last_name",
                     "u.email",
                     "name",
-                    "df.created_at",
+                    "folders.created_at",
                     DB::raw("NULL as description"),
                     DB::raw("NULL as document"),
                     "created_by",
