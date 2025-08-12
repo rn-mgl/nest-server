@@ -81,7 +81,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $employeeOnboardingRequiredDocumentId)
+    public function update(Request $request, EmployeeOnboardingRequiredDocuments $required_document)
     {
         try {
 
@@ -95,9 +95,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
             }
 
-            $updated = DB::table("employee_onboarding_required_documents")
-                        ->where("id", "=", $employeeOnboardingRequiredDocumentId)
-                        ->update(["document" => $uploaded]);
+            $updated = $required_document->update(["document" => $uploaded]);
 
             return response()->json(["success" => $updated]);
 
@@ -109,12 +107,10 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($employeeOnboardingRequiredDocumentId)
+    public function destroy(EmployeeOnboardingRequiredDocuments $required_document)
     {
         try {
-            $deleted = DB::table("employee_onboarding_required_documents")
-                        ->where("id", "=", $employeeOnboardingRequiredDocumentId)
-                        ->update(["document" => null]);
+            $deleted = $required_document->update(["document" => null]);
 
             return response()->json(["success" => $deleted]);
 

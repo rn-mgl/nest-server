@@ -126,8 +126,7 @@ class HROnboardingController extends Controller
     {
         try {
 
-            $required_documents = DB::table('onboarding_required_documents as ord')
-                                    ->where("onboarding_id", "=", $onboarding->id)
+            $required_documents = OnboardingRequiredDocuments::where("onboarding_id", "=", $onboarding->id)
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_required_documents_id',
@@ -137,8 +136,7 @@ class HROnboardingController extends Controller
                                     ->get();
 
 
-            $policy_acknowledgements = DB::table('onboarding_policy_acknowledgements as opa')
-                                    ->where("onboarding_id", "=", $onboarding->id)
+            $policy_acknowledgements = OnboardingPolicyAcknowledgements::where("onboarding_id", "=", $onboarding->id)
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_policy_acknowledgements_id',
@@ -268,17 +266,11 @@ class HROnboardingController extends Controller
     public function destroy(string $onboarding)
     {
         try {
-            $deletedOnboarding = DB::table("onboardings")
-                                ->where("id", "=", $onboarding)
-                                ->update(["is_deleted" => true]);
+            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->update(["is_deleted" => true]);
 
-            $deletedRequiredDocuments = DB::table("onboarding_required_documents")
-                                ->where("onboarding_id", "=", $onboarding)
-                                ->update(["is_deleted" => true]);
+            $deletedRequiredDocuments = OnboardingRequiredDocuments::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
 
-            $deletedPolicyAcknowledgements = DB::table("onboarding_policy_acknowledgements")
-                                            ->where("onboarding_id", "=", $onboarding)
-                                            ->update(["is_deleted" => true]);
+            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgements::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deletedOnboarding]);
         } catch (\Throwable $th) {

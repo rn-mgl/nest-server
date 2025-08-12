@@ -4,6 +4,7 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -31,9 +32,8 @@ class HRAttendanceController extends Controller
             $latesThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
 
             // get ins and outs within the day
-            $attendances = DB::table("attendances as a")
-                            ->where("a.login_time", ">=", $currentDate)
-                            ->where("a.login_time", "<", $tomorrowDate)
+            $attendances = Attendance::where("login_time", ">=", $currentDate)
+                            ->where("login_time", "<", $tomorrowDate)
                             ->get();
 
             // get all users that logged in
@@ -52,8 +52,7 @@ class HRAttendanceController extends Controller
                 }
             }
 
-            $users = DB::table("users as u")
-                        ->where("is_deleted", "=", false)
+            $users = User::where("is_deleted", "=", false)
                         ->pluck("id")
                         ->toArray();
 
@@ -100,15 +99,12 @@ class HRAttendanceController extends Controller
             $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
             $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
 
-            $ins = DB::table("attendances as a")
-                    ->where("a.login_time", ">=", $currentDate)
-                    ->where("a.login_time", "<", $tomorrowDate)
+            $ins = Attendance::where("login_time", ">=", $currentDate)
+                    ->where("login_time", "<", $tomorrowDate)
                     ->get()
                     ->keyBy("user_id");
 
-            $users = DB::table("users as u")
-                    ->where("is_deleted", "=", false)
-                    ->get();
+            $users = User::where("is_deleted", "=", false)->get();
 
             $attendances = $users->map(function ($user) use ($ins, $lateThreshold) {
                 $attendanceData = [

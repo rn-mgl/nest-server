@@ -69,9 +69,7 @@ class HREmployeePerformanceReviewController extends Controller
             $performanceReviewId = $attributes["performance_review_id"];
             $employeeIds = $attributes["employee_ids"];
 
-            $performanceReviews = DB::table("employee_performance_reviews")
-                                    ->where("performance_review_id", "=", $performanceReviewId)
-                                    ->get();
+            $performanceReviews = EmployeePerformanceReview::where("performance_review_id", "=", $performanceReviewId)->get();
 
             $alreadyAssigned = $performanceReviews->pluck("employee_id")->toArray();
 
@@ -90,8 +88,7 @@ class HREmployeePerformanceReviewController extends Controller
 
             foreach ($alreadyAssigned as $id) {
                 if (!in_array($id, $employeeIds)) {
-                    $deleted = DB::table("employee_performance_reviews")
-                                ->where("employee_id", "=", $id)
+                    $deleted = EmployeePerformanceReview::where("employee_id", "=", $id)
                                 ->where("performance_review_id", "=", $performanceReviewId)
                                 ->delete();
                 }

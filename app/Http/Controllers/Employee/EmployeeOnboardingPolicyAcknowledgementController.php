@@ -47,7 +47,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
                 "acknowledged" => $attributes["policy_acknowledged"]
             ];
 
-            $acknowledged = DB::table("employee_onboarding_policy_acknowledgements")->insert($acknowledgement_attributes);
+            $acknowledged = EmployeeOnboardingPolicyAcknowledgement::create($acknowledgement_attributes);
 
             return response()->json(["success" => $acknowledged]);
 

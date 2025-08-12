@@ -80,8 +80,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
-            $leaveBalances = DB::table("leave_balances as lb")
-                            ->where("leave_type_id", "=", $attributes["leave_type_id"])
+            $leaveBalances = LeaveBalance::where("leave_type_id", "=", $attributes["leave_type_id"])
                             ->select([
                                 "id as leave_balance_id",
                                 "user_id",

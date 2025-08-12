@@ -7,6 +7,7 @@ use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\EmployeeTraining;
+use App\Models\TrainingContent;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -119,9 +120,7 @@ class EmployeeTrainingController extends Controller
                         ])
                         ->first();
 
-            $training->contents = DB::table("training_contents as t")
-                                ->where("training_id", "=", $training->training_id)
-                                ->where("is_deleted", "=", false)
+            $training->contents = TrainingContent::where("is_deleted", "=", false)
                                 ->select([
                                     "id as training_content_id",
                                     "title",

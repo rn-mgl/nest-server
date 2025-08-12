@@ -178,8 +178,7 @@ class HRTrainingController extends Controller
     {
 
         try {
-            $contents = DB::table("training_contents as tc")
-                        ->where("training_id", "=", $training->id)
+            $contents = TrainingContent::where("training_id", "=", $training->id)
                         ->where("is_deleted", "=", false)
                         ->select([
                             "id as training_content_id",
@@ -192,11 +191,10 @@ class HRTrainingController extends Controller
 
             $training->contents = $contents;
 
-            $reviews = DB::table("training_reviews as tr")
-                        ->where("training_id", "=", $training->id)
+            $reviews = TrainingReview::where("training_id", "=", $training->id)
                         ->where("is_deleted", "=", false)
                         ->select([
-                            "tr.id as training_review_id",
+                            "id as training_review_id",
                             "question",
                             "answer",
                             "choice_1",

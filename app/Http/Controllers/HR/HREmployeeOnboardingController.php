@@ -73,8 +73,7 @@ class HREmployeeOnboardingController extends Controller
                 "onboarding_id" => $attributes["onboarding_id"]
             ];
 
-            $alreadyAssigned = DB::table("employee_onboardings")
-                        ->where("onboarding_id", "=", $attributes["onboarding_id"])
+            $alreadyAssigned = EmployeeOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
                         ->get()
                         ->pluck("employee_id")
                         ->toArray();

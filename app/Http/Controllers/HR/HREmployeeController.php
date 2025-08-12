@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -45,15 +46,14 @@ class HREmployeeController extends Controller
             if ($tab === "employees") {
                 $verified = $categoryValue === "all" ? "" : $categoryValue === "verified";
 
-                $employees = DB::table("users as u")
-                                ->select([
-                                    "u.id as user_id",
-                                    "u.first_name",
-                                    "u.last_name",
-                                    "u.email",
-                                    "u.image",
-                                    "u.email_verified_at",
-                                    "u.created_at",
+                $employees = User::select([
+                                    "id as user_id",
+                                    "first_name",
+                                    "last_name",
+                                    "email",
+                                    "image",
+                                    "email_verified_at",
+                                    "created_at",
                                 ])
                                 ->where("role", "=", "employee")
                                 ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
@@ -253,8 +253,7 @@ class HREmployeeController extends Controller
     {
         try {
 
-            $employee = DB::table("users")
-                        ->select([
+            $employee = User::select([
                             "id as user_id",
                             "first_name",
                             "last_name",

@@ -77,9 +77,7 @@ class HREmployeeTrainingController extends Controller
             $training = Training::find($trainingId);
             $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
-            $employeeTrainings = DB::table("employee_trainings")
-                                ->where("training_id", "=", $trainingId)
-                                ->get();
+            $employeeTrainings = EmployeeTraining::where("training_id", "=", $trainingId)->get();
 
             $alreadyAssigned = $employeeTrainings->pluck("employee_id")->toArray();
 
@@ -102,10 +100,9 @@ class HREmployeeTrainingController extends Controller
             foreach ($alreadyAssigned as $id) {
 
                 if (!in_array($id, $employeeIds)) {
-                    $deletedEmployeeTraining = DB::table("employee_trainings")
-                                ->where("employee_id", "=", $id)
-                                ->where("training_id", "=", $trainingId)
-                                ->delete();
+                    $deletedEmployeeTraining = EmployeeTraining::where("employee_id", "=", $id)
+                                                ->where("training_id", "=", $trainingId)
+                                                ->delete();
                 }
 
             }

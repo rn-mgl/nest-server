@@ -113,14 +113,13 @@ class HRPerformanceReviewController extends Controller
     public function show(PerformanceReview $performanceReview)
     {
         try {
-            $contents = DB::table("performance_review_contents as prc")
-                                    ->where("performance_review_id", "=", $performanceReview->id)
-                                    ->where("is_deleted", "=", false)
-                                    ->select([
-                                        "id as performance_review_content_id",
-                                        "survey"
-                                    ])
-                                    ->get();
+            $contents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)
+                        ->where("is_deleted", "=", false)
+                        ->select([
+                            "id as performance_review_content_id",
+                            "survey"
+                        ])
+                        ->get();
 
             $performanceReview->contents = $contents;
 

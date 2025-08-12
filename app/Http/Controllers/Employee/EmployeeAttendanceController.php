@@ -68,8 +68,7 @@ class EmployeeAttendanceController extends Controller
                 "absent" => true
             ];
 
-            $log = DB::table("attendances")
-                    ->where(function($query) use($currentDate, $tomorrowDate) {
+            $log = Attendance::where(function($query) use($currentDate, $tomorrowDate) {
                         $query->where("login_time", ">=", $currentDate)
                                 ->where("login_time", "<", $tomorrowDate);
                     })

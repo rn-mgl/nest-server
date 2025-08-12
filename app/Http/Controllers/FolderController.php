@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Document;
 use App\Models\Folder;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,9 +17,7 @@ class FolderController extends Controller
     public function index()
     {
         try {
-            $folders = DB::table("folders as df")
-                        ->where("df.is_deleted", "=", false)
-                        ->get();
+            $folders = Folder::where("is_deleted", "=", false)->get();
 
             return response()->json(["folders" => $folders]);
         } catch (\Throwable $th) {
@@ -115,8 +114,7 @@ class FolderController extends Controller
     {
         try {
             // delete folder and everything below it
-            $paths = DB::table("folders")
-            ->select([
+            $paths = Folder::select([
                 "id",
                 "path"
             ])
@@ -126,21 +124,17 @@ class FolderController extends Controller
             $childPaths = $this->get_child_paths($folder, $paths);
 
             foreach($childPaths as $child) {
-                $deletedFolders = DB::table("folders")
-                            ->where("id", $child)
+                $deletedFolders = Folder::where("id", $child)
                             ->update(["is_deleted" => true]);
 
-                $deletedDocuments = DB::table("documents")
-                                    ->where("path", $child)
+                $deletedDocuments = Document::where("path", $child)
                                     ->update(["is_deleted" => true]);
             }
 
-            $deletedFolder = DB::table("folders")
-                            ->where("id", $folder)
+            $deletedFolder = Folder::where("id", $folder)
                             ->update(["is_deleted" => true]);
 
-            $deletedDocument = DB::table("documents")
-                            ->where("path", $folder)
+            $deletedDocument = Document::where("path", $folder)
                             ->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deletedFolder]);
@@ -159,8 +153,7 @@ class FolderController extends Controller
 
             $currentPath = intval($attributes["path"]);
 
-            $paths = DB::table("folders")
-                    ->select(
+            $paths = Folder::select(
                 [
                             "id",
                             "name",

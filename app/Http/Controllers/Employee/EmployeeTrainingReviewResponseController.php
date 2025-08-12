@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmployeeTraining;
 use App\Models\EmployeeTrainingReviewResponse;
+use App\Models\TrainingReview;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,19 +45,15 @@ class EmployeeTrainingReviewResponseController extends Controller
             $user = Auth::guard("base")->id();
 
             // check if there are records that are already answered and stored
-            $alreadyAnsweredReviews = DB::table("employee_training_review_responses")
-                                        ->where("response_by", "=", $user)
+            $alreadyAnsweredReviews = EmployeeTrainingReviewResponse::where("response_by", "=", $user)
                                         ->pluck("training_review_id")
                                         ->toArray();
 
             // get test reviews and map as [id => answer]
-            $reviews = DB::table("training_reviews")
-                        ->where("training_id", "=", $attributes["training_id"])
+            $reviews = TrainingReview::where("training_id", "=", $attributes["training_id"])
                         ->where("is_deleted", "=", false)
                         ->get()
-                        ->mapWithKeys(function($item) {
-                            return [$item->id => $item->answer];
-                        });
+                        ->mapWithKeys(fn($item) => [$item->id => $item->answer]);
 
             $score = 0;
             $shouldUpdateScore = false;
@@ -84,8 +82,7 @@ class EmployeeTrainingReviewResponseController extends Controller
             // update score if there is a stored response
             if ($shouldUpdateScore) {
 
-                $updateScore = DB::table("employee_trainings as et")
-                                ->where("employee_id", "=", $user)
+                $updateScore = EmployeeTraining::where("employee_id", "=", $user)
                                 ->where("training_id", "=", $attributes["training_id"])
                                 ->update(["score" => $score]);
 
