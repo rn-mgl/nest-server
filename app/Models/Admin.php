@@ -14,6 +14,6 @@ class Admin extends User
 
     public function activities()
     {
-        $this->morphToMany(Activity::class, 'activitable');
+        return $this->morphMany(Activity::class, 'activitable');
     }
 }
