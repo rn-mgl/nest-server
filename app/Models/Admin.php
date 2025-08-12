@@ -11,4 +11,9 @@ class Admin extends User
 
     protected $table = 'admins';
     protected $guarded = [];
+
+    public function activities()
+    {
+        $this->morphToMany(Activity::class, 'activitable');
+    }
 }

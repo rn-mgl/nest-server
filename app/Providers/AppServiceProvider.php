@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,5 +24,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::preventLazyLoading(true);
+
+        Relation::enforceMorphMap([
+            'user' => User::class,
+            'admin' => Admin::class
+        ]);
     }
 }
