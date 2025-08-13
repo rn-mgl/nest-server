@@ -10,7 +10,6 @@ use Illuminate\Support\Str;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Carbon\Carbon;
-use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\UnauthorizedException;
@@ -22,7 +21,7 @@ class EnsureUserTokenIsValid
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $role): Response
     {
         try {
 
@@ -44,10 +43,14 @@ class EnsureUserTokenIsValid
                 throw new UnauthorizedException("Your token is invalid. Please log in again.");
             }
 
-            $user = Auth::guard("base")->user();
+            $user = $request->user();
 
             // check if payload match db
             if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
+                throw new UnauthorizedException("You are unauthorized to proceed.");
+            }
+
+            if ($user->role !== $role) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureAdminTokenIsValid;
 use App\Http\Middleware\EnsureUserTokenIsValid;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,8 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'valid_user_token' => EnsureUserTokenIsValid::class,
-            'valid_admin_token' => EnsureAdminTokenIsValid::class
+            'user_token' => EnsureUserTokenIsValid::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

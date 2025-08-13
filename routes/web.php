@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Employee\EmployeeController;
-use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
@@ -44,35 +43,22 @@ Route::prefix("api")->group(function() {
         return redirect(env("NEST_URL"));
     });
 
-    Route::get('csrf-cookie', function() {
-        return response()->json(["token" => csrf_token()]);
-    });
+    Route::get('csrf-cookie', fn() => response()->json(["token" => csrf_token()]));
 
-    // base auth
+    // auth
     Route::prefix("auth")->group(function() {
         Route::controller(BaseAuthController::class)->group(function() {
             Route::post("/login", "login");
             Route::post("/register", "register");
             Route::patch('/verify', "verify");
-            Route::post("/verification-notification", "resend_verification")->middleware(["auth:base", "throttle:6,1"]);
-            Route::post("/forgot-password", "forgot_password");
-            Route::patch("/reset-password", "reset_password");
-        });
-    });
-
-    // admin auth
-    Route::prefix("admin_auth")->group(function() {
-        Route::controller(AdminAuthController::class)->group(function() {
-            Route::post("/login", "login");
-            Route::patch("/verify", "verify");
-            Route::post("/verification-notification", "resend_verification")->middleware(["auth:admin", "throttle:6,1"]);
+            Route::post("/verification-notification", "resend_verification")->middleware(["auth", "throttle:6,1"]);
             Route::post("/forgot-password", "forgot_password");
             Route::patch("/reset-password", "reset_password");
         });
     });
 
     // hr routes
-    Route::middleware(["auth:base", "valid_user_token"])->prefix("hr")->group(function() {
+    Route::middleware(["auth", "user_token:hr"])->prefix("hr")->group(function() {
 
         // dashboard route
         Route::prefix("/dashboard")->group(function () {
@@ -237,7 +223,7 @@ Route::prefix("api")->group(function() {
     });
 
     // employee routes
-    Route::middleware(["auth:base", "valid_user_token"])->prefix("employee")->group(function() {
+    Route::middleware(["auth", "user_token:employee"])->prefix("employee")->group(function() {
 
         Route::prefix("/dashboard")->group(function() {
             Route::controller(EmployeeDashboardController::class)->group(function() {
@@ -357,9 +343,9 @@ Route::prefix("api")->group(function() {
     });
 
     // admin routes
-    Route::middleware(["auth:admin", "valid_admin_token"])->prefix("admin")->group(function() {
+    Route::middleware(["auth:admin", "user_token:admin"])->prefix("admin")->group(function() {
         Route::prefix("auth")->group(function() {
-            Route::controller(AdminAuthController::class)->group(function() {
+            Route::controller(BaseAuthController::class)->group(function() {
                 Route::post("/change_password", "change_password");
                 Route::post("/logout", "logout");
             });
