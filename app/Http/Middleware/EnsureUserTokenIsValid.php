@@ -46,11 +46,11 @@ class EnsureUserTokenIsValid
             $user = $request->user();
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
+            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->roles->role !== $decoded->role) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            if ($user->role !== $role) {
+            if ($user->roles->role !== $role) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 

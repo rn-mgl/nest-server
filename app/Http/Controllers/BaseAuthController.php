@@ -35,7 +35,7 @@ class BaseAuthController extends Controller
 
             $user = User::create($attributes);
             $tokens = new Tokens();
-            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             Auth::login($user);
 
@@ -64,7 +64,7 @@ class BaseAuthController extends Controller
             $user = User::findOrFail($decoded->user);
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role !== $decoded->role) {
+            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->roles->role !== $decoded->role) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
@@ -100,7 +100,7 @@ class BaseAuthController extends Controller
 
             if (!$isVerified) {
                 $tokens = new Tokens();
-                $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+                $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
                 event(new Registered($user, $token));
                 return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
             }
@@ -131,7 +131,7 @@ class BaseAuthController extends Controller
             $user = User::findOrFail($id);
 
             $tokens = new Tokens();
-            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
+            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             event(new Registered($user, $token));
 
@@ -202,7 +202,7 @@ class BaseAuthController extends Controller
                 "user" => $user->id,
                 "name" => "{$user->first_name} {$user->last_name}",
                 "email" => $user->email,
-                "role" => $user->role,
+                "role" => $user->roles->role,
                 "iss" => env("TOKEN_ISSUER"),
                 "aud" => env("TOKEN_AUDIENCE"),
                 "iat" => Carbon::now()->timestamp,
