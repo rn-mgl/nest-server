@@ -47,7 +47,7 @@ class FolderController extends Controller
             $folderAttr = [
                 "name" => $attributes["name"],
                 "path" => $attributes["path"],
-                "created_by" => Auth::guard("base")->id()
+                "created_by" => Auth::id()
             ];
 
             $createdFolder = Folder::create($folderAttr);

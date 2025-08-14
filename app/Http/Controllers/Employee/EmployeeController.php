@@ -42,7 +42,7 @@ class EmployeeController extends Controller
     {
         try {
 
-            $authenticated = Auth::guard("base")->user();
+            $authenticated = Auth::user();
 
             if ($authenticated->id !== $employee->id) {
                 throw new UnauthorizedException("Your session does not match our server.");
@@ -76,7 +76,7 @@ class EmployeeController extends Controller
                 "image" => ["nullable"]
             ]);
 
-            $authenticated = Auth::guard("base")->user();
+            $authenticated = Auth::user();
 
             if ($authenticated->id !== $employee->id) {
                 throw new UnauthorizedException("Your session does not match our server.");

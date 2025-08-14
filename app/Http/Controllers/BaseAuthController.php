@@ -37,7 +37,7 @@ class BaseAuthController extends Controller
             $tokens = new Tokens();
             $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
 
-            Auth::guard("base")->login($user);
+            Auth::login($user);
 
             event(new Registered($user, $token));
 
@@ -86,13 +86,13 @@ class BaseAuthController extends Controller
                 "password" => ["required"]
             ]);
 
-            if (!Auth::guard("base")->attempt($attributes)) {
+            if (!Auth::attempt($attributes)) {
                 throw new AuthorizationException("Invalid Credentials");
             }
 
             $request->session()->regenerateToken();
 
-            $id = Auth::guard("base")->id();
+            $id = Auth::id();
 
             $user = User::findOrFail($id);
 
@@ -102,14 +102,14 @@ class BaseAuthController extends Controller
                 $tokens = new Tokens();
                 $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "role" => $user->role, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
             }
 
             $payload = [
                 "user" => $user->id,
                 "name" => "{$user->first_name} {$user->last_name}",
                 "email" => $user->email,
-                "role" => $user->role,
+                "role" => $user->roles->role,
                 "iss" => env("TOKEN_ISSUER"),
                 "aud" => env("TOKEN_AUDIENCE"),
                 "iat" => Carbon::now()->timestamp,
@@ -118,7 +118,7 @@ class BaseAuthController extends Controller
 
             $token = JWT::encode($payload, env("SESSION_KEY"), "HS256");
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role, "isVerified" => $isVerified]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->roles->role, "isVerified" => $isVerified]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -127,7 +127,7 @@ class BaseAuthController extends Controller
     public function resend_verification()
     {
         try {
-            $id = Auth::guard("base")->id();
+            $id = Auth::id();
             $user = User::findOrFail($id);
 
             $tokens = new Tokens();
@@ -145,7 +145,7 @@ class BaseAuthController extends Controller
     {
 
         try {
-            Auth::guard("base")->logout();
+            Auth::logout();
 
             $request->session()->invalidate();
 
@@ -167,7 +167,7 @@ class BaseAuthController extends Controller
                 "new_password" => ["required", "string", "confirmed", Password::min(8)],
             ]);
 
-            $authenticated = Auth::guard("base")->user();
+            $authenticated = Auth::user();
 
             if (!Hash::check($attributes["current_password"], $authenticated->password)) {
                 throw new UnauthorizedException("The current password you entered does not match our record.");

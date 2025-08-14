@@ -42,7 +42,7 @@ class EmployeeTrainingReviewResponseController extends Controller
                 "reviews.*.employee_answer" => ["required", "integer", "in:1,2,3,4"],
             ]);
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             // check if there are records that are already answered and stored
             $alreadyAnsweredReviews = EmployeeTrainingReviewResponse::where("response_by", "=", $user)

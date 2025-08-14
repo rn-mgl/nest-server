@@ -31,7 +31,7 @@ class EmployeePerformanceReviewController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $searchValue = $attributes["searchValue"] ?? "";
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $performanceReviews = DB::table("employee_performance_reviews as epr")
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
@@ -90,7 +90,7 @@ class EmployeePerformanceReviewController extends Controller
     {
         try {
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $performanceReview = DB::table("employee_performance_reviews as epr")
                                 ->join("performance_reviews as pr", function(JoinClause $join) {

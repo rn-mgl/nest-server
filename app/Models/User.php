@@ -47,8 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->morphMany(Activity::class, 'activitable');
     }
 
-    public function createdOnboarding()
+    public function roles()
     {
-        return $this->hasMany(Onboarding::class, "created_by");
+        return $this->hasOne(Role::class, "id", "role_id");
     }
 }

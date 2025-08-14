@@ -99,7 +99,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 if (!in_array($employee, $alreadyAssigned)) {
                     $leaveBalanceAttr = [
                         "user_id" => $employee,
-                        "provided_by" => Auth::guard("base")->id(),
+                        "provided_by" => Auth::id(),
                         "leave_type_id" => $leave_type_id,
                         "balance" => 0
                     ];

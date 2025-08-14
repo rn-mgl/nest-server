@@ -41,7 +41,7 @@ class EmployeePerformanceReviewResponseController extends Controller
                 "response.*.response" => ["required", "string"],
             ]);
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $responseAttribute = [
                 "performance_review_content_id" => null,

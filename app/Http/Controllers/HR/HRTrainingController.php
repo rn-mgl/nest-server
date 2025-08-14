@@ -118,7 +118,7 @@ class HRTrainingController extends Controller
             $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
 
             $trainingAttr = [
-                "created_by" => Auth::guard("base")->id(),
+                "created_by" => Auth::id(),
                 "title" => $attributes["title"],
                 "description" => $attributes["description"],
                 "deadline_days" => $attributes["deadline_days"],
@@ -151,7 +151,7 @@ class HRTrainingController extends Controller
 
                 $reviewAttr = [
                     "training_id" => $training->id,
-                    "created_by" => Auth::guard("base")->id(),
+                    "created_by" => Auth::id(),
                     "answer" => $value["answer"],
                     "choice_1" => $value["choice_1"],
                     "choice_2" => $value["choice_2"],

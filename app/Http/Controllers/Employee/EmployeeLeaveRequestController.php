@@ -95,7 +95,7 @@ class EmployeeLeaveRequestController extends Controller
                 "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
-            $attributes["user_id"] = Auth::guard("base")->id();
+            $attributes["user_id"] = Auth::id();
             $attributes["status"] = "pending";
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();

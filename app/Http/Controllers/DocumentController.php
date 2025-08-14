@@ -139,7 +139,7 @@ class DocumentController extends Controller
             $document = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
 
             $attributes["document"] = $document;
-            $attributes["created_by"] = Auth::guard("base")->id();
+            $attributes["created_by"] = Auth::id();
 
             $createdDocument = Document::create($attributes);
 

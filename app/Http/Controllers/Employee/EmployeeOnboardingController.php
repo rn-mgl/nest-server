@@ -38,7 +38,7 @@ class EmployeeOnboardingController extends Controller
             $categoryValue = $attributes['categoryValue'] ?? "";
             $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $onboardings = DB::table("employee_onboardings as eo")
                             ->join("onboardings as o", function(JoinClause $join) {

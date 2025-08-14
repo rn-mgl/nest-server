@@ -83,7 +83,7 @@ class HRPerformanceReviewController extends Controller
             $performanceAttr = [
                 "title" => $attributes["title"],
                 "description" => $attributes["description"],
-                "created_by" => Auth::guard("base")->id()
+                "created_by" => Auth::id()
             ];
 
             $createdPerformance = PerformanceReview::create($performanceAttr);

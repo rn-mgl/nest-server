@@ -39,7 +39,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
                 "policy_acknowledgement_id" => ["required", "integer"]
             ]);
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $acknowledgement_attributes = [
                 "employee_id" => $user,

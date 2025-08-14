@@ -79,7 +79,7 @@ class HREmployeePerformanceReviewController extends Controller
                     $employeePerformanceReviewAttr = [
                         "performance_review_id" => $performanceReviewId,
                         "employee_id" => $employee,
-                        "assigned_by" => Auth::guard("base")->id()
+                        "assigned_by" => Auth::id()
                     ];
 
                     $created = EmployeePerformanceReview::create($employeePerformanceReviewAttr);

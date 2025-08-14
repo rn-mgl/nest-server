@@ -31,7 +31,7 @@ class EmployeeLeaveBalanceController extends Controller
             $sortType = $isAsc ? "ASC" : "DESC";
             $sortKey = $attributes["sortKey"];
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $leaveBalances = DB::table("leave_balances as lb")
                             ->join("users as u", function(JoinClause $join) {

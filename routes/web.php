@@ -343,7 +343,7 @@ Route::prefix("api")->group(function() {
     });
 
     // admin routes
-    Route::middleware(["auth:admin", "user_token:admin"])->prefix("admin")->group(function() {
+    Route::middleware(["auth", "user_token:admin"])->prefix("admin")->group(function() {
         Route::prefix("auth")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
                 Route::post("/change_password", "change_password");
@@ -353,25 +353,25 @@ Route::prefix("api")->group(function() {
 
         Route::prefix("/dashboard")->group(function() {
             Route::controller(AdminDashboardController::class)->group(function() {
-                Route::get("/", "index")->can("update", Admin::class);
+                Route::get("/", "index")->can("update", User::class);
             });
         });
 
         Route::prefix("hr")->group(function() {
             Route::controller(BaseAuthController::class)->group(function() {
-                Route::post("/register", "register")->can("update", Admin::class);
+                Route::post("/register", "register")->can("update", User::class);
             });
 
             Route::controller(AdminHRController::class)->group(function() {
-                Route::get("/", "index")->can("update", Admin::class);
-                Route::patch("/{hr}", "update")->can("update", Admin::class);
+                Route::get("/", "index")->can("update", User::class);
+                Route::patch("/{hr}", "update")->can("update", User::class);
             });
         });
 
         Route::prefix("profile")->group(function() {
             Route::controller(AdminController::class)->group(function() {
-                Route::get("/{admin}", "show")->can("update", Admin::class);
-                Route::patch("/{admin}", "update")->can("update", Admin::class);
+                Route::get("/{admin}", "show")->can("update", User::class);
+                Route::patch("/{admin}", "update")->can("update", User::class);
             });
         });
     });

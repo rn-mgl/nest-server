@@ -12,6 +12,6 @@ class AdminPolicy
      */
     public function update(Admin $admin)
     {
-        return Auth::guard("admin")->user() instanceof Admin && Auth::guard("admin")->id() === $admin->id;
+        return Auth::user() instanceof Admin && Auth::id() === $admin->id;
     }
 }

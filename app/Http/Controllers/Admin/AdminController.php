@@ -42,7 +42,7 @@ class AdminController extends Controller
     {
         try {
 
-            $authenticated = Auth::guard("admin")->user();
+            $authenticated = Auth::user();
 
             if ($authenticated->id !== $admin->id) {
                 throw new UnauthorizedException("The client session you use does not match our server.");

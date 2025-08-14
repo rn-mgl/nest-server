@@ -37,7 +37,7 @@ class EmployeeTrainingController extends Controller
             $categoryKey = $attributes["categoryKey"];
             $categoryValue = $attributes["categoryValue"] ==="all" ? "" : $attributes["categoryValue"];
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $trainings = DB::table("employee_trainings as et")
                         ->join("users as u", function(JoinClause $join) {

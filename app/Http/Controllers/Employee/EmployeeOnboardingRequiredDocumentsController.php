@@ -45,7 +45,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
             }
 
-            $user = Auth::guard("base")->id();
+            $user = Auth::id();
 
             $requiredDocumentsAttr = [
                 "employee_id" => $user,

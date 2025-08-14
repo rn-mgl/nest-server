@@ -87,7 +87,7 @@ class HREmployeeTrainingController extends Controller
 
                     $employeeTrainingAttr = [
                         "employee_id" => $employee,
-                        "assigned_by" => Auth::guard("base")->id(),
+                        "assigned_by" => Auth::id(),
                         "training_id" => $trainingId,
                         "deadline" => $deadline
                     ];
