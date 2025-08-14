@@ -13,6 +13,7 @@ use App\Models\LeaveRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,13 +27,13 @@ class HRDashboardController extends Controller
     {
         try {
 
-            $users = User::where("is_deleted", false)->get();
+            $users = User::where("is_deleted", false)->with("roles")->get();
 
-            $attendances = Attendance::where(function($query) {
+            $attendances = Attendance::where(function(Builder $query) {
                                 $query->whereToday("login_time");
                             })
-                            ->where(function ($query) {
-                                $query->where(function ($query2) {
+                            ->where(function (Builder $query) {
+                                $query->where(function (Builder $query2) {
                                     $query2->whereToday("logout_time")
                                     ->whereColumn("logout_time", ">", "login_time");
                                 })->orWhereNull("logout_time");
@@ -98,7 +99,7 @@ class HRDashboardController extends Controller
 
             $folders = Folder::where("is_deleted", "=", false)->get()->count();
 
-            $users = $users->groupBy("role")->map(fn($user) => $user->count());
+            $users = $users->groupBy(fn($user) => $user->roles->role)->map(fn($user) => $user->count());
 
             $documentAndFolders = [
                 'documents' => $documents,
