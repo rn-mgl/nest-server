@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Admin::class, "added_by")->nullable()->constrained("admins")->nullOnDelete();
+            $table->foreignIdFor(User::class, "added_by")->nullable()->constrained("users")->nullOnDelete();
             $table->foreignIdFor(User::class, "handled_by")->nullable()->constrained("users")->nullOnDelete();
             $table->string("name");
             $table->longText("description");

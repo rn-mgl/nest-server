@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -26,8 +25,7 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(true);
 
         Relation::enforceMorphMap([
-            'user' => User::class,
-            'admin' => Admin::class
+            'user' => User::class
         ]);
     }
 }
