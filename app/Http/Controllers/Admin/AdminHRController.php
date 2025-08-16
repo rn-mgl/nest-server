@@ -9,6 +9,7 @@ use App\Http\Requests\SortRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class AdminHRController extends Controller
@@ -38,7 +39,7 @@ class AdminHRController extends Controller
             $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
 
             // Query the 'users' table, applying search and sorting filters
-            $hrs = User::where("role", "hr")
+            $hrs = User::ofRole("hr")
                     ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                     ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                     ->whereLike($attributes["searchKey"], "%{$searchValue}%")
@@ -130,7 +131,7 @@ class AdminHRController extends Controller
     private function deactivate(string $id) {
         try {
 
-            $hr = User::where("role", "=", "hr")
+            $hr = User::ofRole("hr")
                     ->where("id", "=", $id)
                     ->update(["email_verified_at" => null]);
 
@@ -142,7 +143,7 @@ class AdminHRController extends Controller
 
     private function verify(string $id) {
         try {
-            $hr = User::where("role", "=", "hr")
+            $hr = User::ofRole("hr")
                     ->where("id", "=", $id)
                     ->update(["email_verified_at" => Carbon::now()]);
 

@@ -8,6 +8,7 @@ use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class HREmployeeController extends Controller
                                     "email_verified_at",
                                     "created_at",
                                 ])
-                                ->where("role", "=", "employee")
+                                ->ofRole("employee")
                                 ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                                 ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                                 ->whereLike($searchKey, "%$searchValue%")
@@ -262,7 +263,7 @@ class HREmployeeController extends Controller
                             "image",
                         ])
                         ->where("id", "=", $employee_id)
-                        ->where("role", "=", "employee")
+                        ->ofRole("employee")
                         ->where("is_deleted", false)
                         ->firstOrFail();
 

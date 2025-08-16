@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -42,13 +44,35 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Summary of activities
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Activity, User>
+     */
     public function activities()
     {
         return $this->morphMany(Activity::class, 'activitable');
     }
 
+    /**
+     * Get role of the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Role, User>
+     */
     public function roles()
     {
         return $this->hasOne(Role::class, "id", "role_id");
     }
+
+    /**
+     * Local query scope to filter users by role
+     */
+    #[Scope]
+    protected function ofRole(Builder $query, string $role)
+    {
+        $query->whereHas("roles", function (Builder $query2) use ($role) {
+            $query2->where("role", "=", $role);
+        });
+    }
+
 }

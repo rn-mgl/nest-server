@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
@@ -16,9 +17,9 @@ class AdminDashboardController extends Controller
     {
         try {
 
-            $hrs = User::where("role", "=", "hr")
-                    ->where("is_deleted", "=", false)
-                    ->get();
+            $hrs = User::where("is_deleted", "=", false)
+                        ->ofRole("hr")
+                        ->get();
 
             return response()->json(["hrs" => $hrs]);
 
