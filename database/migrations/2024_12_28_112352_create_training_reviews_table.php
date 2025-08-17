@@ -16,15 +16,15 @@ return new class extends Migration
         Schema::create('training_reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Training::class, "training_id")->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
             $table->longText("question");
-            $table->text("answer");
+            $table->tinyInteger("answer");
             $table->text("choice_1");
             $table->text("choice_2");
             $table->text("choice_3");
             $table->text("choice_4");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

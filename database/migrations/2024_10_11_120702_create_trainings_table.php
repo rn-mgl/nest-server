@@ -17,10 +17,11 @@ return new class extends Migration
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
             $table->string("title");
             $table->longText("description");
-            $table->timestamp("deadline")->nullable();
+            $table->integer("deadline_days")->nullable();
             $table->string("certificate");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

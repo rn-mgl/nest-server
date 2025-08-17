@@ -18,13 +18,14 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class, "user_id")->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, "approved_by")->nullable()->constrained("users")->nullOnDelete();
-            $table->foreignIdFor(LeaveType::class, "leave_type")->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(LeaveType::class, "leave_type_id")->constrained()->cascadeOnDelete();
             $table->timestamp("start_date")->nullable();
             $table->timestamp("end_date")->nullable();
-            $table->string("status");
+            $table->string("status")->default("pending");
             $table->longText("reason");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

@@ -44,6 +44,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    # Relationships #
+
     /**
      * Summary of activities
      *
@@ -63,6 +65,48 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Role::class, "id", "role_id");
     }
+
+    /**
+     * Summary of createdOnboardings
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Onboarding, User>
+     */
+    public function createdOnboardings()
+    {
+        return $this->hasMany(Onboarding::class);
+    }
+
+    /**
+     * Summary of assignedOnboardings
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Onboarding, User>
+     */
+    public function assignedOnboardings()
+    {
+        return $this->hasMany(Onboarding::class, "user_onboardings", "user_id");
+    }
+
+    /**
+     * Summary of acknowledgedPolicies
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<OnboardingPolicyAcknowledgements, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
+    public function acknowledgedPolicies()
+    {
+        return $this->belongsToMany(OnboardingPolicyAcknowledgements::class, "onboarding_policy_acknowledgement_user", "user_id", "policy_acknowledgement_id");
+    }
+
+    /**
+     * Summary of leaveRequests
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<LeaveRequest, User>
+     */
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class, "id", "user_id");
+    }
+
+    # Scopes #
 
     /**
      * Local query scope to filter users by role

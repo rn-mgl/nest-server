@@ -14,12 +14,13 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "added_by")->nullable()->constrained("users")->nullOnDelete();
+            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
             $table->foreignIdFor(User::class, "handled_by")->nullable()->constrained("users")->nullOnDelete();
             $table->string("name");
             $table->longText("description");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

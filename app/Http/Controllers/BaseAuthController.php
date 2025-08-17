@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\Registered;
 use App\Mail\PasswordResetLink;
+use App\Models\Role;
 use App\Models\User;
 use App\Utils\Tokens;
 use Carbon\Carbon;
@@ -32,6 +33,12 @@ class BaseAuthController extends Controller
                 "password" => ["required", Password::min(8)],
                 "role" => ["required", "string"]
             ]);
+
+            $role = Role::where("role", "=", $attributes["role"])->firstOrFail();
+
+            $attributes["role_id"] = $role->id;
+
+            unset($attributes["role"]);
 
             $user = User::create($attributes);
             $tokens = new Tokens();
@@ -104,6 +111,8 @@ class BaseAuthController extends Controller
                 event(new Registered($user, $token));
                 return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
             }
+
+            logger($user->roles);
 
             $payload = [
                 "user" => $user->id,

@@ -15,7 +15,8 @@ return new class extends Migration
         Schema::create('onboarding_required_documents', function(Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
-            $table->string('document');
+            $table->string("title");
+            $table->longText("description");
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->boolean('is_deleted')->default(false);
@@ -24,15 +25,11 @@ return new class extends Migration
         Schema::create('onboarding_policy_acknowledgements', function(Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
-            $table->string('policy');
+            $table->string("title");
+            $table->longText("description");
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->boolean('is_deleted')->default(false);
-        });
-
-        Schema::table('onboardings', function(Blueprint $table) {
-            $table->dropColumn('required_documents');
-            $table->dropColumn('policy_acknowledgements');
         });
     }
 

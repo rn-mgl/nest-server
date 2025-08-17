@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('performance_review_responses', function (Blueprint $table) {
+        Schema::create('user_performance_review_responses', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(PerformanceReviewContent::class, "performance_review_content_id")->constrained("performance_review_contents")->cascadeOnDelete();
-            $table->foreignIdFor(User::class, "response_by")->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(PerformanceReviewContent::class, "content_id")->constrained("performance_review_contents")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
             $table->longText("response");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('performance_review_responses');
+        Schema::dropIfExists('user_performance_review_responses');
     }
 };

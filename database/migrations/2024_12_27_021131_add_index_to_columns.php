@@ -18,13 +18,6 @@ return new class extends Migration
             $table->index("created_at");
         });
 
-        Schema::table('admins', function (Blueprint $table) {
-            $table->fullText("first_name");
-            $table->fullText("last_name");
-            $table->fullText("email");
-            $table->index("created_at");
-        });
-
         Schema::table('leave_types', function (Blueprint $table) {
             $table->fullText("type");
             $table->fullText("description");
@@ -52,7 +45,7 @@ return new class extends Migration
             $table->fullText("title");
             $table->fullText("description");
             $table->index("created_at");
-            $table->index("deadline");
+            $table->index("deadline_days");
         });
 
         Schema::table('companies', function (Blueprint $table) {
@@ -73,13 +66,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex("first_name");
-            $table->dropIndex("last_name");
-            $table->dropIndex("email");
-            $table->dropIndex("created_at");
-        });
-
-        Schema::table('admins', function (Blueprint $table) {
             $table->dropIndex("first_name");
             $table->dropIndex("last_name");
             $table->dropIndex("email");

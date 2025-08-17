@@ -11,8 +11,22 @@ class LeaveRequest extends Model
 
     protected $guarded = [];
 
+    /**
+     * Summary of leaves
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<LeaveType, LeaveRequest>
+     */
     public function leaves()
     {
         return $this->belongsTo(LeaveType::class, "leave_type_id");
+    }
+
+    /**
+     * Summary of requestedBy
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, LeaveRequest>
+     */
+    public function requestedBy()
+    {
+        return $this->belongsTo(User::class, "user_id", "id");
     }
 }

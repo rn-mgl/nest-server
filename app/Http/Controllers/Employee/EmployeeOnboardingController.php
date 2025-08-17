@@ -8,6 +8,7 @@ use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\EmployeeOnboarding;
 use App\Models\Onboarding;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;

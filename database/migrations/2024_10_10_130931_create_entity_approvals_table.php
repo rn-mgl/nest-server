@@ -16,9 +16,10 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class, "user_id")->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, "approved_by")->nullable()->constrained("users")->nullOnDelete();
-            $table->string("status")->default("Pending");
+            $table->string("status")->default("pending");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

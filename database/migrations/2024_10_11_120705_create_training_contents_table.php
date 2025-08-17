@@ -12,17 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('training_contents', function (Blueprint $table) {
+        Schema::create("training_contents", function(Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Training::class, "training_id")->constrained()->cascadeOnDelete();
-            $table->string("question");
-            $table->string("answer");
-            $table->string("choice_1");
-            $table->string("choice_2");
-            $table->string("choice_3");
-            $table->string("choice_4");
+            $table->string("title");
+            $table->longText("description");
+            $table->longText("content");
+            $table->string("type");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

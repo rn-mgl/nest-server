@@ -15,16 +15,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-
-        Schema::table("employee_onboardings", function(Blueprint $table) {
-            $table->dropColumn("completed_documents");
-            $table->dropColumn("policy_acknowledged");
-            $table->boolean("is_deleted")->default(false);
-        });
-
-        Schema::create("employee_onboarding_policy_acknowledgements", function(Blueprint $table) {
+        Schema::create("user_onboarding_policy_acknowledgements", function(Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "employee_id")->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingPolicyAcknowledgements::class, "policy_acknowledgement_id")->constrained("onboarding_policy_acknowledgements", "id", "policy_acknowledgement_id_foreign")->cascadeOnDelete();
             $table->boolean("acknowledged")->default(false);
             $table->timestamp("created_at")->useCurrent();
@@ -32,9 +25,9 @@ return new class extends Migration
             $table->boolean("is_deleted")->default(false);
         });
 
-        Schema::create("employee_onboarding_required_documents", function(Blueprint $table) {
+        Schema::create("user_onboarding_required_document", function(Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "employee_id")->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingRequiredDocuments::class, "required_document_id")->constrained("onboarding_required_documents", "id", "required_document_id_foreign")->cascadeOnDelete();
             $table->string("document")->nullable();
             $table->timestamp("created_at")->useCurrent();
@@ -48,10 +41,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table("employee_onboardings", function(Blueprint $table) {
-            $table->dropColumn("is_deleted");
-        });
-        Schema::dropIfExists("employee_onboarding_policy_acknowledgements");
-        Schema::dropIfExists("employee_onboarding_required_documents");
+        Schema::dropIfExists("user_onboarding_policy_acknowledgement");
+        Schema::dropIfExists("user_onboarding_required_document");
     }
 };

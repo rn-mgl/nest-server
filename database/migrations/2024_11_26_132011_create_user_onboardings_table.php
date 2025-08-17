@@ -13,16 +13,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_onboardings', function (Blueprint $table) {
+        Schema::create('user_onboardings', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, 'employee_id')->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, 'user_id')->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'onboarded_by')->nullable()->constrained("users")->nullOnDelete();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
-            $table->boolean('completed_documents')->default(false);
-            $table->boolean('policy_acknowledged')->default(false);
-            $table->string('status')->default("Pending");
+            $table->string('status')->default("pending");
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_onboardings');
+        Schema::dropIfExists('user_onboardings');
     }
 };

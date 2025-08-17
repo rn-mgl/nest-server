@@ -14,13 +14,12 @@ return new class extends Migration
     {
         Schema::create('onboardings', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "user_id")->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained()->nullOnDelete();
+            $table->string("title");
             $table->longText("description");
-            $table->boolean("required_documents");
-            $table->boolean("policy_acknowledgement");
-            $table->string("status")->default("Pending");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->boolean("is_deleted")->default(false);
         });
     }
 

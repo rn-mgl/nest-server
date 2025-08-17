@@ -10,6 +10,7 @@ use App\Models\EmployeeOnboarding;
 use App\Models\EmployeePerformanceReview;
 use App\Models\EmployeeTraining;
 use App\Models\LeaveRequest;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -24,9 +25,11 @@ class EmployeeDashboardController extends Controller
     {
         try {
 
-            $user = Auth::id();
+            $id = Auth::id();
 
-            $attendance = Attendance::where("user_id", "=", $user)
+            $user = User::findOrFail($id);
+
+            $attendance = Attendance::where("user_id", "=", $id)
                             ->whereToday("login_time")
                             ->where(function($query) {
                                 $query->whereToday("logout_time")
@@ -48,17 +51,9 @@ class EmployeeDashboardController extends Controller
                 "absent" => empty($attendance)
             ];
 
-            $onboardings = EmployeeOnboarding::where("employee_id", "=", $user)
-                            ->where("is_deleted", "=", false)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn($onboarding) => $onboarding->count());
+            $onboardings = $user->assignedOnboardings()->get();
 
-            $leaves = LeaveRequest::where("user_id", "=", $user)
-                            ->where("is_deleted", "=", false)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn($leave) => $leave->count());
+            $leaves = $user->leaveRequests()->get();
 
             $performances = EmployeePerformanceReview::where("employee_id", "=", $user)
                             ->where("is_deleted", "=", false)

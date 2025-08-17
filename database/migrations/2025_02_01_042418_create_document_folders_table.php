@@ -12,11 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('document_folders', function (Blueprint $table) {
+        Schema::create('folders', function (Blueprint $table) {
             $table->id();
             $table->string("name");
             $table->integer( "path")->default(0)->index("path");
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
+            $table->boolean("is_deleted")->default(false);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
         });
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('document_folders');
+        Schema::dropIfExists('folders');
     }
 };
