@@ -1,13 +1,11 @@
 <?php
 
-use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
-use App\Http\Controllers\Base\DocumentController;
-use App\Http\Controllers\Base\FolderController;
-use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
-use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
+
+use App\Http\Controllers\HR\HRController;
+use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HREmployeeController;
 use App\Http\Controllers\HR\HREmployeeLeaveRequestController;
@@ -15,24 +13,30 @@ use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
-use App\Http\Controllers\Base\AuthController;
-use App\Http\Controllers\Employee\EmployeeAttendanceController;
-use App\Http\Controllers\Employee\EmployeeDashboardController;
-use App\Http\Controllers\Employee\EmployeeOnboardingController;
-use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
-use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
-use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
-use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
-use App\Http\Controllers\Employee\EmployeeTrainingController;
-use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
-use App\Http\Controllers\HR\HRController;
-use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HREmployeeOnboardingController;
 use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
 use App\Http\Controllers\HR\HREmployeeTrainingController;
 use App\Http\Controllers\HR\HREmployeeLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveRequestController;
+
+use App\Http\Controllers\Employee\EmployeeController;
+use App\Http\Controllers\Employee\EmployeeDashboardController;
+use App\Http\Controllers\Employee\EmployeeAttendanceController;
+use App\Http\Controllers\Employee\EmployeeOnboardingController;
+use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
+use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
+use App\Http\Controllers\Employee\EmployeePerformanceReviewController;
+use App\Http\Controllers\Employee\EmployeePerformanceReviewResponseController;
+use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
+use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
+use App\Http\Controllers\Employee\EmployeeTrainingController;
+use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
+
+use App\Http\Controllers\Base\AuthController;
+use App\Http\Controllers\Base\DocumentController;
+use App\Http\Controllers\Base\FolderController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function() {
