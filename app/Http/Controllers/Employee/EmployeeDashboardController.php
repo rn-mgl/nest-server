@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
 use App\Models\Folder;
-use App\Models\EmployeeOnboarding;
-use App\Models\EmployeePerformanceReview;
-use App\Models\EmployeeTraining;
+use App\Models\UserOnboarding;
+use App\Models\UserPerformanceReview;
+use App\Models\UserTraining;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Carbon\Carbon;
@@ -55,13 +55,13 @@ class EmployeeDashboardController extends Controller
 
             $leaves = $user->leaveRequests()->get();
 
-            $performances = EmployeePerformanceReview::where("employee_id", "=", $user)
+            $performances = UserPerformanceReview::where("employee_id", "=", $user)
                             ->where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")
                             ->map(fn($performance) => $performance->count());
 
-            $trainings = EmployeeTraining::where("employee_id", "=", $user)
+            $trainings = UserTraining::where("employee_id", "=", $user)
                             ->where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")

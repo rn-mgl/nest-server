@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeTraining;
-use App\Models\EmployeeTrainingReviewResponse;
+use App\Models\UserTraining;
+use App\Models\UserTrainingReviewResponse;
 use App\Models\TrainingReview;
 use Exception;
 use Illuminate\Http\Request;
@@ -45,7 +45,7 @@ class EmployeeTrainingReviewResponseController extends Controller
             $user = Auth::id();
 
             // check if there are records that are already answered and stored
-            $alreadyAnsweredReviews = EmployeeTrainingReviewResponse::where("response_by", "=", $user)
+            $alreadyAnsweredReviews = UserTrainingReviewResponse::where("response_by", "=", $user)
                                         ->pluck("training_review_id")
                                         ->toArray();
 
@@ -74,7 +74,7 @@ class EmployeeTrainingReviewResponseController extends Controller
                     "answer" => $review["employee_answer"]
                 ];
 
-                $created = EmployeeTrainingReviewResponse::create($trainingReviewResponseAttr);
+                $created = UserTrainingReviewResponse::create($trainingReviewResponseAttr);
 
                 $shouldUpdateScore = true;
             }
@@ -82,7 +82,7 @@ class EmployeeTrainingReviewResponseController extends Controller
             // update score if there is a stored response
             if ($shouldUpdateScore) {
 
-                $updateScore = EmployeeTraining::where("employee_id", "=", $user)
+                $updateScore = UserTraining::where("employee_id", "=", $user)
                                 ->where("training_id", "=", $attributes["training_id"])
                                 ->update(["score" => $score]);
 
@@ -98,7 +98,7 @@ class EmployeeTrainingReviewResponseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeTrainingReviewResponse $employeeTrainingReviewResponse)
+    public function show(UserTrainingReviewResponse $employeeTrainingReviewResponse)
     {
         //
     }
@@ -106,7 +106,7 @@ class EmployeeTrainingReviewResponseController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeTrainingReviewResponse $employeeTrainingReviewResponse)
+    public function edit(UserTrainingReviewResponse $employeeTrainingReviewResponse)
     {
         //
     }
@@ -114,7 +114,7 @@ class EmployeeTrainingReviewResponseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeTrainingReviewResponse $employeeTrainingReviewResponse)
+    public function update(Request $request, UserTrainingReviewResponse $employeeTrainingReviewResponse)
     {
         //
     }
@@ -122,7 +122,7 @@ class EmployeeTrainingReviewResponseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeTrainingReviewResponse $employeeTrainingReviewResponse)
+    public function destroy(UserTrainingReviewResponse $employeeTrainingReviewResponse)
     {
         //
     }

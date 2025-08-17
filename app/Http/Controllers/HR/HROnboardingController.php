@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
 use App\Models\Onboarding;
-use App\Models\OnboardingPolicyAcknowledgements;
-use App\Models\OnboardingRequiredDocuments;
+use App\Models\OnboardingPolicyAcknowledgement;
+use App\Models\OnboardingRequiredDocument;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -99,7 +99,7 @@ class HROnboardingController extends Controller
                     'description' => $req["description"],
                     'onboarding_id' => $onboarding->id
                 ];
-                OnboardingRequiredDocuments::create($documentsAttributes);
+                OnboardingRequiredDocument::create($documentsAttributes);
             }
 
             foreach ($attributes["policy_acknowledgements"] as $ack) {
@@ -108,7 +108,7 @@ class HROnboardingController extends Controller
                     'description' => $ack["description"],
                     'onboarding_id' => $onboarding->id
                 ];
-                OnboardingPolicyAcknowledgements::create($policyAttributes);
+                OnboardingPolicyAcknowledgement::create($policyAttributes);
             }
 
 
@@ -126,7 +126,7 @@ class HROnboardingController extends Controller
     {
         try {
 
-            $required_documents = OnboardingRequiredDocuments::where("onboarding_id", "=", $onboarding->id)
+            $required_documents = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_required_documents_id',
@@ -136,7 +136,7 @@ class HROnboardingController extends Controller
                                     ->get();
 
 
-            $policy_acknowledgements = OnboardingPolicyAcknowledgements::where("onboarding_id", "=", $onboarding->id)
+            $policy_acknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
                                     ->where('is_deleted', "=", false)
                                     ->select([
                                         'id as onboarding_policy_acknowledgements_id',
@@ -202,12 +202,12 @@ class HROnboardingController extends Controller
                 ];
 
                 if ($id) {
-                    $document = OnboardingRequiredDocuments::find($id);
+                    $document = OnboardingRequiredDocument::find($id);
                     if ($document) {
                         $document->update($documentAttributes);
                     }
                 } else {
-                    OnboardingRequiredDocuments::create($documentAttributes);
+                    OnboardingRequiredDocument::create($documentAttributes);
                 }
             }
 
@@ -221,17 +221,17 @@ class HROnboardingController extends Controller
                 ];
 
                 if ($id) {
-                    $acknowledgement = OnboardingPolicyAcknowledgements::find($id);
+                    $acknowledgement = OnboardingPolicyAcknowledgement::find($id);
                     if ($acknowledgement) {
                         $acknowledgement->update($acknowledgementAttributes);
                     }
                 } else {
-                    OnboardingPolicyAcknowledgements::create($acknowledgementAttributes);
+                    OnboardingPolicyAcknowledgement::create($acknowledgementAttributes);
                 }
             }
 
             foreach($documentsToDelete as $toDelete) {
-                $document = OnboardingRequiredDocuments::find($toDelete);
+                $document = OnboardingRequiredDocument::find($toDelete);
 
                 if ($document) {
                     $document->update(["is_deleted" => true]);
@@ -239,7 +239,7 @@ class HROnboardingController extends Controller
             }
 
             foreach($policiesToDelete as $toDelete) {
-                $acknowledgement = OnboardingPolicyAcknowledgements::find($toDelete);
+                $acknowledgement = OnboardingPolicyAcknowledgement::find($toDelete);
 
                 if ($acknowledgement) {
                     $acknowledgement->update(["is_deleted" => true]);
@@ -268,9 +268,9 @@ class HROnboardingController extends Controller
         try {
             $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->update(["is_deleted" => true]);
 
-            $deletedRequiredDocuments = OnboardingRequiredDocuments::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
+            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
 
-            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgements::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
+            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
 
             return response()->json(["success" => $deletedOnboarding]);
         } catch (\Throwable $th) {

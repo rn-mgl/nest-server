@@ -89,11 +89,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Summary of acknowledgedPolicies
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<OnboardingPolicyAcknowledgements, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<OnboardingPolicyAcknowledgement, User, \Illuminate\Database\Eloquent\Relations\Pivot>
      */
     public function acknowledgedPolicies()
     {
-        return $this->belongsToMany(OnboardingPolicyAcknowledgements::class, "onboarding_policy_acknowledgement_user", "user_id", "policy_acknowledgement_id");
+        return $this->belongsToMany(OnboardingPolicyAcknowledgement::class, "onboarding_policy_acknowledgement_user", "user_id", "policy_acknowledgement_id");
     }
 
     /**

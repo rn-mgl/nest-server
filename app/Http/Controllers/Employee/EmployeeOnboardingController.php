@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
-use App\Models\EmployeeOnboarding;
+use App\Models\UserOnboarding;
 use App\Models\Onboarding;
 use App\Models\User;
 use Exception;
@@ -95,7 +95,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeOnboarding $employeeOnboarding)
+    public function show(UserOnboarding $employeeOnboarding)
     {
         try {
 
@@ -158,7 +158,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeOnboarding $employeeOnboarding)
+    public function edit(UserOnboarding $employeeOnboarding)
     {
         //
     }
@@ -166,7 +166,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeOnboarding $employeeOnboarding)
+    public function update(Request $request, UserOnboarding $employeeOnboarding)
     {
         //
     }
@@ -174,7 +174,7 @@ class EmployeeOnboardingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeOnboarding $employeeOnboarding)
+    public function destroy(UserOnboarding $employeeOnboarding)
     {
         //
     }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeOnboardingPolicyAcknowledgement;
+use App\Models\UserOnboardingPolicyAcknowledgement;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +47,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
                 "acknowledged" => $attributes["policy_acknowledged"]
             ];
 
-            $acknowledged = EmployeeOnboardingPolicyAcknowledgement::create($acknowledgement_attributes);
+            $acknowledged = UserOnboardingPolicyAcknowledgement::create($acknowledgement_attributes);
 
             return response()->json(["success" => $acknowledged]);
 
@@ -59,7 +59,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
+    public function show(UserOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
     {
         //
     }
@@ -67,7 +67,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
+    public function edit(UserOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
     {
         //
     }
@@ -75,7 +75,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
+    public function update(Request $request, UserOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
     {
         //
     }
@@ -83,7 +83,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
+    public function destroy(UserOnboardingPolicyAcknowledgement $employeeOnboardingPolicyAcknowledgement)
     {
         //
     }

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
-use App\Models\EmployeeTraining;
+use App\Models\UserTraining;
 use App\Models\TrainingContent;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -159,7 +159,7 @@ class EmployeeTrainingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeTraining $employeeTraining)
+    public function edit(UserTraining $employeeTraining)
     {
         //
     }
@@ -167,7 +167,7 @@ class EmployeeTrainingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeTraining $employeeTraining)
+    public function update(Request $request, UserTraining $employeeTraining)
     {
         //
     }
@@ -175,7 +175,7 @@ class EmployeeTrainingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeTraining $employeeTraining)
+    public function destroy(UserTraining $employeeTraining)
     {
         //
     }

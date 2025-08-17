@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeePerformanceReviewResponse;
+use App\Models\UserPerformanceReviewResponse;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -56,9 +56,9 @@ class EmployeePerformanceReviewResponseController extends Controller
 
                 // if employee_performance_review_response_id is not null, update the response, else insert
                 if ($response["employee_performance_review_response_id"] === null) {
-                    $created = EmployeePerformanceReviewResponse::create($responseAttribute);
+                    $created = UserPerformanceReviewResponse::create($responseAttribute);
                 } else {
-                    $update = EmployeePerformanceReviewResponse::find($response["employee_performance_review_response_id"])->update($responseAttribute);
+                    $update = UserPerformanceReviewResponse::find($response["employee_performance_review_response_id"])->update($responseAttribute);
                 }
 
             }
@@ -72,7 +72,7 @@ class EmployeePerformanceReviewResponseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeePerformanceReviewResponse $EmployeePerformanceReviewResponse)
+    public function show(UserPerformanceReviewResponse $UserPerformanceReviewResponse)
     {
         //
     }
@@ -80,7 +80,7 @@ class EmployeePerformanceReviewResponseController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeePerformanceReviewResponse $EmployeePerformanceReviewResponse)
+    public function edit(UserPerformanceReviewResponse $UserPerformanceReviewResponse)
     {
         //
     }
@@ -88,7 +88,7 @@ class EmployeePerformanceReviewResponseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeePerformanceReviewResponse $EmployeePerformanceReviewResponse)
+    public function update(Request $request, UserPerformanceReviewResponse $UserPerformanceReviewResponse)
     {
         //
     }
@@ -96,7 +96,7 @@ class EmployeePerformanceReviewResponseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeePerformanceReviewResponse $EmployeePerformanceReviewResponse)
+    public function destroy(UserPerformanceReviewResponse $UserPerformanceReviewResponse)
     {
         //
     }

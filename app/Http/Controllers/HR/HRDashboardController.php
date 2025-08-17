@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
 use App\Models\Folder;
-use App\Models\EmployeeOnboarding;
-use App\Models\EmployeePerformanceReview;
-use App\Models\EmployeeTraining;
+use App\Models\UserOnboarding;
+use App\Models\UserPerformanceReview;
+use App\Models\UserTraining;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use Carbon\Carbon;
@@ -75,7 +75,7 @@ class HRDashboardController extends Controller
                 "absent" => count($absents)
             ];
 
-            $onboardings = EmployeeOnboarding::where("is_deleted", "=", false)
+            $onboardings = UserOnboarding::where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")
                             ->map(fn($onboarding) => $onboarding->count());
@@ -85,12 +85,12 @@ class HRDashboardController extends Controller
                         ->groupBy("status")
                         ->map(fn ($leave) => $leave->count());
 
-            $performances = EmployeePerformanceReview::where("is_deleted", "=", false)
+            $performances = UserPerformanceReview::where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")
                             ->map(fn ($performance) => $performance->count());
 
-            $trainings = EmployeeTraining::where("is_deleted", "=", false)
+            $trainings = UserTraining::where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")
                             ->map(fn ($training) => $training->count());

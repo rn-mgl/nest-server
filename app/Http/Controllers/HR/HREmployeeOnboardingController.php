@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeOnboarding;
+use App\Models\UserOnboarding;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -73,7 +73,7 @@ class HREmployeeOnboardingController extends Controller
                 "onboarding_id" => $attributes["onboarding_id"]
             ];
 
-            $alreadyAssigned = EmployeeOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
+            $alreadyAssigned = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
                         ->get()
                         ->pluck("employee_id")
                         ->toArray();
@@ -82,14 +82,14 @@ class HREmployeeOnboardingController extends Controller
             foreach($attributes["employee_ids"] as $id) {
                 if (!in_array($id, $alreadyAssigned)) {
                     $employeeOnboardingAttr["employee_id"] = $id;
-                    $created = EmployeeOnboarding::create($employeeOnboardingAttr);
+                    $created = UserOnboarding::create($employeeOnboardingAttr);
                 }
             }
 
             // remove unassigned
             foreach($alreadyAssigned as $id) {
                 if (!in_array($id, $attributes["employee_ids"])) {
-                    $employeeOnboarding = EmployeeOnboarding::where("employee_id", "=", $id)
+                    $employeeOnboarding = UserOnboarding::where("employee_id", "=", $id)
                                             ->where("onboarding_id", "=", $attributes["onboarding_id"])
                                             ->first();
 

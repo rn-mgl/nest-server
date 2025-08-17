@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeOnboardingRequiredDocuments;
+use App\Models\UserOnboardingRequiredDocuments;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +53,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 "document" => $uploaded
             ];
 
-            $created = EmployeeOnboardingRequiredDocuments::create($requiredDocumentsAttr);
+            $created = UserOnboardingRequiredDocuments::create($requiredDocumentsAttr);
 
             return response()->json(["success" => $created]);
 
@@ -65,7 +65,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(EmployeeOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function show(UserOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
     {
         //
     }
@@ -73,7 +73,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeeOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function edit(UserOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
     {
         //
     }
@@ -81,7 +81,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeeOnboardingRequiredDocuments $required_document)
+    public function update(Request $request, UserOnboardingRequiredDocuments $required_document)
     {
         try {
 
@@ -107,7 +107,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeeOnboardingRequiredDocuments $required_document)
+    public function destroy(UserOnboardingRequiredDocuments $required_document)
     {
         try {
             $deleted = $required_document->update(["document" => null]);

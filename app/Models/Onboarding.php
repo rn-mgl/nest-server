@@ -29,20 +29,20 @@ class Onboarding extends Model
     /**
      * Summary of policyAcknolwedgements
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<OnboardingPolicyAcknowledgements, Onboarding>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<OnboardingPolicyAcknowledgement, Onboarding>
      */
     public function policyAcknolwedgements()
     {
-        return $this->hasMany(OnboardingPolicyAcknowledgements::class, "id", "onboarding_id");
+        return $this->hasMany(OnboardingPolicyAcknowledgement::class, "id", "onboarding_id");
     }
 
     /**
      * Summary of requiredDocuments
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<OnboardingRequiredDocuments, Onboarding>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<OnboardingRequiredDocument, Onboarding>
      */
     public function requiredDocuments()
     {
-        return $this->hasMany(OnboardingRequiredDocuments::class, "id", "onboarding_id");
+        return $this->hasMany(OnboardingRequiredDocument::class, "id", "onboarding_id");
     }
 }

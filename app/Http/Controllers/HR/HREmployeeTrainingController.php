@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeTraining;
+use App\Models\UserTraining;
 use App\Models\EmployeeTrainingReview;
 use App\Models\Training;
 use Carbon\Carbon;
@@ -77,7 +77,7 @@ class HREmployeeTrainingController extends Controller
             $training = Training::find($trainingId);
             $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
-            $employeeTrainings = EmployeeTraining::where("training_id", "=", $trainingId)->get();
+            $employeeTrainings = UserTraining::where("training_id", "=", $trainingId)->get();
 
             $alreadyAssigned = $employeeTrainings->pluck("employee_id")->toArray();
 
@@ -92,7 +92,7 @@ class HREmployeeTrainingController extends Controller
                         "deadline" => $deadline
                     ];
 
-                    $created = EmployeeTraining::create($employeeTrainingAttr);
+                    $created = UserTraining::create($employeeTrainingAttr);
                 }
 
             }
@@ -100,7 +100,7 @@ class HREmployeeTrainingController extends Controller
             foreach ($alreadyAssigned as $id) {
 
                 if (!in_array($id, $employeeIds)) {
-                    $deletedEmployeeTraining = EmployeeTraining::where("employee_id", "=", $id)
+                    $deletedEmployeeTraining = UserTraining::where("employee_id", "=", $id)
                                                 ->where("training_id", "=", $trainingId)
                                                 ->delete();
                 }

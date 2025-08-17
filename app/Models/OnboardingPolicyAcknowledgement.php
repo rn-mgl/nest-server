@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OnboardingPolicyAcknowledgements extends Model
+class OnboardingPolicyAcknowledgement extends Model
 {
     use HasFactory;
 
@@ -14,7 +14,7 @@ class OnboardingPolicyAcknowledgements extends Model
     /**
      * Summary of onboarding
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Onboarding, OnboardingPolicyAcknowledgements>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Onboarding, OnboardingPolicyAcknowledgement>
      */
     public function onboarding()
     {

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmployeePerformanceReview;
+use App\Models\UserPerformanceReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -69,7 +69,7 @@ class HREmployeePerformanceReviewController extends Controller
             $performanceReviewId = $attributes["performance_review_id"];
             $employeeIds = $attributes["employee_ids"];
 
-            $performanceReviews = EmployeePerformanceReview::where("performance_review_id", "=", $performanceReviewId)->get();
+            $performanceReviews = UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)->get();
 
             $alreadyAssigned = $performanceReviews->pluck("employee_id")->toArray();
 
@@ -82,13 +82,13 @@ class HREmployeePerformanceReviewController extends Controller
                         "assigned_by" => Auth::id()
                     ];
 
-                    $created = EmployeePerformanceReview::create($employeePerformanceReviewAttr);
+                    $created = UserPerformanceReview::create($employeePerformanceReviewAttr);
                 }
             }
 
             foreach ($alreadyAssigned as $id) {
                 if (!in_array($id, $employeeIds)) {
-                    $deleted = EmployeePerformanceReview::where("employee_id", "=", $id)
+                    $deleted = UserPerformanceReview::where("employee_id", "=", $id)
                                 ->where("performance_review_id", "=", $performanceReviewId)
                                 ->delete();
                 }
