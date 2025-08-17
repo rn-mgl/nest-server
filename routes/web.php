@@ -4,8 +4,8 @@ use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\FolderController;
+use App\Http\Controllers\Base\DocumentController;
+use App\Http\Controllers\Base\FolderController;
 use App\Http\Controllers\Employee\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\HR\HRAttendanceController;
@@ -15,7 +15,7 @@ use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
-use App\Http\Controllers\BaseAuthController;
+use App\Http\Controllers\Base\AuthController;
 use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeDashboardController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
@@ -42,7 +42,7 @@ Route::prefix("api")->group(function() {
     Route::get('csrf-cookie', fn() => response()->json(["token" => csrf_token()]));
 
     // auth
-    Route::controller(BaseAuthController::class)
+    Route::controller(AuthController::class)
         ->prefix("auth")
         ->group(function() {
             Route::post("/login", "login");
@@ -64,7 +64,7 @@ Route::prefix("api")->group(function() {
             });
 
         // session routes
-        Route::controller(BaseAuthController::class)
+        Route::controller(AuthController::class)
             ->prefix("auth")
             ->group(function() {
                 Route::post("/logout", "logout");
@@ -228,7 +228,7 @@ Route::prefix("api")->group(function() {
             });
 
         // employee auth
-        Route::controller(BaseAuthController::class)
+        Route::controller(AuthController::class)
             ->prefix("auth")
             ->group(function() {
                 Route::post("/logout", "logout");
@@ -344,7 +344,7 @@ Route::prefix("api")->group(function() {
     Route::middleware(["auth", "user_token:admin"])->prefix("admin")->group(function() {
 
         // admin auth
-        Route::controller(BaseAuthController::class)
+        Route::controller(AuthController::class)
             ->prefix("auth")
             ->group(function() {
                 Route::post("/change_password", "change_password");
@@ -359,7 +359,7 @@ Route::prefix("api")->group(function() {
             });
 
         // admin hr auth
-        Route::controller(BaseAuthController::class)
+        Route::controller(AuthController::class)
             ->prefix("hr")
             ->group(function() {
                 Route::post("/register", "register");

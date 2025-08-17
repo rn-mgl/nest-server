@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Base;
 
 use App\Events\Registered;
+use App\Http\Controllers\Controller;
 use App\Mail\PasswordResetLink;
 use App\Models\Role;
 use App\Models\User;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\UnauthorizedException;
 
-class BaseAuthController extends Controller
+class AuthController extends Controller
 {
 
     public function register(Request $request) {
