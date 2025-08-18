@@ -52,8 +52,8 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://192.168.1.30'),
-    'nest_url' => env('NEST_URL', 'http://192.168.1.30:3000'),
+    'url' => env('APP_URL', 'localhost'),
+    'nest_url' => env('NEST_URL', 'localhost:3000'),
 
     /*
     |--------------------------------------------------------------------------
