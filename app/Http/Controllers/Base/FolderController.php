@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Base;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
 use App\Models\Folder;
 use Exception;
 use Illuminate\Http\Request;
@@ -109,7 +110,7 @@ class FolderController extends Controller
             $paths = $this->get_child_paths($folder)->pluck("id")->push($folder)->toArray();
 
             $deletedFolders = Folder::whereIn("id", $paths)->update(["is_deleted" => true]);
-            $deletedDocuments = Folder::whereIn("path", $paths)->update(["is_deleted" => true]);
+            $deletedDocuments = Document::whereIn("path", $paths)->update(["is_deleted" => true]);
 
             // as long as a folder or document is deleted (there could be folders with no documents)
             return response()->json(["success" => $deletedFolders || $deletedDocuments]);
