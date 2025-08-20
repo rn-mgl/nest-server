@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Base;
 
 use App\Http\Controllers\Controller;
-use App\Models\Document;
 use App\Models\Folder;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class FolderController extends Controller
 {
@@ -53,30 +52,22 @@ class FolderController extends Controller
 
             $createdFolder = Folder::create($folderAttr);
 
-            return response()->json(["success" => true]);
+            return response()->json(["success" => $createdFolder]);
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($folder)
+    public function show(Folder $folder)
     {
         try {
-
-            if (!$folder) {
-                return response()->json(["folder" => []]);
-            }
-
-            $folder = Folder::find($folder);
-
-
             return response()->json(["folder" => $folder]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -111,108 +102,144 @@ class FolderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($folder)
+    public function destroy(int $folder)
     {
         try {
             // delete folder and everything below it
-            $paths = Folder::select([
-                "id",
-                "path"
-            ])
-            ->where("is_deleted", false)
-            ->get();
+            $paths = $this->get_child_paths($folder)->pluck("id")->push($folder)->toArray();
 
-            $childPaths = $this->get_child_paths($folder, $paths);
+            $deletedFolders = Folder::whereIn("id", $paths)->update(["is_deleted" => true]);
+            $deletedDocuments = Folder::whereIn("path", $paths)->update(["is_deleted" => true]);
 
-            foreach($childPaths as $child) {
-                $deletedFolders = Folder::where("id", $child)
-                            ->update(["is_deleted" => true]);
+            // as long as a folder or document is deleted (there could be folders with no documents)
+            return response()->json(["success" => $deletedFolders || $deletedDocuments]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+    /**
+     * Retrieves the paths of folders based on the incoming request.
+     *
+     * This method processes the provided request and returns a JSON response
+     * containing the relevant folder paths. Throws an exception if the operation fails.
+     *
+     * @param \Illuminate\Http\Request $request The HTTP request instance containing folder query parameters.
+     * @return \Illuminate\Http\JsonResponse JSON response with folder paths.
+     * @throws \Exception If unable to retrieve folder paths.
+     */
+    public function get_folder_paths(Request $request)
+    {
+        try {
 
-                $deletedDocuments = Document::where("path", $child)
-                                    ->update(["is_deleted" => true]);
-            }
+            $attributes = $request->validate([
+                "path" => ["required", "integer"], // current path of the folder to move/update
+                "folder" => ["required", "integer"] // folder to move/update
+            ]);
 
-            $deletedFolder = Folder::where("id", $folder)
-                            ->update(["is_deleted" => true]);
+            $folder = intval($attributes["folder"]);
 
-            $deletedDocument = Document::where("path", $folder)
-                            ->update(["is_deleted" => true]);
+            // the paths to avoid are the children of the current folder to be moved
+            // do not move a parent folder to its child folders, "ouroboros"
+            $pathToAvoid = $this->get_child_paths($folder)->pluck("id")->toArray();
 
-            return response()->json(["success" => $deletedFolder]);
+            // other available paths that are not the children of the folder to move
+            $paths = Folder::whereNotIn("id", $pathToAvoid)->get();
+
+            // map as label => value object pairs
+            $availablePaths = $paths->map(fn($path) => ["label" => $path->name, "value" => $path->id])
+                                ->prepend(["label" => "Home", "value" => 0])
+                                ->toArray();
+
+            return response()->json(["paths" => $availablePaths]);
+
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
     }
 
-    public function get_parent_paths(Request $request)
+    /**
+     * Retrieves the parent folder paths for a given folder ID.
+     *
+     * This method returns a collection of Folder instances representing
+     * the hierarchical path from the specified parent folder up to the root.
+     *
+     * @param int $parentFolder The ID of the parent folder to start from.
+     * @throws \Exception If the folder cannot be found or another error occurs.
+     * @return \Illuminate\Support\Collection<int, \App\Models\Folder> Collection of Folder instances representing the parent path.
+     */
+    public function get_parent_paths(int $parentFolder)
     {
         try {
 
-            $attributes = $request->validate([
-                "path" => ["required", "integer"]
-            ]);
+            $parents = collect();
 
-            $currentPath = intval($attributes["path"]);
+            // if the base path hasn't been reached yet
+            while ($parentFolder !== 0) {
 
-            $paths = Folder::select(
-                [
-                            "id",
-                            "name",
-                            "path"
-                        ]
-                    )
-                    ->where("is_deleted", false)
-                    ->get();
+                // get the parent folder
+                $parent = Folder::find($parentFolder);
 
-            // only remove child path if base path of document/folder is not home
-            if ($currentPath !== 0) {
-                // compile paths with same path value as current path to see if they have child paths first
-                $similarPaths = $paths->filter(function ($path) use($currentPath) {
-                    return $path->path == $currentPath;
-                })->pluck("id")->toArray();
+                if (!$parent) {
+                    break;
+                }
 
-                $parentPaths = $this->remove_child_paths($similarPaths, $paths);
+                // set the new parent path
+                $parentFolder = $parent->path;
 
-                $paths = $parentPaths->filter(function($path)  use($currentPath) {
-                    return $path->path != $currentPath;
-                });
+                // get folders under parent path
+                $children = Folder::where("path", "=", $parentFolder)->get();
+
+                // merge the folders
+                $parents = $parents->merge($children);
             }
 
-            $availablePaths = $paths->map(function($path) {
-                return ["label" => $path->name, "value" => $path->id];
-            })->toArray();
+            // return the parents
+            return $parents;
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
 
-            return response()->json(["paths" => array_values($availablePaths)]);
+    /**
+     * Retrieves all child folder paths of the specified parent folder using depth-first search.
+     *
+     * @param int $parentFolder The ID of the parent folder to start the search from.
+     * @return \Illuminate\Support\Collection Collection of child folder paths.
+     * @throws \Exception If an error occurs during retrieval.
+     */
+    public function get_child_paths(int $parentFolder)
+    {
+        try {
+
+            $children = collect();
+
+            $this->dfs_child_paths($parentFolder, $children);
+
+            return $children;
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
-    public function get_child_paths($parent, $paths, $child = [])
+    /**
+     * Removes all child paths from the provided list that are descendants of a specified parent path.
+     *
+     * This function ensures that only the parent path is retained in the result, eliminating any nested child paths.
+     *
+     * @param array $paths Array of file or folder paths.
+     * @param string $parentPath The parent path whose children should be removed from the list.
+     * @return void
+     */
+    private function dfs_child_paths(int $parentFolder, Collection &$children)
     {
-        foreach($paths as $key => $path) {
-            if ($path->path == $parent) {
-                unset($paths[$key]);
-                $child[] = $path->id;
-                $child = $this->get_child_paths($path->id, $paths, $child);
-            }
+        // get the folders where the path is the parent
+        $childPaths = Folder::where("path", "=", $parentFolder)->get();
+
+        foreach($childPaths as $child) {
+            // push the current child to the children record to be stored in the next iteration and recursion
+            $children->push($child);
+            $this->dfs_child_paths($child->id, $children);
         }
-
-        return $child;
-    }
-
-    // function remove the child paths of a parent in the paths return
-    private function remove_child_paths($parentIds, $paths)
-    {
-        foreach($paths as $key => $path) {
-            if (in_array($path->path, $parentIds)) {
-                unset($paths[$key]);
-                $paths = $this->remove_child_paths([$path->id], $paths);
-            }
-        }
-
-        return $paths;
-
     }
 }

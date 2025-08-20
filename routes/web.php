@@ -205,7 +205,7 @@ Route::prefix("api")->group(function() {
         Route::controller(FolderController::class)
             ->prefix("folder")
             ->group(function() {
-                Route::get("/paths", "get_parent_paths");
+                Route::get("/paths", "get_folder_paths");
                 Route::get("/{folder}", "show");
                 Route::patch("/{folder}", "update");
                 Route::post("/", "store");

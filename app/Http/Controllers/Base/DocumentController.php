@@ -98,9 +98,8 @@ class DocumentController extends Controller
 
             if ($categoryValue === "all") {
                 $compiled = $documents->union($folders)
-                            ->when($categoryValue === "all", function($query) use($sortKey, $sortType) {
-                                return $query->orderBy("{$sortKey}", $sortType);
-                            })->get();
+                            ->orderBy("{$sortKey}", $sortType)
+                            ->get();
             } else if ($categoryValue === "folders") {
                 $compiled = $folders->get();
             } else if ($categoryValue === "documents") {
