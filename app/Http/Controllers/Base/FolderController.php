@@ -132,15 +132,15 @@ class FolderController extends Controller
         try {
 
             $attributes = $request->validate([
-                "path" => ["required", "integer"], // current path of the folder to move/update
-                "folder" => ["required", "integer"] // folder to move/update
+                "folder" => ["required", "integer"] // current folder where the paths will be fetched against
             ]);
 
             $folder = intval($attributes["folder"]);
 
-            // the paths to avoid are the children of the current folder to be moved
+            // the paths to avoid are the children of the current folder to be moved if the folder is not the base
             // do not move a parent folder to its child folders, "ouroboros"
-            $pathToAvoid = $this->get_child_paths($folder)->pluck("id")->toArray();
+            // allow documents to be moved anywhere
+            $pathToAvoid = $folder === 0 ? [] : $this->get_child_paths($folder)->pluck("id")->toArray();
 
             // other available paths that are not the children of the folder to move
             $paths = Folder::whereNotIn("id", $pathToAvoid)->get();
