@@ -164,26 +164,33 @@ class FolderController extends Controller
      * This method returns a collection of Folder instances representing
      * the hierarchical path from the specified parent folder up to the root.
      *
-     * @param int $parentFolder The ID of the parent folder to start from.
+     * @param int $currentFolder The ID of the parent folder to start from.
      * @throws \Exception If the folder cannot be found or another error occurs.
      * @return \Illuminate\Support\Collection<int, \App\Models\Folder> Collection of Folder instances representing the parent path.
      */
-    public function get_parent_paths(int $parentFolder)
+    public function get_parent_paths(int $currentFolder)
     {
         try {
 
             $parents = collect();
 
+            $current = Folder::find($currentFolder);
+
+            // get the parent folder of the current folder
+            // NOTE: using this as the starting point of getting folders via path will include the sibling folders of $currentFolder
+            $parentFolder = $current->path;
+
             // if the base path hasn't been reached yet
             while ($parentFolder !== 0) {
 
-                // get the parent folder
+                // get the parent folder details
                 $parent = Folder::find($parentFolder);
 
                 if (!$parent) {
                     break;
                 }
 
+                // move up a level to find the parent paths and not get the siblings
                 // set the new parent path
                 $parentFolder = $parent->path;
 
