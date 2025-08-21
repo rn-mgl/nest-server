@@ -59,9 +59,9 @@ class EmployeeDashboardController extends Controller
 
             $trainings = $user->assignedTrainings()->get();
 
-            $documents = Document::where("deleted_at", "=", false)->count();
+            $documents = Document::count();
 
-            $folders = Folder::where("deleted_at", "=", false)->count();
+            $folders = Folder::count();
 
             $documentsAndFolders = [
                 "documents" => $documents,

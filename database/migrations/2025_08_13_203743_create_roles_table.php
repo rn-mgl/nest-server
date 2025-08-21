@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->softDeletes("deleted_at", 0);
         });
 
         Role::insert([
@@ -42,7 +43,6 @@ return new class extends Migration
         });
 
         Schema::table("users", function(Blueprint $table) {
-            $table->dropColumn("role");
             $table->foreign("role_id")->references("id")->on("roles")->nullOnDelete();
         });
     }
@@ -52,9 +52,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
         Schema::table("users", function (Blueprint $table) {
+            $table->dropForeign(['role_id']);
             $table->dropColumn('role_id');
         });
+        Schema::dropIfExists('roles');
     }
 };
