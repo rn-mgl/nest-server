@@ -73,17 +73,17 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function createdOnboardings()
     {
-        return $this->hasMany(Onboarding::class);
+        return $this->hasMany(Onboarding::class, "created_by", "id");
     }
 
     /**
      * Summary of assignedOnboardings
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Onboarding, User>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Onboarding, User, \Illuminate\Database\Eloquent\Relations\Pivot>
      */
     public function assignedOnboardings()
     {
-        return $this->hasMany(Onboarding::class, "user_onboardings", "user_id");
+        return $this->belongsToMany(Onboarding::class, "user_onboardings", "user_id", "onboarding_id");
     }
 
     /**
@@ -101,9 +101,19 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<LeaveRequest, User>
      */
-    public function leaveRequests()
+    public function createdLeaveRequests()
     {
         return $this->hasMany(LeaveRequest::class, "id", "user_id");
+    }
+
+    /**
+     * Summary of assignedPerformanceReviews
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<PerformanceReview, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
+    public function assignedPerformanceReviews()
+    {
+        return $this->belongsToMany(PerformanceReview::class, "user_performance_reviews", "user_id", "performance_review_id");
     }
 
     # Scopes #
