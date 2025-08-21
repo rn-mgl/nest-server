@@ -50,7 +50,7 @@ class EmployeeOnboardingController extends Controller
                                 $join->on("o.created_by", "=", "u.id")
                                 ->where("u.is_deleted", "=", false);
                             })
-                            ->where("employee_id", "=", $user)
+                            ->where("user_id", "=", $user)
                             ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                             ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
                             ->orderBy("{$sortKey}", $sortType)

@@ -53,15 +53,15 @@ class EmployeeDashboardController extends Controller
 
             $onboardings = $user->assignedOnboardings()->get();
 
-            $leaves = $user->leaveRequests()->get();
+            $leaves = $user->createdLeaveRequests()->get();
 
-            $performances = UserPerformanceReview::where("employee_id", "=", $user)
+            $performances = UserPerformanceReview::where("user_id", "=", $user)
                             ->where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")
                             ->map(fn($performance) => $performance->count());
 
-            $trainings = UserTraining::where("employee_id", "=", $user)
+            $trainings = UserTraining::where("user_id", "=", $user)
                             ->where("is_deleted", "=", false)
                             ->get()
                             ->groupBy("status")

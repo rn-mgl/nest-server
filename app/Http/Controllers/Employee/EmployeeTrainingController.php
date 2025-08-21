@@ -49,7 +49,7 @@ class EmployeeTrainingController extends Controller
                             ->where("t.is_deleted", "=", false);
                         })
                         ->where("et.is_deleted", "=", false)
-                        ->where("et.employee_id", "=", $user)
+                        ->where("et.user_id", "=", $user)
                         ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                         ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
                         ->select([

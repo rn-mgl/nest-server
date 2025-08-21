@@ -41,13 +41,6 @@ class AdminController extends Controller
     public function show(User $admin)
     {
         try {
-
-            $authenticated = Auth::user();
-
-            if ($authenticated->id !== $admin->id) {
-                throw new UnauthorizedException("The client session you use does not match our server.");
-            }
-
             return response()->json(["profile" => $admin]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

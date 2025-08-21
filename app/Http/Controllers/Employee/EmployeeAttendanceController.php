@@ -56,7 +56,6 @@ class EmployeeAttendanceController extends Controller
         try {
             $parsedDate = Carbon::parse($requestDate);
             $currentDate = $parsedDate->copy()->startOfDay()->format("Y-m-d H:i:s");
-            $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
             $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
             $user = Auth::id();
 
@@ -68,26 +67,19 @@ class EmployeeAttendanceController extends Controller
                 "absent" => true
             ];
 
-            $log = Attendance::where(function($query) use($currentDate, $tomorrowDate) {
-                        $query->where("login_time", ">=", $currentDate)
-                                ->where("login_time", "<", $tomorrowDate);
-                    })
-                    ->where(function($query) use($currentDate, $tomorrowDate) {
-                        $query->where(function ($query2) use ($currentDate, $tomorrowDate) {
-                            $query2->where("logout_time", ">=", $currentDate)
-                                    ->where("logout_time", "<", $tomorrowDate);
-                        })
-                        ->orWhereNull("logout_time");
-                    })
-                    ->where("user_id", "=", $user)
+            $log = Attendance::where("user_id", "=", $user)
+                    ->whereDate("login_time", $currentDate)
+                    ->where(fn($query) => $query->whereDate("logout_time", $currentDate)->orWhereNull("logout_time"))
                     ->first();
 
-            if (!empty($log)) {
-                $attendance["attendance_id"] = $log->id;
-                $attendance["login_time"] = $log->login_time;
-                $attendance["logout_time"] = $log->logout_time;
-                $attendance["late"] = $log->login_time > $lateThreshold;
-                $attendance["absent"] = false;
+            if (!$log) {
+                $attendance = [
+                "attendance_id" => $log->id,
+                "login_time" => $log->login_time,
+                "logout_time" => $log->logout_time,
+                "late" => $log->login_time > $lateThreshold,
+                "absent" => false
+                ];
             }
 
             return response()->json(["attendance" => $attendance]);

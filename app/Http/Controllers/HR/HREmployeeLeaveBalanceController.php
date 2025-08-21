@@ -72,8 +72,8 @@ class HREmployeeLeaveBalanceController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "employee_ids" => ["array"],
-                "employee_ids.*" => ["integer", "exists:users,id"],
+                "user_ids" => ["array"],
+                "user_ids.*" => ["integer", "exists:users,id"],
                 "employee_leaves" => ["array"],
                 "employee_leaves.*.user_id" => ["integer", "exists:users,id"],
                 "employee_leaves.*.balance" => ["integer"],
@@ -95,7 +95,7 @@ class HREmployeeLeaveBalanceController extends Controller
             $leave_type_id = $attributes["leave_type_id"];
 
             // assign
-            foreach ($attributes["employee_ids"] as $employee) {
+            foreach ($attributes["user_ids"] as $employee) {
                 if (!in_array($employee, $alreadyAssigned)) {
                     $leaveBalanceAttr = [
                         "user_id" => $employee,
@@ -116,7 +116,7 @@ class HREmployeeLeaveBalanceController extends Controller
 
             // delete
             foreach($alreadyAssigned as $id) {
-                if (!in_array($id, $attributes["employee_ids"])) {
+                if (!in_array($id, $attributes["user_ids"])) {
                     $leaveBalanceId = $leaveBalances->get($id);
                     $leaveBalance = LeaveBalance::find($leaveBalanceId->leave_balance_id);
                     $deleted = $leaveBalance->update(["is_deleted" => true]);

@@ -42,7 +42,7 @@ class EmployeePerformanceReviewController extends Controller
                                         $join->on("u.id", "=", "epr.assigned_by")
                                         ->where("u.is_deleted", "=", false);
                                     })
-                                    ->where("epr.employee_id", "=", $user)
+                                    ->where("epr.user_id", "=", $user)
                                     ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                                     ->orderBy("{$sortKey}", "{$sortType}")
                                     ->select([

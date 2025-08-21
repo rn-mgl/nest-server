@@ -89,7 +89,7 @@ class HREmployeeController extends Controller
                                         ->where("o.is_deleted", "=", false);
                                     })
                                     ->join("users as u", function(JoinClause $join) {
-                                        $join->on("u.id", "=", "eo.employee_id")
+                                        $join->on("u.id", "=", "eo.user_id")
                                         ->where("u.is_deleted", "=", false);
                                     })
                                     ->where("eo.is_deleted", "=", false)
@@ -170,7 +170,7 @@ class HREmployeeController extends Controller
                                     ->where("pr.is_deleted", "=", false);
                                 })
                                 ->join("users as u", function (JoinClause $join) {
-                                    $join->on("u.id", "=", "epr.employee_id")
+                                    $join->on("u.id", "=", "epr.user_id")
                                     ->where("u.is_deleted", "=", false);
                                 })
                                 ->where("epr.is_deleted", "=", false)
@@ -211,7 +211,7 @@ class HREmployeeController extends Controller
                                 ->where("t.is_deleted", "=", false);
                             })
                             ->join("users as u", function (JoinClause $join) {
-                                $join->on("u.id", "=", "et.employee_id")
+                                $join->on("u.id", "=", "et.user_id")
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("et.is_deleted", "=", false)
@@ -250,7 +250,7 @@ class HREmployeeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $employee_id)
+    public function show(string $user_id)
     {
         try {
 
@@ -262,7 +262,7 @@ class HREmployeeController extends Controller
                             "email_verified_at",
                             "image",
                         ])
-                        ->where("id", "=", $employee_id)
+                        ->where("id", "=", $user_id)
                         ->ofRole("employee")
                         ->where("is_deleted", false)
                         ->firstOrFail();
@@ -290,7 +290,7 @@ class HREmployeeController extends Controller
                                 ->where("u.is_deleted", "=", false);
                             })
                             ->where("eo.is_deleted", "=", false)
-                            ->where("eo.employee_id", "=", $employee_id)
+                            ->where("eo.user_id", "=", $user_id)
                             ->get();
 
             // leave balances
@@ -315,7 +315,7 @@ class HREmployeeController extends Controller
                                     $join->on("u.id", "=", "lt.created_by")
                                     ->where('u.is_deleted', "=", false);
                                 })
-                                ->where("lb.user_id", "=", $employee_id)
+                                ->where("lb.user_id", "=", $user_id)
                                 ->where("lb.is_deleted", "=", false)
                                 ->get();
 
@@ -344,7 +344,7 @@ class HREmployeeController extends Controller
                                     $join->on("u.id", "=", "lt.created_by")
                                     ->where("u.is_deleted", "=", false);
                                 })
-                                ->where("lr.user_id", "=", $employee_id)
+                                ->where("lr.user_id", "=", $user_id)
                                 ->where("lr.is_deleted", "=", false)
                                 ->get();
 
@@ -369,7 +369,7 @@ class HREmployeeController extends Controller
                                         $join->on("u.id", "=", "pr.created_by")
                                         ->where("u.is_deleted", "=", false);
                                     })
-                                    ->where("epr.employee_id", "=", $employee_id)
+                                    ->where("epr.user_id", "=", $user_id)
                                     ->where("epr.is_deleted", "=", false)
                                     ->get();
             // training
@@ -397,7 +397,7 @@ class HREmployeeController extends Controller
                             $join->on("u.id", "=", "t.created_by")
                             ->where("u.is_deleted", "=", false);
                         })
-                        ->where("et.employee_id", "=", $employee_id)
+                        ->where("et.user_id", "=", $user_id)
                         ->where("et.is_deleted", "=", false)
                         ->get();
 

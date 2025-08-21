@@ -113,8 +113,6 @@ class AuthController extends Controller
                 return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
             }
 
-            logger($user->roles);
-
             $payload = [
                 "user" => $user->id,
                 "name" => "{$user->first_name} {$user->last_name}",

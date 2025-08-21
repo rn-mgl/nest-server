@@ -25,7 +25,7 @@ class HREmployeeOnboardingController extends Controller
 
             $employees = DB::table("users as u")
                         ->leftJoin("employee_onboardings as eo", function(JoinClause $join) use($attributes) {
-                            $join->on("u.id", "=", "eo.employee_id")
+                            $join->on("u.id", "=", "eo.user_id")
                             ->where("u.is_deleted", "=", false)
                             ->where("onboarding_id", "=", $attributes["onboarding_id"]);
                         })
@@ -63,8 +63,8 @@ class HREmployeeOnboardingController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "employee_ids" => ["array"],
-                "employee_ids.*" => ["integer", "exists:users,id"],
+                "user_ids" => ["array"],
+                "user_ids.*" => ["integer", "exists:users,id"],
                 "onboarding_id" => ["required", "integer", "exists:onboardings,id"]
             ]);
 
@@ -75,21 +75,21 @@ class HREmployeeOnboardingController extends Controller
 
             $alreadyAssigned = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
                         ->get()
-                        ->pluck("employee_id")
+                        ->pluck("user_id")
                         ->toArray();
 
             // assign to employees
-            foreach($attributes["employee_ids"] as $id) {
+            foreach($attributes["user_ids"] as $id) {
                 if (!in_array($id, $alreadyAssigned)) {
-                    $employeeOnboardingAttr["employee_id"] = $id;
+                    $employeeOnboardingAttr["user_id"] = $id;
                     $created = UserOnboarding::create($employeeOnboardingAttr);
                 }
             }
 
             // remove unassigned
             foreach($alreadyAssigned as $id) {
-                if (!in_array($id, $attributes["employee_ids"])) {
-                    $employeeOnboarding = UserOnboarding::where("employee_id", "=", $id)
+                if (!in_array($id, $attributes["user_ids"])) {
+                    $employeeOnboarding = UserOnboarding::where("user_id", "=", $id)
                                             ->where("onboarding_id", "=", $attributes["onboarding_id"])
                                             ->first();
 

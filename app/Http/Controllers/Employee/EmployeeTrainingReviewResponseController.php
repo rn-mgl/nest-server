@@ -82,7 +82,7 @@ class EmployeeTrainingReviewResponseController extends Controller
             // update score if there is a stored response
             if ($shouldUpdateScore) {
 
-                $updateScore = UserTraining::where("employee_id", "=", $user)
+                $updateScore = UserTraining::where("user_id", "=", $user)
                                 ->where("training_id", "=", $attributes["training_id"])
                                 ->update(["score" => $score]);
 

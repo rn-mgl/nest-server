@@ -42,12 +42,6 @@ class EmployeeController extends Controller
     {
         try {
 
-            $authenticated = Auth::user();
-
-            if ($authenticated->id !== $employee->id) {
-                throw new UnauthorizedException("Your session does not match our server.");
-            }
-
             return response()->json(["profile" => $employee]);
 
         } catch (\Throwable $th) {
@@ -76,18 +70,10 @@ class EmployeeController extends Controller
                 "image" => ["nullable"]
             ]);
 
-            $authenticated = Auth::user();
-
-            if ($authenticated->id !== $employee->id) {
-                throw new UnauthorizedException("Your session does not match our server.");
-            }
 
             if ($request->hasFile("image")) {
-
                 $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
-
                 $attributes["image"] = $uploaded;
-
             }
 
             $updated = $employee->update($attributes);

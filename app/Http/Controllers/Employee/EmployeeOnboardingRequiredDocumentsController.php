@@ -48,7 +48,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             $user = Auth::id();
 
             $requiredDocumentsAttr = [
-                "employee_id" => $user,
+                "user_id" => $user,
                 "required_document_id" => $attributes["onboarding_required_document_id"],
                 "document" => $uploaded
             ];

@@ -30,7 +30,7 @@ class HREmployeeTrainingController extends Controller
 
             $employees = DB::table("users as u")
                         ->leftJoin("employee_trainings as et", function(JoinClause $join) use($trainingId) {
-                            $join->on("u.id", "=", "et.employee_id")
+                            $join->on("u.id", "=", "et.user_id")
                             ->where("et.training_id", "=", $trainingId);
                         })
                         ->select([
@@ -67,26 +67,26 @@ class HREmployeeTrainingController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "employee_ids" => ["array"],
-                "employee_ids.*" => ["integer", "exists:users,id"],
+                "user_ids" => ["array"],
+                "user_ids.*" => ["integer", "exists:users,id"],
                 "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
 
-            $employeeIds = $attributes["employee_ids"];
+            $employeeIds = $attributes["user_ids"];
             $trainingId = $attributes["training_id"];
             $training = Training::find($trainingId);
             $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
             $employeeTrainings = UserTraining::where("training_id", "=", $trainingId)->get();
 
-            $alreadyAssigned = $employeeTrainings->pluck("employee_id")->toArray();
+            $alreadyAssigned = $employeeTrainings->pluck("user_id")->toArray();
 
             foreach ($employeeIds as $employee) {
 
                 if (!in_array($employee, $alreadyAssigned)) {
 
                     $employeeTrainingAttr = [
-                        "employee_id" => $employee,
+                        "user_id" => $employee,
                         "assigned_by" => Auth::id(),
                         "training_id" => $trainingId,
                         "deadline" => $deadline
@@ -100,7 +100,7 @@ class HREmployeeTrainingController extends Controller
             foreach ($alreadyAssigned as $id) {
 
                 if (!in_array($id, $employeeIds)) {
-                    $deletedEmployeeTraining = UserTraining::where("employee_id", "=", $id)
+                    $deletedEmployeeTraining = UserTraining::where("user_id", "=", $id)
                                                 ->where("training_id", "=", $trainingId)
                                                 ->delete();
                 }

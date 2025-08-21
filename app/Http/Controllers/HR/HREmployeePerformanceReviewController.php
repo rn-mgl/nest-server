@@ -25,7 +25,7 @@ class HREmployeePerformanceReviewController extends Controller
 
             $employees = DB::table("users as u")
                         ->leftJoin("employee_performance_reviews as epr", function(JoinClause $join) use($attributes) {
-                            $join->on("u.id", "=", "epr.employee_id")
+                            $join->on("u.id", "=", "epr.user_id")
                             ->where("epr.performance_review_id", "=", $attributes["performance_review_id"]);
                         })
                         ->select([
@@ -61,24 +61,24 @@ class HREmployeePerformanceReviewController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "employee_ids" => ["required", "array"],
-                "employee_ids.*" => ["integer", "exists:users,id"],
+                "user_ids" => ["required", "array"],
+                "user_ids.*" => ["integer", "exists:users,id"],
                 "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
             ]);
 
             $performanceReviewId = $attributes["performance_review_id"];
-            $employeeIds = $attributes["employee_ids"];
+            $employeeIds = $attributes["user_ids"];
 
             $performanceReviews = UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)->get();
 
-            $alreadyAssigned = $performanceReviews->pluck("employee_id")->toArray();
+            $alreadyAssigned = $performanceReviews->pluck("user_id")->toArray();
 
             foreach ($employeeIds as $employee) {
                 if (!in_array($employee, $alreadyAssigned)) {
 
                     $employeePerformanceReviewAttr = [
                         "performance_review_id" => $performanceReviewId,
-                        "employee_id" => $employee,
+                        "user_id" => $employee,
                         "assigned_by" => Auth::id()
                     ];
 
@@ -88,7 +88,7 @@ class HREmployeePerformanceReviewController extends Controller
 
             foreach ($alreadyAssigned as $id) {
                 if (!in_array($id, $employeeIds)) {
-                    $deleted = UserPerformanceReview::where("employee_id", "=", $id)
+                    $deleted = UserPerformanceReview::where("user_id", "=", $id)
                                 ->where("performance_review_id", "=", $performanceReviewId)
                                 ->delete();
                 }
