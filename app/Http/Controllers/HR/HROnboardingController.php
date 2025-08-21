@@ -266,13 +266,11 @@ class HROnboardingController extends Controller
     public function destroy(string $onboarding)
     {
         try {
-            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->update(["deleted_at" => true]);
+            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->delete();
+            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->delete();
+            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->delete();
 
-            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->update(["deleted_at" => true]);
-
-            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->update(["deleted_at" => true]);
-
-            return response()->json(["success" => $deletedOnboarding]);
+            return response()->json(["success" => $deletedOnboarding || $deletedRequiredDocuments || $deletedPolicyAcknowledgements]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

@@ -134,7 +134,7 @@ class HRLeaveTypeController extends Controller
     public function destroy(LeaveType $leaveType)
     {
         try {
-            $deletedLeaveType = $leaveType->update(["deleted_at" => true]);
+            $deletedLeaveType = $leaveType->delete();
 
             return response()->json(["success" => $deletedLeaveType]);
         } catch (\Throwable $th) {

@@ -46,15 +46,13 @@ class DocumentController extends Controller
                 $searchKey = "name";
             }
 
-            $documents = Document::where("documents.deleted_at", false)
-                ->where("documents.path", $path)
+            $documents = Document::where("documents.path", $path)
                 ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
                     return $query->whereLike("documents.{$searchKey}", "%{$searchValue}%")
                     ->orderBy("documents.{$sortKey}", $sortType);
                 })
                 ->join("users as u", function(JoinClause $join) {
-                    $join->on("u.id", "=", "documents.created_by")
-                    ->where("u.deleted_at", false);
+                    $join->on("u.id", "=", "documents.created_by");
                 })
                 ->select([
                     "documents.id",
@@ -70,6 +68,8 @@ class DocumentController extends Controller
                     "type",
                     "path"
                 ]);
+
+                logger($documents->toRawSql());
 
             $folders = Folder::where("folders.deleted_at", false)
                 ->where("folders.path", $path)
@@ -216,7 +216,7 @@ class DocumentController extends Controller
     public function destroy(Document $document)
     {
         try {
-            $deleted = $document->update(["deleted_at" => true]);
+            $deleted = $document->delete();
             return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

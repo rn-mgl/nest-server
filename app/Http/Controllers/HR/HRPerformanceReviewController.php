@@ -203,7 +203,7 @@ class HRPerformanceReviewController extends Controller
     public function destroy(PerformanceReview $performanceReview)
     {
         try {
-            $deletedPerformanceReview = $performanceReview->update(["deleted_at" => true]);
+            $deletedPerformanceReview = $performanceReview->delete();
 
             return response()->json(["success" => $deletedPerformanceReview]);
         } catch (\Throwable $th) {

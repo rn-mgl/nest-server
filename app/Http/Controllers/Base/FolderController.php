@@ -109,8 +109,8 @@ class FolderController extends Controller
             // delete folder and everything below it
             $paths = $this->get_child_paths($folder)->pluck("id")->push($folder)->toArray();
 
-            $deletedFolders = Folder::whereIn("id", $paths)->update(["deleted_at" => true]);
-            $deletedDocuments = Document::whereIn("path", $paths)->update(["deleted_at" => true]);
+            $deletedFolders = Folder::whereIn("id", $paths)->delete();
+            $deletedDocuments = Document::whereIn("path", $paths)->delete();
 
             // as long as a folder or document is deleted (there could be folders with no documents)
             return response()->json(["success" => $deletedFolders || $deletedDocuments]);

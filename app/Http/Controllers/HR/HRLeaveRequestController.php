@@ -159,7 +159,7 @@ class HRLeaveRequestController extends Controller
     {
         try {
 
-            $deleted = $leave_request->update(["deleted_at" => true]);
+            $deleted = $leave_request->delete();
 
             return response()->json(["success" => $deleted]);
 

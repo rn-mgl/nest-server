@@ -370,10 +370,10 @@ class HRTrainingController extends Controller
     public function destroy(Training $training)
     {
         try {
-            $deleted = $training->update(["deleted_at" => true]);
-            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->update(["deleted_at" => true]);
+            $deleted = $training->delete();
+            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->delete();
 
-            return response()->json(["success" => $deleted && $deletedContents]);
+            return response()->json(["success" => $deleted || $deletedContents]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
