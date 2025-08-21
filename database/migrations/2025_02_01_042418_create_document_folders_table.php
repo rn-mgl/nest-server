@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string("name");
             $table->integer( "path")->default(0)->index("path");
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
-            $table->boolean("is_deleted")->default(false);
+            $table->softDeletes("deleted_at", 0);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
         });

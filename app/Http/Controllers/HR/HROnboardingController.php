@@ -36,9 +36,9 @@ class HROnboardingController extends Controller
             $onboardings = DB::table("onboardings as o")
                             ->join("users as u",  function(JoinClause $join) {
                                 $join->on("u.id", "=", "o.created_by")
-                                ->where("u.is_deleted", "=", false);
+                                ->where("u.deleted_at", "=", false);
                             })
-                            ->where("o.is_deleted", "=", false)
+                            ->where("o.deleted_at", "=", false)
                             ->whereLike($searchKey, "%{$searchValue}%")
                             ->orderBy("o.{$sortKey}", $sortType)
                             ->select([
@@ -127,7 +127,7 @@ class HROnboardingController extends Controller
         try {
 
             $required_documents = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
-                                    ->where('is_deleted', "=", false)
+                                    ->where('deleted_at', "=", false)
                                     ->select([
                                         'id as onboarding_required_documents_id',
                                         'title',
@@ -137,7 +137,7 @@ class HROnboardingController extends Controller
 
 
             $policy_acknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
-                                    ->where('is_deleted', "=", false)
+                                    ->where('deleted_at', "=", false)
                                     ->select([
                                         'id as onboarding_policy_acknowledgements_id',
                                         'title',
@@ -234,7 +234,7 @@ class HROnboardingController extends Controller
                 $document = OnboardingRequiredDocument::find($toDelete);
 
                 if ($document) {
-                    $document->update(["is_deleted" => true]);
+                    $document->update(["deleted_at" => true]);
                 }
             }
 
@@ -242,7 +242,7 @@ class HROnboardingController extends Controller
                 $acknowledgement = OnboardingPolicyAcknowledgement::find($toDelete);
 
                 if ($acknowledgement) {
-                    $acknowledgement->update(["is_deleted" => true]);
+                    $acknowledgement->update(["deleted_at" => true]);
                 }
             }
 
@@ -266,11 +266,11 @@ class HROnboardingController extends Controller
     public function destroy(string $onboarding)
     {
         try {
-            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->update(["is_deleted" => true]);
+            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->update(["deleted_at" => true]);
 
-            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
+            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->update(["deleted_at" => true]);
 
-            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->update(["is_deleted" => true]);
+            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->update(["deleted_at" => true]);
 
             return response()->json(["success" => $deletedOnboarding]);
         } catch (\Throwable $th) {

@@ -52,7 +52,7 @@ class HRAttendanceController extends Controller
                 }
             }
 
-            $users = User::where("is_deleted", "=", false)
+            $users = User::where("deleted_at", "=", false)
                         ->pluck("id")
                         ->toArray();
 
@@ -104,7 +104,7 @@ class HRAttendanceController extends Controller
                     ->get()
                     ->keyBy("user_id");
 
-            $users = User::where("is_deleted", "=", false)->get();
+            $users = User::where("deleted_at", "=", false)->get();
 
             $attendances = $users->map(function ($user) use ($ins, $lateThreshold) {
                 $attendanceData = [

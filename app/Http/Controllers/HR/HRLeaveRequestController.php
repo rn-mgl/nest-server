@@ -53,9 +53,9 @@ class HRLeaveRequestController extends Controller
                         ])
                         ->join("leave_types as lt", function (JoinClause $join) {
                             $join->on("lt.id", "=", "lr.leave_type_id")
-                            ->where("lt.is_deleted", "=", false);
+                            ->where("lt.deleted_at", "=", false);
                         })
-                        ->where("lr.is_deleted", "=", false)
+                        ->where("lr.deleted_at", "=", false)
                         ->where("user_id", "=", $user)
                         ->where($searchKey, "LIKE", "%{$searchValue}%")
                         ->where($categoryKey, "LIKE", "%{$categoryValue}%")
@@ -159,7 +159,7 @@ class HRLeaveRequestController extends Controller
     {
         try {
 
-            $deleted = $leave_request->update(["is_deleted" => true]);
+            $deleted = $leave_request->update(["deleted_at" => true]);
 
             return response()->json(["success" => $deleted]);
 

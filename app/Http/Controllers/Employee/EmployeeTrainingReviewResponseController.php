@@ -51,7 +51,7 @@ class EmployeeTrainingReviewResponseController extends Controller
 
             // get test reviews and map as [id => answer]
             $reviews = TrainingReview::where("training_id", "=", $attributes["training_id"])
-                        ->where("is_deleted", "=", false)
+                        ->where("deleted_at", "=", false)
                         ->get()
                         ->mapWithKeys(fn($item) => [$item->id => $item->answer]);
 

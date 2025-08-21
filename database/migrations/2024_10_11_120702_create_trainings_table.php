@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string("certificate");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
-            $table->boolean("is_deleted")->default(false);
+            $table->softDeletes("deleted_at", 0);
         });
     }
 

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer("balance")->default(0);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
-            $table->boolean("is_deleted")->default(false);
+            $table->softDeletes("deleted_at", 0);
         });
     }
 

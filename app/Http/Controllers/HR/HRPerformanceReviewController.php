@@ -36,9 +36,9 @@ class HRPerformanceReviewController extends Controller
             $performances = DB::table("performance_reviews as pr")
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("u.id", "=", "pr.created_by")
-                                ->where("u.is_deleted", "=", false);
+                                ->where("u.deleted_at", "=", false);
                             })
-                            ->where("pr.is_deleted", "=", false)
+                            ->where("pr.deleted_at", "=", false)
                             ->whereLike($searchKey, "%$searchValue%")
                             ->orderBy("pr.$sortKey", $sortType)
                             ->select([
@@ -114,7 +114,7 @@ class HRPerformanceReviewController extends Controller
     {
         try {
             $contents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)
-                        ->where("is_deleted", "=", false)
+                        ->where("deleted_at", "=", false)
                         ->select([
                             "id as performance_review_content_id",
                             "survey"
@@ -185,7 +185,7 @@ class HRPerformanceReviewController extends Controller
                 $performanceReviewContent = PerformanceReviewContent::find($toDelete);
 
                 if ($performanceReviewContent) {
-                    $performanceReviewContent->update(["is_deleted" => true]);
+                    $performanceReviewContent->update(["deleted_at" => true]);
                 }
             }
 
@@ -203,7 +203,7 @@ class HRPerformanceReviewController extends Controller
     public function destroy(PerformanceReview $performanceReview)
     {
         try {
-            $deletedPerformanceReview = $performanceReview->update(["is_deleted" => true]);
+            $deletedPerformanceReview = $performanceReview->update(["deleted_at" => true]);
 
             return response()->json(["success" => $deletedPerformanceReview]);
         } catch (\Throwable $th) {

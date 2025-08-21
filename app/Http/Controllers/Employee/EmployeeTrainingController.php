@@ -42,13 +42,13 @@ class EmployeeTrainingController extends Controller
             $trainings = DB::table("employee_trainings as et")
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("et.assigned_by", "=", "u.id")
-                            ->where("u.is_deleted", "=", false);
+                            ->where("u.deleted_at", "=", false);
                         })
                         ->join("trainings as t", function(JoinClause $join) {
                             $join->on("et.training_id", "=", "t.id")
-                            ->where("t.is_deleted", "=", false);
+                            ->where("t.deleted_at", "=", false);
                         })
-                        ->where("et.is_deleted", "=", false)
+                        ->where("et.deleted_at", "=", false)
                         ->where("et.user_id", "=", $user)
                         ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                         ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
@@ -104,7 +104,7 @@ class EmployeeTrainingController extends Controller
             $training = DB::table("employee_trainings as et")
                         ->join("trainings as t", function(JoinClause $join) {
                             $join->on("et.training_id", "=", "t.id")
-                            ->where("t.is_deleted", "=", false);
+                            ->where("t.deleted_at", "=", false);
                         })
                         ->where("et.id", "=", $employeeTraining)
                         ->select([
@@ -120,7 +120,7 @@ class EmployeeTrainingController extends Controller
                         ])
                         ->first();
 
-            $training->contents = TrainingContent::where("is_deleted", "=", false)
+            $training->contents = TrainingContent::where("deleted_at", "=", false)
                                 ->select([
                                     "id as training_content_id",
                                     "title",
@@ -133,10 +133,10 @@ class EmployeeTrainingController extends Controller
             $training->reviews = DB::table("training_reviews as tr")
                                 ->leftJoin("employee_training_review_responses as etrr", function(JoinClause $join) {
                                     $join->on("tr.id", "=", "etrr.training_review_id")
-                                    ->where("etrr.is_deleted", "=", false);
+                                    ->where("etrr.deleted_at", "=", false);
                                 })
                                 ->where("tr.training_id", "=", $training->training_id)
-                                ->where("tr.is_deleted", "=", false)
+                                ->where("tr.deleted_at", "=", false)
                                 ->select([
                                     "etrr.id as employee_training_review_response_id",
                                     "tr.id as training_review_id",

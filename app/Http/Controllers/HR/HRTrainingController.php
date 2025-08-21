@@ -37,9 +37,9 @@ class HRTrainingController extends Controller
             $trainings = DB::table("trainings as t")
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("t.created_by", "=", "u.id")
-                            ->where("u.is_deleted", "=", false);
+                            ->where("u.deleted_at", "=", false);
                         })
-                        ->where("t.is_deleted", "=", false)
+                        ->where("t.deleted_at", "=", false)
                         ->whereLike("t.$searchKey", "%$searchValue%")
                         ->orderBy("t.$sortKey", $sortType)
                         ->select(
@@ -179,7 +179,7 @@ class HRTrainingController extends Controller
 
         try {
             $contents = TrainingContent::where("training_id", "=", $training->id)
-                        ->where("is_deleted", "=", false)
+                        ->where("deleted_at", "=", false)
                         ->select([
                             "id as training_content_id",
                             "title",
@@ -192,7 +192,7 @@ class HRTrainingController extends Controller
             $training->contents = $contents;
 
             $reviews = TrainingReview::where("training_id", "=", $training->id)
-                        ->where("is_deleted", "=", false)
+                        ->where("deleted_at", "=", false)
                         ->select([
                             "id as training_review_id",
                             "question",
@@ -324,7 +324,7 @@ class HRTrainingController extends Controller
             $contentsToDelete = $attributes["contentsToDelete"] ?? [];
 
             foreach($contentsToDelete as $toDelete) {
-                $deletedContents = TrainingContent::where("id", "=", $toDelete)->update(["is_deleted" => true]);
+                $deletedContents = TrainingContent::where("id", "=", $toDelete)->update(["deleted_at" => true]);
             }
 
             $reviews = $attributes["reviews"];
@@ -353,7 +353,7 @@ class HRTrainingController extends Controller
 
             foreach ($reviewsToDelete as $toDelete) {
 
-                $deletedReviews = TrainingReview::where("id", "=", $toDelete)->update(["is_deleted" => true]);
+                $deletedReviews = TrainingReview::where("id", "=", $toDelete)->update(["deleted_at" => true]);
 
             }
 
@@ -370,8 +370,8 @@ class HRTrainingController extends Controller
     public function destroy(Training $training)
     {
         try {
-            $deleted = $training->update(["is_deleted" => true]);
-            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->update(["is_deleted" => true]);
+            $deleted = $training->update(["deleted_at" => true]);
+            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->update(["deleted_at" => true]);
 
             return response()->json(["success" => $deleted && $deletedContents]);
         } catch (\Throwable $th) {

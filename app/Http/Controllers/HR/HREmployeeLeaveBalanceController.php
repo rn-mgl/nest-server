@@ -29,7 +29,7 @@ class HREmployeeLeaveBalanceController extends Controller
                         $join->on("u.id", "=", "lb.user_id")
                         ->where("lb.leave_type_id", "=", $attributes["leave_type_id"]);
                     })
-                    ->where("u.is_deleted", "=", false)
+                    ->where("u.deleted_at", "=", false)
                     ->select([
                         "u.id as user_id",
                         "u.first_name",
@@ -40,11 +40,11 @@ class HREmployeeLeaveBalanceController extends Controller
                         "lb.id as leave_balance_id",
                         "lb.leave_type_id",
                         "lb.balance",
-                        "lb.is_deleted"
+                        "lb.deleted_at"
                     ])
                     ->get()
                     ->map(function($leave) {
-                        if ($leave->is_deleted) {
+                        if ($leave->deleted_at) {
                             $leave->leave_balance_id = null;
                         }
                         return $leave;
@@ -85,7 +85,7 @@ class HREmployeeLeaveBalanceController extends Controller
                                 "id as leave_balance_id",
                                 "user_id",
                                 "balance",
-                                "is_deleted"
+                                "deleted_at"
                             ])
                             ->get()
                             ->keyBy("user_id");
@@ -119,7 +119,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 if (!in_array($id, $attributes["user_ids"])) {
                     $leaveBalanceId = $leaveBalances->get($id);
                     $leaveBalance = LeaveBalance::find($leaveBalanceId->leave_balance_id);
-                    $deleted = $leaveBalance->update(["is_deleted" => true]);
+                    $deleted = $leaveBalance->update(["deleted_at" => true]);
                     // remove user in leaveBalances
                     $leaveBalances->forget($id);
                 }
@@ -134,7 +134,7 @@ class HREmployeeLeaveBalanceController extends Controller
                     $leaveBalance = LeaveBalance::find($balance->leave_balance_id);
                     $updated = $leaveBalance->update([
                         "balance" => $leaves["balance"],
-                        "is_deleted" => false
+                        "deleted_at" => false
                     ]);
                 }
             }

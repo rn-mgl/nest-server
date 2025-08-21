@@ -18,7 +18,7 @@ class FolderController extends Controller
     public function index()
     {
         try {
-            $folders = Folder::where("is_deleted", "=", false)->get();
+            $folders = Folder::where("deleted_at", "=", false)->get();
 
             return response()->json(["folders" => $folders]);
         } catch (\Throwable $th) {
@@ -109,8 +109,8 @@ class FolderController extends Controller
             // delete folder and everything below it
             $paths = $this->get_child_paths($folder)->pluck("id")->push($folder)->toArray();
 
-            $deletedFolders = Folder::whereIn("id", $paths)->update(["is_deleted" => true]);
-            $deletedDocuments = Document::whereIn("path", $paths)->update(["is_deleted" => true]);
+            $deletedFolders = Folder::whereIn("id", $paths)->update(["deleted_at" => true]);
+            $deletedDocuments = Document::whereIn("path", $paths)->update(["deleted_at" => true]);
 
             // as long as a folder or document is deleted (there could be folders with no documents)
             return response()->json(["success" => $deletedFolders || $deletedDocuments]);

@@ -46,7 +46,7 @@ class DocumentController extends Controller
                 $searchKey = "name";
             }
 
-            $documents = Document::where("documents.is_deleted", false)
+            $documents = Document::where("documents.deleted_at", false)
                 ->where("documents.path", $path)
                 ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
                     return $query->whereLike("documents.{$searchKey}", "%{$searchValue}%")
@@ -54,7 +54,7 @@ class DocumentController extends Controller
                 })
                 ->join("users as u", function(JoinClause $join) {
                     $join->on("u.id", "=", "documents.created_by")
-                    ->where("u.is_deleted", false);
+                    ->where("u.deleted_at", false);
                 })
                 ->select([
                     "documents.id",
@@ -71,7 +71,7 @@ class DocumentController extends Controller
                     "path"
                 ]);
 
-            $folders = Folder::where("folders.is_deleted", false)
+            $folders = Folder::where("folders.deleted_at", false)
                 ->where("folders.path", $path)
                 ->when($categoryValue === "folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
                     return $query->whereLike("folders.{$searchKey}", "%{$searchValue}%")
@@ -79,7 +79,7 @@ class DocumentController extends Controller
                 })
                 ->join("users as u", function(JoinClause $join) {
                     $join->on("u.id", "=", "folders.created_by")
-                    ->where("u.is_deleted", false);
+                    ->where("u.deleted_at", false);
                 })
                 ->select([
                     "folders.id",
@@ -216,7 +216,7 @@ class DocumentController extends Controller
     public function destroy(Document $document)
     {
         try {
-            $deleted = $document->update(["is_deleted" => true]);
+            $deleted = $document->update(["deleted_at" => true]);
             return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

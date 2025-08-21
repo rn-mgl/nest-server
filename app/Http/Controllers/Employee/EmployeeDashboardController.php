@@ -55,21 +55,13 @@ class EmployeeDashboardController extends Controller
 
             $leaves = $user->createdLeaveRequests()->get();
 
-            $performances = UserPerformanceReview::where("user_id", "=", $user)
-                            ->where("is_deleted", "=", false)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn($performance) => $performance->count());
+            $performances = $user->assignedPerformanceReviews()->get();
 
-            $trainings = UserTraining::where("user_id", "=", $user)
-                            ->where("is_deleted", "=", false)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn($training) => $training->count());
+            $trainings = $user->assignedTrainings()->get();
 
-            $documents = Document::where("is_deleted", "=", false)->count();
+            $documents = Document::where("deleted_at", "=", false)->count();
 
-            $folders = Folder::where("is_deleted", "=", false)->count();
+            $folders = Folder::where("deleted_at", "=", false)->count();
 
             $documentsAndFolders = [
                 "documents" => $documents,

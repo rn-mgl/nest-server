@@ -17,7 +17,7 @@ class AdminDashboardController extends Controller
     {
         try {
 
-            $hrs = User::where("is_deleted", "=", false)
+            $hrs = User::where("deleted_at", "=", false)
                         ->ofRole("hr")
                         ->get();
 

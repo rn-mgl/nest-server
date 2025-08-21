@@ -44,11 +44,11 @@ class EmployeeOnboardingController extends Controller
             $onboardings = DB::table("employee_onboardings as eo")
                             ->join("onboardings as o", function(JoinClause $join) {
                                 $join->on("eo.onboarding_id", "=", "o.id")
-                                ->where("o.is_deleted", "=", false);
+                                ->where("o.deleted_at", "=", false);
                             })
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("o.created_by", "=", "u.id")
-                                ->where("u.is_deleted", "=", false);
+                                ->where("u.deleted_at", "=", false);
                             })
                             ->where("user_id", "=", $user)
                             ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
@@ -110,7 +110,7 @@ class EmployeeOnboardingController extends Controller
                                     ])
                                     ->join("onboardings as o", function(JoinClause $join) {
                                         $join->on("eo.onboarding_id", "=", "o.id")
-                                        ->where("o.is_deleted", "=", false);
+                                        ->where("o.deleted_at", "=", false);
                                     })
                                     ->where("eo.id", $employeeOnboarding->id)
                                     ->first();
@@ -126,7 +126,7 @@ class EmployeeOnboardingController extends Controller
                                                 ])
                                                 ->leftJoin("employee_onboarding_policy_acknowledgements as eopa", function(JoinClause $join) {
                                                     $join->on("opa.id", "=", "eopa.policy_acknowledgement_id")
-                                                    ->where("eopa.is_deleted", "=", false);
+                                                    ->where("eopa.deleted_at", "=", false);
                                                 })
                                                 ->where("opa.onboarding_id", "=", $employee_onboarding->onboarding_id)
                                                 ->orderBy("opa.id")
@@ -143,7 +143,7 @@ class EmployeeOnboardingController extends Controller
                                                 ])
                                                 ->leftJoin("employee_onboarding_required_documents as eord", function (JoinClause $join) {
                                                     $join->on("ord.id", "=", "eord.required_document_id")
-                                                    ->where("eord.is_deleted", "=", false);
+                                                    ->where("eord.deleted_at", "=", false);
                                                 })
                                                 ->where("ord.onboarding_id", "=", $employee_onboarding->onboarding_id)
                                                 ->orderBy("ord.id")

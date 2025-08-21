@@ -36,11 +36,11 @@ class EmployeePerformanceReviewController extends Controller
             $performanceReviews = DB::table("employee_performance_reviews as epr")
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
                                         $join->on("pr.id", "=", "epr.performance_review_id")
-                                        ->where("pr.is_deleted", "=", false);
+                                        ->where("pr.deleted_at", "=", false);
                                     })
                                     ->join("users as u", function(JoinClause $join) {
                                         $join->on("u.id", "=", "epr.assigned_by")
-                                        ->where("u.is_deleted", "=", false);
+                                        ->where("u.deleted_at", "=", false);
                                     })
                                     ->where("epr.user_id", "=", $user)
                                     ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
@@ -95,7 +95,7 @@ class EmployeePerformanceReviewController extends Controller
             $performanceReview = DB::table("employee_performance_reviews as epr")
                                 ->join("performance_reviews as pr", function(JoinClause $join) {
                                     $join->on("epr.performance_review_id", "=", "pr.id")
-                                    ->where("pr.is_deleted", "=", false);
+                                    ->where("pr.deleted_at", "=", false);
                                 })
                                 ->select([
                                     "pr.id as performance_review_id",
@@ -110,7 +110,7 @@ class EmployeePerformanceReviewController extends Controller
                                             ->leftJoin("employee_performance_review_responses as eprr", function(JoinClause $join) use ($user) {
                                                 $join->on("prc.id", "=", "eprr.performance_review_content_id")
                                                 ->where("eprr.response_by", "=", $user)
-                                                ->where("prc.is_deleted", "=", false);
+                                                ->where("prc.deleted_at", "=", false);
                                             })
                                             ->where("prc.performance_review_id", "=", $performanceReview->performance_review_id)
                                             ->select([

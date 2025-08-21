@@ -26,7 +26,7 @@ class HREmployeeOnboardingController extends Controller
             $employees = DB::table("users as u")
                         ->leftJoin("employee_onboardings as eo", function(JoinClause $join) use($attributes) {
                             $join->on("u.id", "=", "eo.user_id")
-                            ->where("u.is_deleted", "=", false)
+                            ->where("u.deleted_at", "=", false)
                             ->where("onboarding_id", "=", $attributes["onboarding_id"]);
                         })
                         ->ofRole("employee")

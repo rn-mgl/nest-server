@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean("acknowledged")->default(false);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
-            $table->boolean("is_deleted")->default(false);
+            $table->softDeletes("deleted_at", 0);
         });
 
         Schema::create("user_onboarding_required_document", function(Blueprint $table) {
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string("document")->nullable();
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
-            $table->boolean("is_deleted")->default(false);
+            $table->softDeletes("deleted_at", 0);
         });
     }
 

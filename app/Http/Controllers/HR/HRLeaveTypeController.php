@@ -34,9 +34,9 @@ class HRLeaveTypeController extends Controller
             $leaves = DB::table("leave_types as lt")
                     ->join("users as u", first: function (JoinClause $join) {
                         $join->on("u.id", "=", "lt.created_by")
-                        ->where("u.is_deleted", "=", false);
+                        ->where("u.deleted_at", "=", false);
                     })
-                    ->where("lt.is_deleted", "=", false)
+                    ->where("lt.deleted_at", "=", false)
                     ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                     ->select(
                 [
@@ -134,7 +134,7 @@ class HRLeaveTypeController extends Controller
     public function destroy(LeaveType $leaveType)
     {
         try {
-            $deletedLeaveType = $leaveType->update(["is_deleted" => true]);
+            $deletedLeaveType = $leaveType->update(["deleted_at" => true]);
 
             return response()->json(["success" => $deletedLeaveType]);
         } catch (\Throwable $th) {
