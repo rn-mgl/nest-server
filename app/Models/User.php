@@ -6,13 +6,14 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -114,6 +115,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assignedPerformanceReviews()
     {
         return $this->belongsToMany(PerformanceReview::class, "user_performance_reviews", "user_id", "performance_review_id");
+    }
+
+    /**
+     * Summary of assignedTrainings
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Training, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
+    public function assignedTrainings()
+    {
+        return $this->belongsToMany(Training::class, "user_trainings", "user_id", "training_id");
     }
 
     # Scopes #
