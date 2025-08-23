@@ -48,6 +48,13 @@ class HREmployeeController extends Controller
                 $verified = $categoryValue === "all" ? "" : $categoryValue === "verified";
 
                 $employees = User::ofRole("employee")
+                                ->select([
+                                        "users.id as user_id",
+                                        "users.first_name as first_name",
+                                        "users.last_name as last_name",
+                                        "users.email as email",
+                                        "users.image"
+                                    ])
                                 ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                                 ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                                 ->whereLike($searchKey, "%$searchValue%")
