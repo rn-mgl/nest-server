@@ -33,20 +33,20 @@ class EmployeePerformanceReviewController extends Controller
 
             $user = Auth::id();
 
-            $performanceReviews = DB::table("employee_performance_reviews as epr")
+            $performanceReviews = DB::table("user_performance_reviews as upr")
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
-                                        $join->on("pr.id", "=", "epr.performance_review_id")
+                                        $join->on("pr.id", "=", "upr.performance_review_id")
                                         ->where("pr.deleted_at", "=", false);
                                     })
                                     ->join("users as u", function(JoinClause $join) {
-                                        $join->on("u.id", "=", "epr.assigned_by")
+                                        $join->on("u.id", "=", "upr.assigned_by")
                                         ->where("u.deleted_at", "=", false);
                                     })
-                                    ->where("epr.user_id", "=", $user)
+                                    ->where("upr.user_id", "=", $user)
                                     ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                                     ->orderBy("{$sortKey}", "{$sortType}")
                                     ->select([
-                                        'epr.id as employee_performance_review_id',
+                                        'upr.id as user_performance_review_id',
                                         'pr.id as performance_review_id',
                                         'pr.title',
                                         'pr.description',
@@ -92,9 +92,9 @@ class EmployeePerformanceReviewController extends Controller
 
             $user = Auth::id();
 
-            $performanceReview = DB::table("employee_performance_reviews as epr")
+            $performanceReview = DB::table("user_performance_reviews as upr")
                                 ->join("performance_reviews as pr", function(JoinClause $join) {
-                                    $join->on("epr.performance_review_id", "=", "pr.id")
+                                    $join->on("upr.performance_review_id", "=", "pr.id")
                                     ->where("pr.deleted_at", "=", false);
                                 })
                                 ->select([
@@ -103,21 +103,21 @@ class EmployeePerformanceReviewController extends Controller
                                     "pr.description",
                                     "pr.created_by"
                                 ])
-                                ->where("epr.id", "=", $employeePerformanceReview)
+                                ->where("upr.id", "=", $employeePerformanceReview)
                                 ->first();
 
             $performanceReview->contents = DB::table("performance_review_contents as prc")
-                                            ->leftJoin("employee_performance_review_responses as eprr", function(JoinClause $join) use ($user) {
-                                                $join->on("prc.id", "=", "eprr.performance_review_content_id")
-                                                ->where("eprr.response_by", "=", $user)
+                                            ->leftJoin("user_performance_review_responses as uprr", function(JoinClause $join) use ($user) {
+                                                $join->on("prc.id", "=", "uprr.performance_review_content_id")
+                                                ->where("uprr.response_by", "=", $user)
                                                 ->where("prc.deleted_at", "=", false);
                                             })
                                             ->where("prc.performance_review_id", "=", $performanceReview->performance_review_id)
                                             ->select([
                                                 "prc.id as performance_review_content_id",
                                                 "prc.survey",
-                                                "eprr.id as employee_performance_review_response_id",
-                                                "eprr.response",
+                                                "uprr.id as user_performance_review_response_id",
+                                                "uprr.response",
                                             ])
                                             ->get();
 

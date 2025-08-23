@@ -41,9 +41,9 @@ class EmployeeOnboardingController extends Controller
 
             $user = Auth::id();
 
-            $onboardings = DB::table("employee_onboardings as eo")
+            $onboardings = DB::table("user_onboardings as uo")
                             ->join("onboardings as o", function(JoinClause $join) {
-                                $join->on("eo.onboarding_id", "=", "o.id")
+                                $join->on("uo.onboarding_id", "=", "o.id")
                                 ->where("o.deleted_at", "=", false);
                             })
                             ->join("users as u", function(JoinClause $join) {
@@ -55,8 +55,8 @@ class EmployeeOnboardingController extends Controller
                             ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
                             ->orderBy("{$sortKey}", $sortType)
                             ->select([
-                                'eo.id as employee_onboarding_id',
-                                'eo.status',
+                                'uo.id as user_onboarding_id',
+                                'uo.status',
                                 'o.id as onboarding_id',
                                 'o.title',
                                 'o.description',
@@ -100,56 +100,56 @@ class EmployeeOnboardingController extends Controller
         try {
 
             // get employee onboarding
-            $employee_onboarding = DB::table("employee_onboardings as eo")
+            $onboarding = DB::table("user_onboardings as uo")
                                     ->select([
-                                        "eo.id as employee_onboarding_id",
-                                        "eo.status",
+                                        "uo.id as user_onboarding_id",
+                                        "uo.status",
                                         "o.id as onboarding_id",
                                         "o.title",
                                         "o.description",
                                     ])
                                     ->join("onboardings as o", function(JoinClause $join) {
-                                        $join->on("eo.onboarding_id", "=", "o.id")
+                                        $join->on("uo.onboarding_id", "=", "o.id")
                                         ->where("o.deleted_at", "=", false);
                                     })
-                                    ->where("eo.id", $employeeOnboarding->id)
+                                    ->where("uo.id", $employeeOnboarding->id)
                                     ->first();
 
             // get policy acknowledgements
             $onboarding_policy_acknowledgements = DB::table("onboarding_policy_acknowledgements as opa")
                                                 ->select([
-                                                    "eopa.id as employee_onboarding_policy_acknowledgement_id",
-                                                    "eopa.acknowledged",
+                                                    "uopa.id as user_onboarding_policy_acknowledgement_id",
+                                                    "uopa.acknowledged",
                                                     "opa.id as onboarding_policy_acknowledgement_id",
                                                     "opa.title",
                                                     "opa.description",
                                                 ])
-                                                ->leftJoin("employee_onboarding_policy_acknowledgements as eopa", function(JoinClause $join) {
-                                                    $join->on("opa.id", "=", "eopa.policy_acknowledgement_id")
-                                                    ->where("eopa.deleted_at", "=", false);
+                                                ->leftJoin("user_onboarding_policy_acknowledgements as uopa", function(JoinClause $join) {
+                                                    $join->on("opa.id", "=", "uopa.policy_acknowledgement_id")
+                                                    ->where("uopa.deleted_at", "=", false);
                                                 })
-                                                ->where("opa.onboarding_id", "=", $employee_onboarding->onboarding_id)
+                                                ->where("opa.onboarding_id", "=", $onboarding->onboarding_id)
                                                 ->orderBy("opa.id")
                                                 ->get();
 
             // get required documents
             $onboarding_required_documents = DB::table("onboarding_required_documents as ord")
                                                 ->select([
-                                                    "eord.id as employee_onboarding_required_document_id",
-                                                    "eord.document",
+                                                    "uord.id as user_onboarding_required_document_id",
+                                                    "uord.document",
                                                     "ord.id as onboarding_required_document_id",
                                                     "ord.title",
                                                     "ord.description",
                                                 ])
-                                                ->leftJoin("employee_onboarding_required_documents as eord", function (JoinClause $join) {
-                                                    $join->on("ord.id", "=", "eord.required_document_id")
-                                                    ->where("eord.deleted_at", "=", false);
+                                                ->leftJoin("user_onboarding_required_documents as uord", function (JoinClause $join) {
+                                                    $join->on("ord.id", "=", "uord.required_document_id")
+                                                    ->where("uord.deleted_at", "=", false);
                                                 })
-                                                ->where("ord.onboarding_id", "=", $employee_onboarding->onboarding_id)
+                                                ->where("ord.onboarding_id", "=", $onboarding->onboarding_id)
                                                 ->orderBy("ord.id")
                                                 ->get();
 
-            return response()->json(["onboarding" => $employee_onboarding, "policy_acknowledgements" => $onboarding_policy_acknowledgements, "required_documents" => $onboarding_required_documents]);
+            return response()->json(["onboarding" => $onboarding, "policy_acknowledgements" => $onboarding_policy_acknowledgements, "required_documents" => $onboarding_required_documents]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

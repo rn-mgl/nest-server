@@ -60,12 +60,12 @@ class HREmployeeController extends Controller
             if ($tab === "onboardings") {
                 $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
-                $onboardings = DB::table("employee_onboardings as eo")
+                $onboardings = DB::table("user_onboardings as uo")
                                     ->select([
-                                        "eo.id as employee_onboarding_id",
-                                        "eo.assigned_by",
-                                        "eo.status",
-                                        "eo.created_at",
+                                        "uo.id as user_onboarding_id",
+                                        "uo.assigned_by",
+                                        "uo.status",
+                                        "uo.created_at",
                                         "o.id as onboarding_id",
                                         "o.title",
                                         "o.description",
@@ -76,14 +76,14 @@ class HREmployeeController extends Controller
                                         "u.image"
                                     ])
                                     ->join("onboardings as o", function(JoinClause $join) {
-                                        $join->on("o.id", "=", "eo.onboarding_id")
+                                        $join->on("o.id", "=", "uo.onboarding_id")
                                         ->where("o.deleted_at", "=", false);
                                     })
                                     ->join("users as u", function(JoinClause $join) {
-                                        $join->on("u.id", "=", "eo.user_id")
+                                        $join->on("u.id", "=", "uo.user_id")
                                         ->where("u.deleted_at", "=", false);
                                     })
-                                    ->where("eo.deleted_at", "=", false)
+                                    ->where("uo.deleted_at", "=", false)
                                     ->whereLike($searchKey,"%{$searchValue}%")
                                     ->whereLike($categoryKey, "%{$categoryValue}%")
                                     ->orderBy($sortKey, $sortType)
@@ -135,14 +135,14 @@ class HREmployeeController extends Controller
 
             if ($tab === "performances") {
 
-                $sortKey = $sortKey === "created_at" ? "epr.{$sortKey}" : "pr.{$sortKey}";
+                $sortKey = $sortKey === "created_at" ? "upr.{$sortKey}" : "pr.{$sortKey}";
                 $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
-                $performances = DB::table("employee_performance_reviews as epr")
+                $performances = DB::table("user_performance_reviews as upr")
                                 ->select([
-                                    "epr.id as employee_performance_review_id",
-                                    "epr.status",
-                                    "epr.created_at",
+                                    "upr.id as user_performance_review_id",
+                                    "upr.status",
+                                    "upr.created_at",
                                     "pr.id as performance_review_id",
                                     "pr.title",
                                     "pr.description",
@@ -153,14 +153,14 @@ class HREmployeeController extends Controller
                                     "u.email"
                                 ])
                                 ->join("performance_reviews as pr", function (JoinClause $join) {
-                                    $join->on("pr.id", "=", "epr.performance_review_id")
+                                    $join->on("pr.id", "=", "upr.performance_review_id")
                                     ->where("pr.deleted_at", "=", false);
                                 })
                                 ->join("users as u", function (JoinClause $join) {
-                                    $join->on("u.id", "=", "epr.user_id")
+                                    $join->on("u.id", "=", "upr.user_id")
                                     ->where("u.deleted_at", "=", false);
                                 })
-                                ->where("epr.deleted_at", "=", false)
+                                ->where("upr.deleted_at", "=", false)
                                 ->where($categoryKey, "LIKE", "%{$categoryValue}%")
                                 ->where($searchKey, "LIKE", "%{$searchValue}%")
                                 ->orderBy($sortKey, $sortType)
@@ -172,16 +172,16 @@ class HREmployeeController extends Controller
 
             if ($tab === "trainings") {
 
-                $sortKey = "et.{$sortKey}";
+                $sortKey = "ut.{$sortKey}";
                 $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
 
-                $trainings = DB::table("employee_trainings as et")
+                $trainings = DB::table("user_trainings as ut")
                             ->select([
-                                "et.id as employee_training_id",
-                                "et.status",
-                                "et.score",
-                                "et.deadline",
-                                "et.created_at",
+                                "ut.id as user_training_id",
+                                "ut.status",
+                                "ut.score",
+                                "ut.deadline",
+                                "ut.created_at",
                                 "t.id as training_id",
                                 "t.title",
                                 "t.description",
@@ -194,14 +194,14 @@ class HREmployeeController extends Controller
                                 "u.image"
                             ])
                             ->join("trainings as t", function (JoinClause $join) {
-                                $join->on("t.id", "=", "et.training_id")
+                                $join->on("t.id", "=", "ut.training_id")
                                 ->where("t.deleted_at", "=", false);
                             })
                             ->join("users as u", function (JoinClause $join) {
-                                $join->on("u.id", "=", "et.user_id")
+                                $join->on("u.id", "=", "ut.user_id")
                                 ->where("u.deleted_at", "=", false);
                             })
-                            ->where("et.deleted_at", "=", false)
+                            ->where("ut.deleted_at", "=", false)
                             ->where($searchKey, "LIKE", "%{$searchValue}%")
                             ->where($categoryKey, "LIKE", "%{$categoryValue}%")
                             ->orderBy($sortKey, $sortType)
@@ -255,29 +255,29 @@ class HREmployeeController extends Controller
                         ->firstOrFail();
 
             // onboarding
-            $onboardings = DB::table("employee_onboardings as eo")
+            $onboardings = DB::table("user_onboardings as uo")
                             ->select([
                                 "o.id as onboarding_id",
                                 "o.title",
                                 "o.description",
                                 "o.created_by",
-                                "eo.id as employee_onboarding_id",
-                                "eo.status",
+                                "uo.id as user_onboarding_id",
+                                "uo.status",
                                 "u.id as user_id",
                                 "u.first_name",
                                 "u.last_name",
                                 "u.email",
                             ])
                             ->join("onboardings as o", function(JoinClause $join) {
-                                $join->on("o.id", "=", "eo.onboarding_id")
+                                $join->on("o.id", "=", "uo.onboarding_id")
                                 ->where("o.deleted_at", "=", false);
                             })
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("u.id", "=", "o.created_by")
                                 ->where("u.deleted_at", "=", false);
                             })
-                            ->where("eo.deleted_at", "=", false)
-                            ->where("eo.user_id", "=", $user_id)
+                            ->where("uo.deleted_at", "=", false)
+                            ->where("uo.user_id", "=", $user_id)
                             ->get();
 
             // leave balances
@@ -336,56 +336,56 @@ class HREmployeeController extends Controller
                                 ->get();
 
             // performance
-            $performance_reviews = DB::table("employee_performance_reviews as epr")
+            $performance_reviews = DB::table("user_performance_reviews as upr")
                                     ->select([
                                         "pr.id as performance_review_id",
                                         "pr.title",
                                         "pr.description",
-                                        "epr.id as employee_performance_review_id",
-                                        "epr.status",
+                                        "upr.id as user_performance_review_id",
+                                        "upr.status",
                                         "u.id as user_id",
                                         "u.first_name",
                                         "u.last_name",
                                         "u.email"
                                     ])
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
-                                        $join->on("pr.id", "=", "epr.performance_review_id")
+                                        $join->on("pr.id", "=", "upr.performance_review_id")
                                         ->where("pr.deleted_at", "=", false);
                                     })
                                     ->join("users as u", function(JoinClause $join) {
                                         $join->on("u.id", "=", "pr.created_by")
                                         ->where("u.deleted_at", "=", false);
                                     })
-                                    ->where("epr.user_id", "=", $user_id)
-                                    ->where("epr.deleted_at", "=", false)
+                                    ->where("upr.user_id", "=", $user_id)
+                                    ->where("upr.deleted_at", "=", false)
                                     ->get();
             // training
-            $trainings = DB::table("employee_trainings as et")
+            $trainings = DB::table("user_trainings as et")
                         ->select([
                             "t.id as training_id",
                             "t.title",
                             "t.description",
                             "t.deadline_days",
                             "t.created_by",
-                            DB::raw("CASE WHEN et.score IS NOT NULL THEN t.certificate ELSE NULL END AS certificate"),
-                            "et.status",
-                            "et.score",
-                            "et.deadline",
+                            DB::raw("CASE WHEN ut.score IS NOT NULL THEN t.certificate ELSE NULL END AS certificate"),
+                            "ut.status",
+                            "ut.score",
+                            "ut.deadline",
                             "u.first_name",
                             "u.last_name",
                             "u.email",
                             "u.id as user_id"
                         ])
                         ->join("trainings as t", function (JoinClause $join) {
-                            $join->on("t.id", "=", "et.training_id")
+                            $join->on("t.id", "=", "ut.training_id")
                             ->where("t.deleted_at", "=", false);
                         })
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("u.id", "=", "t.created_by")
                             ->where("u.deleted_at", "=", false);
                         })
-                        ->where("et.user_id", "=", $user_id)
-                        ->where("et.deleted_at", "=", false)
+                        ->where("ut.user_id", "=", $user_id)
+                        ->where("ut.deleted_at", "=", false)
                         ->get();
 
 

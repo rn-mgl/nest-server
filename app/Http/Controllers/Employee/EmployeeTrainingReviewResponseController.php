@@ -39,7 +39,7 @@ class EmployeeTrainingReviewResponseController extends Controller
                 "training_id" => ["required", "integer", "exists:trainings,id"],
                 "reviews" => ["array", "required"],
                 "reviews.*.training_review_id" => ["required", "integer", "exists:training_reviews,id"],
-                "reviews.*.employee_answer" => ["required", "integer", "in:1,2,3,4"],
+                "reviews.*.user_answer" => ["required", "integer", "in:1,2,3,4"],
             ]);
 
             $user = Auth::id();
@@ -66,12 +66,12 @@ class EmployeeTrainingReviewResponseController extends Controller
                 }
 
                 // check if training review's answer is similar to the employee's answer, add 1 to score if yes, retain if no
-                $score = $reviews[$review['training_review_id']] === $review['employee_answer'] ? $score + 1 : $score;
+                $score = $reviews[$review['training_review_id']] === $review['user_answer'] ? $score + 1 : $score;
 
                 $trainingReviewResponseAttr = [
                     "response_by" => $user,
                     "training_review_id" => $review["training_review_id"],
-                    "answer" => $review["employee_answer"]
+                    "answer" => $review["user_answer"]
                 ];
 
                 $created = UserTrainingReviewResponse::create($trainingReviewResponseAttr);

@@ -37,7 +37,7 @@ class EmployeePerformanceReviewResponseController extends Controller
             $attributes = $request->validate([
                 "response" => ["array", "required"],
                 "response.*.performance_review_content_id" => ["required", "integer"],
-                "response.*.employee_performance_review_response_id" => ["nullable", "integer"],
+                "response.*.user_performance_review_response_id" => ["nullable", "integer"],
                 "response.*.response" => ["required", "string"],
             ]);
 
@@ -54,11 +54,11 @@ class EmployeePerformanceReviewResponseController extends Controller
                 $responseAttribute["response"] = $response["response"];
                 $responseAttribute["performance_review_content_id"] = $response["performance_review_content_id"];
 
-                // if employee_performance_review_response_id is not null, update the response, else insert
-                if ($response["employee_performance_review_response_id"] === null) {
+                // if user_performance_review_response_id is not null, update the response, else insert
+                if ($response["user_performance_review_response_id"] === null) {
                     $created = UserPerformanceReviewResponse::create($responseAttribute);
                 } else {
-                    $update = UserPerformanceReviewResponse::find($response["employee_performance_review_response_id"])->update($responseAttribute);
+                    $update = UserPerformanceReviewResponse::find($response["user_performance_review_response_id"])->update($responseAttribute);
                 }
 
             }

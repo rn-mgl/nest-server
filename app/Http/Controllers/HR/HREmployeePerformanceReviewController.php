@@ -24,9 +24,9 @@ class HREmployeePerformanceReviewController extends Controller
             ]);
 
             $employees = DB::table("users as u")
-                        ->leftJoin("employee_performance_reviews as epr", function(JoinClause $join) use($attributes) {
-                            $join->on("u.id", "=", "epr.user_id")
-                            ->where("epr.performance_review_id", "=", $attributes["performance_review_id"]);
+                        ->leftJoin("user_performance_reviews as upr", function(JoinClause $join) use($attributes) {
+                            $join->on("u.id", "=", "upr.user_id")
+                            ->where("upr.performance_review_id", "=", $attributes["performance_review_id"]);
                         })
                         ->select([
                             "u.id as user_id",
@@ -35,7 +35,7 @@ class HREmployeePerformanceReviewController extends Controller
                             "u.email",
                             "u.email_verified_at",
                             "u.created_at",
-                            "epr.id as employee_performance_review_id"
+                            "upr.id as user_performance_review_id"
                         ])
                         ->get();
 

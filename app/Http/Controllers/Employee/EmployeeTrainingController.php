@@ -39,29 +39,29 @@ class EmployeeTrainingController extends Controller
 
             $user = Auth::id();
 
-            $trainings = DB::table("employee_trainings as et")
+            $trainings = DB::table("user_trainings as ut")
                         ->join("users as u", function(JoinClause $join) {
-                            $join->on("et.assigned_by", "=", "u.id")
+                            $join->on("ut.assigned_by", "=", "u.id")
                             ->where("u.deleted_at", "=", false);
                         })
                         ->join("trainings as t", function(JoinClause $join) {
-                            $join->on("et.training_id", "=", "t.id")
+                            $join->on("ut.training_id", "=", "t.id")
                             ->where("t.deleted_at", "=", false);
                         })
-                        ->where("et.deleted_at", "=", false)
-                        ->where("et.user_id", "=", $user)
+                        ->where("ut.deleted_at", "=", false)
+                        ->where("ut.user_id", "=", $user)
                         ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
                         ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
                         ->select([
-                            'et.id as employee_training_id',
-                            'et.status',
-                            'et.deadline',
+                            'ut.id as user_training_id',
+                            'ut.status',
+                            'ut.deadline',
                             't.id as training_id',
                             't.title',
                             't.description',
                             't.deadline_days',
                             't.created_by',
-                            DB::raw("CASE WHEN et.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
+                            DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
                             'u.id as user_id',
                             'u.first_name',
                             'u.last_name',
@@ -101,22 +101,22 @@ class EmployeeTrainingController extends Controller
     public function show($employeeTraining)
     {
         try {
-            $training = DB::table("employee_trainings as et")
+            $training = DB::table("user_trainings as et")
                         ->join("trainings as t", function(JoinClause $join) {
-                            $join->on("et.training_id", "=", "t.id")
+                            $join->on("ut.training_id", "=", "t.id")
                             ->where("t.deleted_at", "=", false);
                         })
-                        ->where("et.id", "=", $employeeTraining)
+                        ->where("ut.id", "=", $employeeTraining)
                         ->select([
                             "t.id as training_id",
                             "t.title",
                             "t.description",
                             "t.deadline_days",
-                            DB::raw("CASE WHEN et.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
-                            "et.score",
-                            "et.id as employee_training_id",
-                            "et.status",
-                            "et.deadline",
+                            DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
+                            "ut.score",
+                            "ut.id as user_training_id",
+                            "ut.status",
+                            "ut.deadline",
                         ])
                         ->first();
 
@@ -131,16 +131,16 @@ class EmployeeTrainingController extends Controller
                                 ->get();
 
             $training->reviews = DB::table("training_reviews as tr")
-                                ->leftJoin("employee_training_review_responses as etrr", function(JoinClause $join) {
+                                ->leftJoin("user_training_review_responses as etrr", function(JoinClause $join) {
                                     $join->on("tr.id", "=", "etrr.training_review_id")
                                     ->where("etrr.deleted_at", "=", false);
                                 })
                                 ->where("tr.training_id", "=", $training->training_id)
                                 ->where("tr.deleted_at", "=", false)
                                 ->select([
-                                    "etrr.id as employee_training_review_response_id",
+                                    "etrr.id as user_training_review_response_id",
                                     "tr.id as training_review_id",
-                                    "etrr.answer as employee_answer",
+                                    "etrr.answer as user_answer",
                                     DB::raw("CASE WHEN etrr.answer = tr.answer THEN true ELSE false END as is_correct"),
                                     "tr.question",
                                     "tr.choice_1",

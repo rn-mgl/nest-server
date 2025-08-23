@@ -73,9 +73,9 @@ class HREmployeeLeaveBalanceController extends Controller
             $attributes = $request->validate([
                 "user_ids" => ["array"],
                 "user_ids.*" => ["integer", "exists:users,id"],
-                "employee_leaves" => ["array"],
-                "employee_leaves.*.user_id" => ["integer", "exists:users,id"],
-                "employee_leaves.*.balance" => ["integer"],
+                "user_leaves" => ["array"],
+                "user_leaves.*.user_id" => ["integer", "exists:users,id"],
+                "user_leaves.*.balance" => ["integer"],
                 "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
@@ -124,8 +124,8 @@ class HREmployeeLeaveBalanceController extends Controller
             }
 
             // update balance of assigned
-            // check employee_leaves array if the id is in leaveBalances and update the applied balance
-            foreach($attributes["employee_leaves"] as $leaves) {
+            // check user_leaves array if the id is in leaveBalances and update the applied balance
+            foreach($attributes["user_leaves"] as $leaves) {
                 $currUser = $leaves["user_id"];
                 if ($leaveBalances->has($currUser)) {
                     $balance = $leaveBalances->get($currUser);

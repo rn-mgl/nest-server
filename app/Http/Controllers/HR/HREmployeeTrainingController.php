@@ -29,9 +29,9 @@ class HREmployeeTrainingController extends Controller
             $trainingId = $attributes["training_id"];
 
             $employees = DB::table("users as u")
-                        ->leftJoin("employee_trainings as et", function(JoinClause $join) use($trainingId) {
-                            $join->on("u.id", "=", "et.user_id")
-                            ->where("et.training_id", "=", $trainingId);
+                        ->leftJoin("user_trainings as ut", function(JoinClause $join) use($trainingId) {
+                            $join->on("u.id", "=", "ut.user_id")
+                            ->where("ut.training_id", "=", $trainingId);
                         })
                         ->select([
                             "u.id as user_id",
@@ -40,9 +40,9 @@ class HREmployeeTrainingController extends Controller
                             "u.email",
                             "u.email_verified_at",
                             "u.created_at",
-                            "et.id as employee_training_id",
-                            "et.status",
-                            "et.deadline"
+                            "ut.id as user_training_id",
+                            "ut.status",
+                            "ut.deadline"
                         ])
                         ->get();
 

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('user_onboardings', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class, 'user_id')->constrained("users")->cascadeOnDelete();
-            $table->foreignIdFor(User::class, 'onboarded_by')->nullable()->constrained("users")->nullOnDelete();
+            $table->foreignIdFor(User::class, 'assigned_by')->nullable()->constrained("users")->nullOnDelete();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default("pending");
             $table->timestamp('created_at')->useCurrent();
