@@ -83,11 +83,11 @@ class HREmployeeLeaveBalanceController extends Controller
             // the leave type to be assigned
             $leaveTypeId = $attributes["leave_type_id"];
             // the checked user ids
-            $userIds = collect($attributes["user_ids"] ?? []);
-            // all leave balances deleted or not
-            $userLeaves = collect($attributes["user_leaves"] ?? []);
+            $checkedUserIds = collect($attributes["user_ids"] ?? []);
+            // all leave balances deleted or not, contains user_id and balance_id after validation
+            $usersLeaveDetails = collect($attributes["user_leaves"] ?? []);
 
-            DB::transaction(function() use ($leaveTypeId, $userIds, $userLeaves) {
+            DB::transaction(function() use ($leaveTypeId, $checkedUserIds, $usersLeaveDetails) {
 
                 $leaveBalances = LeaveBalance::withTrashed()
                                     ->where("leave_type_id", "=", $leaveTypeId)
@@ -97,7 +97,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 $alreadyAssigned = $leaveBalances->keys();
 
                 // ticked user ids without any db records yet
-                $newUsers = $userIds->diff($alreadyAssigned);
+                $newUsers = $checkedUserIds->diff($alreadyAssigned);
 
                 // if the user id is not yet assigned, create new leave balance record
                 foreach ($newUsers as $user) {
@@ -110,7 +110,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 }
 
                 // already assigned users that are unchecked
-                $revokedUsers = $alreadyAssigned->diff($userIds);
+                $revokedUsers = $alreadyAssigned->diff($checkedUserIds);
 
                 // soft delete revoked users
                 $deleted = LeaveBalance::whereIn("user_id", $revokedUsers)
@@ -118,14 +118,14 @@ class HREmployeeLeaveBalanceController extends Controller
                             ->delete();
 
                 // update balance of assigned
-                foreach($userLeaves as $leave) {
+                foreach($usersLeaveDetails as $leave) {
                     // check if the user id is a key in leaveBalances and update the applied balance
                     $leaveBalance = $leaveBalances->get($leave["user_id"]);
                     if ($leaveBalance) {
                         // restore the record only if the user leave record is in the array of user ids (checked users)
                         $leaveBalance->update([
                             "balance" => $leave["balance"],
-                            "deleted_at" => $userIds->contains($leave["user_id"]) ? null : $leaveBalance->deleted_at
+                            "deleted_at" => $checkedUserIds->contains($leave["user_id"]) ? null : $leaveBalance->deleted_at
                         ]);
                     }
                 }
