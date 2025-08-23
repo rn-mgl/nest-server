@@ -33,10 +33,8 @@ class HRLeaveTypeController extends Controller
 
             $leaves = DB::table("leave_types as lt")
                     ->join("users as u", first: function (JoinClause $join) {
-                        $join->on("u.id", "=", "lt.created_by")
-                        ->where("u.deleted_at", "=", false);
+                        $join->on("u.id", "=", "lt.created_by");
                     })
-                    ->where("lt.deleted_at", "=", false)
                     ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
                     ->select(
                 [

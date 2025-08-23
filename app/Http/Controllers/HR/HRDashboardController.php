@@ -27,7 +27,7 @@ class HRDashboardController extends Controller
     {
         try {
 
-            $users = User::where("deleted_at", false)->with("roles")->get();
+            $users = User::with("roles")->all();
 
             $attendances = Attendance::where(function(Builder $query) {
                                 $query->whereToday("login_time");
@@ -75,29 +75,25 @@ class HRDashboardController extends Controller
                 "absent" => count($absents)
             ];
 
-            $onboardings = UserOnboarding::where("deleted_at", "=", false)
-                            ->get()
+            $onboardings = UserOnboarding::all()
                             ->groupBy("status")
                             ->map(fn($onboarding) => $onboarding->count());
 
-            $leaves = LeaveRequest::where("deleted_at", "=", false)
-                        ->get()
+            $leaves = LeaveRequest::all()
                         ->groupBy("status")
                         ->map(fn ($leave) => $leave->count());
 
-            $performances = UserPerformanceReview::where("deleted_at", "=", false)
-                            ->get()
+            $performances = UserPerformanceReview::all()
                             ->groupBy("status")
                             ->map(fn ($performance) => $performance->count());
 
-            $trainings = UserTraining::where("deleted_at", "=", false)
-                            ->get()
+            $trainings = UserTraining::all()
                             ->groupBy("status")
                             ->map(fn ($training) => $training->count());
 
-            $documents = Document::where("deleted_at", "=", false)->get()->count();
+            $documents = Document::count();
 
-            $folders = Folder::where("deleted_at", "=", false)->get()->count();
+            $folders = Folder::count();
 
             $users = $users->groupBy(fn($user) => $user->roles->role)->map(fn($user) => $user->count());
 

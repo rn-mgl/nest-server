@@ -47,16 +47,7 @@ class HREmployeeController extends Controller
             if ($tab === "employees") {
                 $verified = $categoryValue === "all" ? "" : $categoryValue === "verified";
 
-                $employees = User::select([
-                                    "id as user_id",
-                                    "first_name",
-                                    "last_name",
-                                    "email",
-                                    "image",
-                                    "email_verified_at",
-                                    "created_at",
-                                ])
-                                ->ofRole("employee")
+                $employees = User::ofRole("employee")
                                 ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                                 ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
                                 ->whereLike($searchKey, "%$searchValue%")
@@ -96,7 +87,7 @@ class HREmployeeController extends Controller
                                     ->whereLike($searchKey,"%{$searchValue}%")
                                     ->whereLike($categoryKey, "%{$categoryValue}%")
                                     ->orderBy($sortKey, $sortType)
-                                    ->get();
+                                ->get();
 
                 return response()->json(["onboardings" => $onboardings]);
             }
@@ -124,19 +115,15 @@ class HREmployeeController extends Controller
                                 "u.image"
                             ])
                             ->join("leave_types as lt", function(JoinClause $join) {
-                                $join->on("lt.id", "=", "lr.leave_type_id")
-                                ->where("lt.deleted_at", "=", false);
+                                $join->on("lt.id", "=", "lr.leave_type_id");
                             })
                             ->join("leave_balances as lb", function(JoinClause $join) {
                                 $join->on("lb.leave_type_id", "=", "lt.id")
-                                ->where("lb.deleted_at", "=", false)
                                 ->whereColumn("lb.user_id", "=", "lr.user_id");
                             })
                             ->join("users as u", function(JoinClause $join) {
-                                $join->on("u.id", "=", "lr.user_id")
-                                ->where("u.deleted_at", "=", false);
+                                $join->on("u.id", "=", "lr.user_id");
                             })
-                            ->where("lr.deleted_at", "=", false)
                             ->whereIn("lr.status", ["pending", "in_progress", "done"])
                             ->where($searchKey, "LIKE", "%{$searchValue}%")
                             ->where($categoryKey, "LIKE", "%{$categoryValue}%")

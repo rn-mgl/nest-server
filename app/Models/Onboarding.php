@@ -22,6 +22,10 @@ class Onboarding extends Model
         return $this->belongsTo(User::class, "created_by");
     }
 
+    /**
+     * Summary of assignedUsers
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, Onboarding, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
     public function assignedUsers()
     {
         return $this->belongsToMany(User::class, "onboarding_user", "onboarding_id", "user_id");

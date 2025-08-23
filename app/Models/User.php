@@ -78,33 +78,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Summary of assignedOnboardings
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Onboarding, User, \Illuminate\Database\Eloquent\Relations\Pivot>
-     */
-    public function assignedOnboardings()
-    {
-        return $this->belongsToMany(Onboarding::class, "user_onboardings", "user_id", "onboarding_id");
-    }
-
-    /**
-     * Summary of acknowledgedPolicies
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<OnboardingPolicyAcknowledgement, User, \Illuminate\Database\Eloquent\Relations\Pivot>
-     */
-    public function acknowledgedPolicies()
-    {
-        return $this->belongsToMany(OnboardingPolicyAcknowledgement::class, "onboarding_policy_acknowledgement_user", "user_id", "policy_acknowledgement_id");
-    }
-
-    /**
      * Summary of leaveRequests
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<LeaveRequest, User>
      */
     public function createdLeaveRequests()
     {
-        return $this->hasMany(LeaveRequest::class, "id", "user_id");
+        return $this->hasMany(LeaveRequest::class, "user_id", "id");
+    }
+
+    public function assignedLeaveBalances()
+    {
+        return $this->hasMany(LeaveBalance::class);
+    }
+
+    /**
+     * Summary of assignedOnboardings
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<UserOnboarding, User>
+     */
+    public function assignedOnboardings()
+    {
+        return $this->hasMany(UserOnboarding::class, "user_id", "id");
     }
 
     /**
@@ -124,6 +118,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assignedTrainings()
     {
         return $this->belongsToMany(Training::class, "user_trainings", "user_id", "training_id");
+    }
+
+    /**
+     * Summary of acknowledgedPolicies
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<OnboardingPolicyAcknowledgement, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
+    public function acknowledgedPolicies()
+    {
+        return $this->belongsToMany(OnboardingPolicyAcknowledgement::class, "onboarding_policy_acknowledgement_user", "user_id", "policy_acknowledgement_id");
     }
 
     # Scopes #

@@ -42,8 +42,7 @@ class HRLeaveBalanceController extends Controller
                             "lt.description"
                         ])
                         ->join("leave_types as lt", function (JoinClause $join) {
-                            $join->on("lt.id", "=", "lb.leave_type_id")
-                            ->where("lt.deleted_at", "=", false);
+                            $join->on("lt.id", "=", "lb.leave_type_id");
                         })
                         ->where("lb.user_id", "=", $user)
                         ->where($searchKey, "LIKE", "%{$searchValue}%")
