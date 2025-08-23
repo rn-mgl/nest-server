@@ -36,9 +36,9 @@ class HRPerformanceReviewController extends Controller
             $performances = DB::table("performance_reviews as pr")
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("u.id", "=", "pr.created_by")
-                                ->where("u.deleted_at", "=", false);
+                                ->whereNull("u.deleted_at");
                             })
-                            ->where("pr.deleted_at", "=", false)
+                            ->whereNull("pr.deleted_at")
                             ->whereLike($searchKey, "%$searchValue%")
                             ->orderBy("pr.$sortKey", $sortType)
                             ->select([
@@ -114,7 +114,6 @@ class HRPerformanceReviewController extends Controller
     {
         try {
             $contents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)
-                        ->where("deleted_at", "=", false)
                         ->select([
                             "id as performance_review_content_id",
                             "survey"
@@ -185,7 +184,7 @@ class HRPerformanceReviewController extends Controller
                 $performanceReviewContent = PerformanceReviewContent::find($toDelete);
 
                 if ($performanceReviewContent) {
-                    $performanceReviewContent->update(["deleted_at" => true]);
+                    $performanceReviewContent->delete();
                 }
             }
 

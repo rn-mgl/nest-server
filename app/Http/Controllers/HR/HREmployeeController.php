@@ -84,13 +84,13 @@ class HREmployeeController extends Controller
                                     ])
                                     ->join("onboardings as o", function(JoinClause $join) {
                                         $join->on("o.id", "=", "uo.onboarding_id")
-                                        ->where("o.deleted_at", "=", false);
+                                        ->whereNull("o.deleted_at");
                                     })
                                     ->join("users as u", function(JoinClause $join) {
                                         $join->on("u.id", "=", "uo.user_id")
-                                        ->where("u.deleted_at", "=", false);
+                                        ->whereNull("u.deleted_at");
                                     })
-                                    ->where("uo.deleted_at", "=", false)
+                                    ->whereNull("uo.deleted_at")
                                     ->whereLike($searchKey,"%{$searchValue}%")
                                     ->whereLike($categoryKey, "%{$categoryValue}%")
                                     ->orderBy($sortKey, $sortType)
@@ -161,13 +161,13 @@ class HREmployeeController extends Controller
                                 ])
                                 ->join("performance_reviews as pr", function (JoinClause $join) {
                                     $join->on("pr.id", "=", "upr.performance_review_id")
-                                    ->where("pr.deleted_at", "=", false);
+                                    ->whereNull("pr.deleted_at");
                                 })
                                 ->join("users as u", function (JoinClause $join) {
                                     $join->on("u.id", "=", "upr.user_id")
-                                    ->where("u.deleted_at", "=", false);
+                                    ->whereNull("u.deleted_at");
                                 })
-                                ->where("upr.deleted_at", "=", false)
+                                ->whereNull("upr.deleted_at")
                                 ->where($categoryKey, "LIKE", "%{$categoryValue}%")
                                 ->where($searchKey, "LIKE", "%{$searchValue}%")
                                 ->orderBy($sortKey, $sortType)
@@ -202,13 +202,13 @@ class HREmployeeController extends Controller
                             ])
                             ->join("trainings as t", function (JoinClause $join) {
                                 $join->on("t.id", "=", "ut.training_id")
-                                ->where("t.deleted_at", "=", false);
+                                ->whereNull("t.deleted_at");
                             })
                             ->join("users as u", function (JoinClause $join) {
                                 $join->on("u.id", "=", "ut.user_id")
-                                ->where("u.deleted_at", "=", false);
+                                ->whereNull("u.deleted_at");
                             })
-                            ->where("ut.deleted_at", "=", false)
+                            ->whereNull("ut.deleted_at")
                             ->where($searchKey, "LIKE", "%{$searchValue}%")
                             ->where($categoryKey, "LIKE", "%{$categoryValue}%")
                             ->orderBy($sortKey, $sortType)
@@ -258,7 +258,6 @@ class HREmployeeController extends Controller
                         ])
                         ->where("id", "=", $user_id)
                         ->ofRole("employee")
-                        ->where("deleted_at", false)
                         ->firstOrFail();
 
             // onboarding
@@ -277,13 +276,13 @@ class HREmployeeController extends Controller
                             ])
                             ->join("onboardings as o", function(JoinClause $join) {
                                 $join->on("o.id", "=", "uo.onboarding_id")
-                                ->where("o.deleted_at", "=", false);
+                                ->whereNull("o.deleted_at");
                             })
                             ->join("users as u", function(JoinClause $join) {
                                 $join->on("u.id", "=", "o.created_by")
-                                ->where("u.deleted_at", "=", false);
+                                ->whereNull("u.deleted_at");
                             })
-                            ->where("uo.deleted_at", "=", false)
+                            ->whereNull("uo.deleted_at")
                             ->where("uo.user_id", "=", $user_id)
                             ->get();
 
@@ -303,14 +302,14 @@ class HREmployeeController extends Controller
                                 ])
                                 ->join("leave_types as lt", function(JoinClause $join) {
                                     $join->on("lt.id", "=", "lb.leave_type_id")
-                                    ->where("lt.deleted_at", "=", false);
+                                    ->whereNull("lt.deleted_at");
                                 })
                                 ->join("users as u", function(JoinClause $join) {
                                     $join->on("u.id", "=", "lt.created_by")
-                                    ->where('u.deleted_at', "=", false);
+                                    ->whereNull('u.deleted_at');
                                 })
                                 ->where("lb.user_id", "=", $user_id)
-                                ->where("lb.deleted_at", "=", false)
+                                ->whereNull("lb.deleted_at")
                                 ->get();
 
             // leave requests
@@ -332,14 +331,14 @@ class HREmployeeController extends Controller
                                 ])
                                 ->join("leave_types as lt", function(JoinClause $join) {
                                     $join->on("lt.id", "=", "lr.leave_type_id")
-                                    ->where("lt.deleted_at", "=", false);
+                                    ->whereNull("lt.deleted_at");
                                 })
                                 ->join("users as u", function(JoinClause $join) {
                                     $join->on("u.id", "=", "lt.created_by")
-                                    ->where("u.deleted_at", "=", false);
+                                    ->whereNull("u.deleted_at");
                                 })
                                 ->where("lr.user_id", "=", $user_id)
-                                ->where("lr.deleted_at", "=", false)
+                                ->whereNull("lr.deleted_at")
                                 ->get();
 
             // performance
@@ -357,14 +356,14 @@ class HREmployeeController extends Controller
                                     ])
                                     ->join("performance_reviews as pr", function(JoinClause $join) {
                                         $join->on("pr.id", "=", "upr.performance_review_id")
-                                        ->where("pr.deleted_at", "=", false);
+                                        ->whereNull("pr.deleted_at");
                                     })
                                     ->join("users as u", function(JoinClause $join) {
                                         $join->on("u.id", "=", "pr.created_by")
-                                        ->where("u.deleted_at", "=", false);
+                                        ->whereNull("u.deleted_at");
                                     })
                                     ->where("upr.user_id", "=", $user_id)
-                                    ->where("upr.deleted_at", "=", false)
+                                    ->whereNull("upr.deleted_at")
                                     ->get();
             // training
             $trainings = DB::table("user_trainings as et")
@@ -385,14 +384,14 @@ class HREmployeeController extends Controller
                         ])
                         ->join("trainings as t", function (JoinClause $join) {
                             $join->on("t.id", "=", "ut.training_id")
-                            ->where("t.deleted_at", "=", false);
+                            ->whereNull("t.deleted_at");
                         })
                         ->join("users as u", function(JoinClause $join) {
                             $join->on("u.id", "=", "t.created_by")
-                            ->where("u.deleted_at", "=", false);
+                            ->whereNull("u.deleted_at");
                         })
                         ->where("ut.user_id", "=", $user_id)
-                        ->where("ut.deleted_at", "=", false)
+                        ->whereNull("ut.deleted_at")
                         ->get();
 
 

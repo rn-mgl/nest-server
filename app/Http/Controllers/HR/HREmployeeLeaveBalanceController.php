@@ -43,6 +43,7 @@ class HREmployeeLeaveBalanceController extends Controller
                     ])
                     ->get()
                     ->map(function($leave) {
+                        // the leave is not assigned if it is deleted
                         if ($leave->deleted_at) {
                             $leave->leave_balance_id = null;
                         }

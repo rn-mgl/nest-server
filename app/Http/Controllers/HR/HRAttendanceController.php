@@ -52,9 +52,7 @@ class HRAttendanceController extends Controller
                 }
             }
 
-            $users = User::where("deleted_at", "=", false)
-                        ->pluck("id")
-                        ->toArray();
+            $users = User::pluck("id")->toArray();
 
             // get users that did not log in
             $absents = array_diff($users, $ins);
@@ -104,7 +102,7 @@ class HRAttendanceController extends Controller
                     ->get()
                     ->keyBy("user_id");
 
-            $users = User::where("deleted_at", "=", false)->get();
+            $users = User::all();
 
             $attendances = $users->map(function ($user) use ($ins, $lateThreshold) {
                 $attendanceData = [

@@ -36,9 +36,9 @@ class HROnboardingController extends Controller
             $onboardings = DB::table("onboardings as o")
                             ->join("users as u",  function(JoinClause $join) {
                                 $join->on("u.id", "=", "o.created_by")
-                                ->where("u.deleted_at", "=", false);
+                                ->whereNull("u.deleted_at");
                             })
-                            ->where("o.deleted_at", "=", false)
+                            ->whereNull("o.deleted_at")
                             ->whereLike($searchKey, "%{$searchValue}%")
                             ->orderBy("o.{$sortKey}", $sortType)
                             ->select([
@@ -127,7 +127,6 @@ class HROnboardingController extends Controller
         try {
 
             $required_documents = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
-                                    ->where('deleted_at', "=", false)
                                     ->select([
                                         'id as onboarding_required_documents_id',
                                         'title',
@@ -137,7 +136,6 @@ class HROnboardingController extends Controller
 
 
             $policy_acknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
-                                    ->where('deleted_at', "=", false)
                                     ->select([
                                         'id as onboarding_policy_acknowledgements_id',
                                         'title',
@@ -234,7 +232,7 @@ class HROnboardingController extends Controller
                 $document = OnboardingRequiredDocument::find($toDelete);
 
                 if ($document) {
-                    $document->update(["deleted_at" => true]);
+                    $document->delete();
                 }
             }
 
@@ -242,7 +240,7 @@ class HROnboardingController extends Controller
                 $acknowledgement = OnboardingPolicyAcknowledgement::find($toDelete);
 
                 if ($acknowledgement) {
-                    $acknowledgement->update(["deleted_at" => true]);
+                    $acknowledgement->delete();
                 }
             }
 
