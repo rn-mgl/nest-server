@@ -27,7 +27,7 @@ class HRDashboardController extends Controller
     {
         try {
 
-            $users = User::with("roles")->all();
+            $users = User::with("roles")->get();
 
             $attendances = Attendance::where(function(Builder $query) {
                                 $query->whereToday("login_time");
