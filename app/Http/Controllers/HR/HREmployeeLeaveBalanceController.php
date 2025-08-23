@@ -74,69 +74,63 @@ class HREmployeeLeaveBalanceController extends Controller
             $attributes = $request->validate([
                 "user_ids" => ["array"],
                 "user_ids.*" => ["integer", "exists:users,id"],
-                "user_leaves" => ["array"],
+                "user_leaves" => ["array", "required"],
                 "user_leaves.*.user_id" => ["integer", "exists:users,id"],
-                "user_leaves.*.balance" => ["integer"],
+                "user_leaves.*.balance" => ["integer", "required"],
                 "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
-            $leaveBalances = LeaveBalance::where("leave_type_id", "=", $attributes["leave_type_id"])
-                            ->select([
-                                "id as leave_balance_id",
-                                "user_id",
-                                "balance"
-                            ])
-                            ->get()
-                            ->keyBy("user_id");
+            // the leave type to be assigned
+            $leaveTypeId = $attributes["leave_type_id"];
+            // the checked user ids
+            $userIds = collect($attributes["user_ids"] ?? []);
+            // all leave balances deleted or not
+            $userLeaves = collect($attributes["user_leaves"] ?? []);
 
-            $alreadyAssigned = $leaveBalances->pluck("user_id")->toArray();
+            DB::transaction(function() use ($leaveTypeId, $userIds, $userLeaves) {
 
-            $leave_type_id = $attributes["leave_type_id"];
+                $leaveBalances = LeaveBalance::withTrashed()
+                                    ->where("leave_type_id", "=", $leaveTypeId)
+                                    ->get()
+                                    ->keyBy("user_id");
 
-            // assign
-            foreach ($attributes["user_ids"] as $employee) {
-                if (!in_array($employee, $alreadyAssigned)) {
-                    $leaveBalanceAttr = [
-                        "user_id" => $employee,
+                $alreadyAssigned = $leaveBalances->keys();
+
+                // ticked user ids without any db records yet
+                $newUsers = $userIds->diff($alreadyAssigned);
+
+                // if the user id is not yet assigned, create new leave balance record
+                foreach ($newUsers as $user) {
+                    $leaveBalances->put($user, LeaveBalance::create([
+                        "user_id" => $user,
                         "provided_by" => Auth::id(),
-                        "leave_type_id" => $leave_type_id,
+                        "leave_type_id" => $leaveTypeId,
                         "balance" => 0
-                    ];
-                    $assigned = LeaveBalance::create($leaveBalanceAttr);
-
-                    // make std class for uniformity in $leaveBalances collection
-                    $newLeaveBalance = new stdClass();
-                    $newLeaveBalance->leave_balance_id = $assigned->id;
-                    $newLeaveBalance->user_id = $employee;
-                    $newLeaveBalance->balance = 0;
-                    $leaveBalances->put($employee, $newLeaveBalance);
+                    ]));
                 }
-            }
 
-            // delete
-            foreach($alreadyAssigned as $id) {
-                if (!in_array($id, $attributes["user_ids"])) {
-                    $leaveBalanceId = $leaveBalances->get($id);
-                    $leaveBalance = LeaveBalance::find($leaveBalanceId->leave_balance_id);
-                    $deleted = $leaveBalance->delete();
-                    // remove user in leaveBalances
-                    $leaveBalances->forget($id);
-                }
-            }
+                // already assigned users that are unchecked
+                $revokedUsers = $alreadyAssigned->diff($userIds);
 
-            // update balance of assigned
-            // check user_leaves array if the id is in leaveBalances and update the applied balance
-            foreach($attributes["user_leaves"] as $leaves) {
-                $currUser = $leaves["user_id"];
-                if ($leaveBalances->has($currUser)) {
-                    $balance = $leaveBalances->get($currUser);
-                    $leaveBalance = LeaveBalance::find($balance->leave_balance_id);
-                    $updated = $leaveBalance->update([
-                        "balance" => $leaves["balance"],
-                        "deleted_at" => null
-                    ]);
+                // soft delete revoked users
+                $deleted = LeaveBalance::whereIn("user_id", $revokedUsers)
+                            ->where("leave_type_id", $leaveTypeId)
+                            ->delete();
+
+                // update balance of assigned
+                foreach($userLeaves as $leave) {
+                    // check if the user id is a key in leaveBalances and update the applied balance
+                    $leaveBalance = $leaveBalances->get($leave["user_id"]);
+                    if ($leaveBalance) {
+                        // restore the record only if the user leave record is in the array of user ids (checked users)
+                        $leaveBalance->update([
+                            "balance" => $leave["balance"],
+                            "deleted_at" => $userIds->contains($leave["user_id"]) ? null : $leaveBalance->deleted_at
+                        ]);
+                    }
                 }
-            }
+
+            });
 
             return response()->json(["success" => true]);
 
