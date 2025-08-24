@@ -42,12 +42,6 @@ class HRController extends Controller
     {
         try {
 
-            $authenticated = Auth::user();
-
-            if ($authenticated->id !== $hr->id) {
-                throw new UnauthorizedException("The client session you use does not match our server.");
-            }
-
             return response()->json(["profile" => $hr]);
 
         } catch (\Throwable $th) {

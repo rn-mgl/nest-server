@@ -48,7 +48,7 @@ class DocumentController extends Controller
 
             $documents = Document::where("documents.path", $path)
                 ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
-                    return $query->whereLike("documents.{$searchKey}", "%{$searchValue}%")
+                    return $query->whereLike("documents.{$searchKey}", value: "%{$searchValue}%")
                     ->orderBy("documents.{$sortKey}", $sortType);
                 })
                 ->join("users as u", function(JoinClause $join) {
@@ -68,8 +68,6 @@ class DocumentController extends Controller
                     "type",
                     "path"
                 ]);
-
-                logger($documents->toRawSql());
 
             $folders = Folder::where("folders.deleted_at", false)
                 ->where("folders.path", $path)
@@ -184,6 +182,7 @@ class DocumentController extends Controller
                 "type" => ["required", "string"],
             ]);
 
+            // if there is no new document and the current document attribute is not a string (link), throw an error
             if (!$request->hasFile("document") && !is_string($attributes["document"])) {
                 throw new Exception("Invalid Document");
             }
@@ -216,8 +215,7 @@ class DocumentController extends Controller
     public function destroy(Document $document)
     {
         try {
-            $deleted = $document->delete();
-            return response()->json(["success" => $deleted]);
+            return response()->json(["success" => $document->delete()]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

@@ -92,15 +92,11 @@ class HRAttendanceController extends Controller
     public function show($requestDate)
     {
         try {
-            $parsedDate = Carbon::parse($requestDate);
-            $currentDate = $parsedDate->copy()->startOfDay()->format("Y-m-d H:i:s");
-            $tomorrowDate = $parsedDate->copy()->addDay()->startOfDay()->format("Y-m-d H:i:s");
-            $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
+            $parsedDate = Carbon::parse($requestDate)->startOfDay();
+            $currentDate = $parsedDate->copy()->format("Y-m-d H:i:s");
+            $lateThreshold = $parsedDate->copy()->addHours(6)->format("Y-m-d H:i:s");
 
-            $ins = Attendance::where("login_time", ">=", $currentDate)
-                    ->where("login_time", "<", $tomorrowDate)
-                    ->get()
-                    ->keyBy("user_id");
+            $ins = Attendance::whereDate("login_time", $currentDate)->get()->keyBy("user_id");
 
             $users = User::all();
 

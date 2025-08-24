@@ -29,14 +29,14 @@ class EmployeeLeaveRequestController extends Controller
 
             $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
 
-            $searchKey = $searchAttributes["searchKey"];
-            $searchValue = $searchAttributes["searchValue"] ?? "";
+            $searchKey = $attributes["searchKey"];
+            $searchValue = $attributes["searchValue"] ?? "";
 
-            $categoryKey = $categoryAttributes["categoryKey"];
-            $categoryValue = $categoryAttributes["categoryValue"] === "all" ? "" : $categoryAttributes["categoryValue"];
+            $categoryKey = $attributes["categoryKey"];
+            $categoryValue = $attributes["categoryValue"] === "all" ? "" : $attributes["categoryValue"];
 
-            $sortKey = $sortAttributes["sortKey"];
-            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $sortKey = $attributes["sortKey"];
+            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             $sortType = $isAsc ? "ASC" : "DESC";
 
             $user = Auth::id();
@@ -157,11 +157,7 @@ class EmployeeLeaveRequestController extends Controller
     public function destroy(LeaveRequest $leave_request)
     {
         try {
-
-            $deleted = $leave_request->delete();
-
-            return response()->json(["success" => $deleted]);
-
+            return response()->json(["success" => $leave_request->delete()]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

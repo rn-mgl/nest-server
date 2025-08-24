@@ -9,7 +9,6 @@ use App\Models\TrainingReview;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class EmployeeTrainingReviewResponseController extends Controller
 {
@@ -45,7 +44,7 @@ class EmployeeTrainingReviewResponseController extends Controller
             $user = Auth::id();
 
             // check if there are records that are already answered and stored
-            $alreadyAnsweredReviews = UserTrainingReviewResponse::where("response_by", "=", $user)
+            $alreadyAnsweredReviews = UserTrainingReviewResponse::where("user_id", "=", $user)
                                         ->pluck("training_review_id")
                                         ->toArray();
 

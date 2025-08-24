@@ -39,9 +39,9 @@ class EmployeeAttendanceController extends Controller
                 "login_time" => Carbon::now()
             ];
 
-            $loggedAttendance = Attendance::create($attendanceAttr);
+            $log = Attendance::create($attendanceAttr);
 
-            return response()->json(["success" => !empty($loggedAttendance)]);
+            return response()->json(["success" => $log]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -51,12 +51,13 @@ class EmployeeAttendanceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($requestDate)
+    public function show(string $requestDate)
     {
         try {
-            $parsedDate = Carbon::parse($requestDate);
-            $currentDate = $parsedDate->copy()->startOfDay()->format("Y-m-d H:i:s");
-            $lateThreshold = $parsedDate->copy()->startOfDay()->addHours(6)->format("Y-m-d H:i:s");
+            $parsedDate = Carbon::parse($requestDate)->startOfDay();
+            $currentDate = $parsedDate->format("Y-m-d H:i:s");
+            $lateThreshold = $parsedDate->copy()->addHours(6)->format("Y-m-d H:i:s");
+
             $user = Auth::id();
 
             $attendance = [
@@ -72,12 +73,12 @@ class EmployeeAttendanceController extends Controller
                     ->where(fn($query) => $query->whereDate("logout_time", $currentDate)->orWhereNull("logout_time"))
                     ->first();
 
-            if (!$log) {
+            if ($log) {
                 $attendance = [
                 "attendance_id" => $log->id,
                 "login_time" => $log->login_time,
                 "logout_time" => $log->logout_time,
-                "late" => $log->login_time > $lateThreshold,
+                "late" => Carbon::parse($log->login_time)->greaterThan(Carbon::parse($lateThreshold)),
                 "absent" => false
                 ];
             }
@@ -105,7 +106,7 @@ class EmployeeAttendanceController extends Controller
         try {
             $updated = $attendance->update(["logout_time" => Carbon::now()]);
 
-            return response()->json(["success" => !empty($updated)]);
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
             throw $th;

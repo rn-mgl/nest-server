@@ -37,11 +37,12 @@ class EmployeeDashboardController extends Controller
                             })
                             ->first();
 
-            $late = Carbon::now()->greaterThan(Carbon::now()->startOfDay()->addHours(6));
+            $lateThreshold = Carbon::now()->startOfDay()->addHours(6);
+            $late = Carbon::now()->greaterThan($lateThreshold);
             $login_time = $attendance?->login_time;
 
             if ($login_time) {
-                $late = Carbon::parse($login_time)->greaterThan(Carbon::now()->startOfDay()->addHours(6));
+                $late = Carbon::parse($login_time)->greaterThan($lateThreshold);
             }
 
             $attendances = [
@@ -51,13 +52,25 @@ class EmployeeDashboardController extends Controller
                 "absent" => empty($attendance)
             ];
 
-            $onboardings = $user->assignedOnboardings()->get();
+            $onboardings = $user->assignedOnboardings()
+                            ->get()
+                            ->groupBy("status")
+                            ->map(fn($onboarding) => $onboarding->count());
 
-            $leaves = $user->createdLeaveRequests()->get();
+            $leaves = $user->createdLeaveRequests()
+                            ->get()
+                            ->groupBy("status")
+                            ->map(fn ($leave) => $leave->count());
 
-            $performances = $user->assignedPerformanceReviews()->get();
+            $performances = $user->assignedPerformanceReviews()
+                            ->get()
+                            ->groupBy("status")
+                            ->map(fn ($performance) => $performance->count());
 
-            $trainings = $user->assignedTrainings()->get();
+            $trainings = $user->assignedTrainings()
+                            ->get()
+                            ->groupBy("status")
+                            ->map(fn ($training) => $training->count());
 
             $documents = Document::count();
 

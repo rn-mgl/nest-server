@@ -41,27 +41,30 @@ class EmployeePerformanceReviewResponseController extends Controller
                 "response.*.response" => ["required", "string"],
             ]);
 
-            $user = Auth::id();
-
             $responseAttribute = [
                 "performance_review_content_id" => null,
-                "response_by" => $user,
+                "response_by" => Auth::id(),
                 "response" => "",
             ];
 
-            foreach ($attributes["response"] as $response) {
+            DB::transaction(function() use ($attributes, $responseAttribute) {
 
-                $responseAttribute["response"] = $response["response"];
-                $responseAttribute["performance_review_content_id"] = $response["performance_review_content_id"];
+                foreach ($attributes["response"] as $response) {
 
-                // if user_performance_review_response_id is not null, update the response, else insert
-                if ($response["user_performance_review_response_id"] === null) {
-                    $created = UserPerformanceReviewResponse::create($responseAttribute);
-                } else {
-                    $update = UserPerformanceReviewResponse::find($response["user_performance_review_response_id"])->update($responseAttribute);
+                    $responseAttribute["response"] = $response["response"];
+                    $responseAttribute["performance_review_content_id"] = $response["performance_review_content_id"];
+                    $responseId = $response["user_performance_review_response_id"];
+
+                    // if there is an existing response, update it, else insert
+                    if ($responseId) {
+                        $update = UserPerformanceReviewResponse::find($responseId)->update($responseAttribute);
+                    } else {
+                        $created = UserPerformanceReviewResponse::create($responseAttribute);
+                    }
+
                 }
 
-            }
+            });
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {

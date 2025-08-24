@@ -33,46 +33,33 @@ class HRDashboardController extends Controller
                                 $query->whereToday("login_time");
                             })
                             ->where(function (Builder $query) {
-                                $query->where(function (Builder $query2) {
-                                    $query2->whereToday("logout_time")
-                                    ->whereColumn("logout_time", ">", "login_time");
-                                })->orWhereNull("logout_time");
+                                $query->whereToday("logout_time")->orWhereNull("logout_time");
                             })
                             ->get();
 
-            /**
-             * Logic
-             *
-             * in: if has login and is less than 6
-             * late: login is greater than today's 6 AM
-             *
-             */
+            $userIds = $users->pluck("id");
+            $attendanceUsers = $attendances->pluck("user_id");
 
-            $userIds = $users->pluck("id")->toArray();
-            $attendanceUsers = $attendances->pluck("user_id")->toArray();
-
+            $lateThreshold = Carbon::now()->startOfDay()->addHours(6);
             $lates = 0;
             $outs = 0;
-            $absents = array_diff($userIds, $attendanceUsers);
+            // users not in attendance ids are absent
+            $absents = $userIds->diff($attendanceUsers);
 
             foreach ($attendances as $attendance) {
-
-                if (!empty($attendance->login_time)) {
-                    $isLate = Carbon::parse($attendance->login_time)->greaterThan(Carbon::now()->startOfDay()->addHours(6));
-                    $lates = $isLate ? $lates + 1 : $lates;
-                }
+                $isLate = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
+                $lates = $isLate ? $lates + 1 : $lates;
 
                 if (!empty($attendance->logout_time)) {
                     $outs += 1;
                 }
-
             }
 
             $attendanceStatus = [
                 "in" => $attendances->count(),
                 "out" => $outs,
                 "late" => $lates,
-                "absent" => count($absents)
+                "absent" => $absents->count()
             ];
 
             $onboardings = UserOnboarding::all()

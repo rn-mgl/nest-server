@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\UserOnboarding;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -23,17 +24,12 @@ class HREmployeeOnboardingController extends Controller
                 "onboarding_id" => ["required", "integer"]
             ]);
 
-            $employees = DB::table("users as u")
+            $employees = User::ofRole("employee")
                         ->leftJoin("user_onboardings as uo", function(JoinClause $join) use($attributes) {
                             $join->on("u.id", "=", "uo.user_id")
                             ->whereNull("u.deleted_at")
                             ->where("onboarding_id", "=", $attributes["onboarding_id"]);
                         })
-                        ->join("roles as r", function(JoinClause $join) {
-                            $join->on("r.id", "=", "u.role_id")
-                            ->whereNull("r.deleted_at");
-                        })
-                        ->where("r.role", "=", "employee")
                         ->select([
                             "u.id as user_id",
                             "u.first_name",

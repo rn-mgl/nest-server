@@ -17,13 +17,7 @@ class FolderController extends Controller
      */
     public function index()
     {
-        try {
-            $folders = Folder::where("deleted_at", "=", false)->get();
-
-            return response()->json(["folders" => $folders]);
-        } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
-        }
+        //
     }
 
     /**
@@ -45,13 +39,9 @@ class FolderController extends Controller
                 "path" => ["required", "integer"]
             ]);
 
-            $folderAttr = [
-                "name" => $attributes["name"],
-                "path" => $attributes["path"],
-                "created_by" => Auth::id()
-            ];
+            $attributes["created_by"] = Auth::id();
 
-            $createdFolder = Folder::create($folderAttr);
+            $createdFolder = Folder::create($attributes);
 
             return response()->json(["success" => $createdFolder]);
 
