@@ -1,5 +1,7 @@
 
 <?php
+
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,10 +15,11 @@ return new class extends Migration
     {
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
-            $table->morphs('activitable');
-            $table->string('entity_type');
-            $table->enum('activity', ['create', 'read', 'update', 'delete']);
+            $table->foreignIdFor(User::class, "user_id")->nullable()->constrained()->nullOnDelete();
+            $table->string('entity');
             $table->integer('entity_id')->nullable();
+            $table->enum('activity', ['create', 'read', 'update', 'delete']);
+            $table->text("comment");
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
