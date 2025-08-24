@@ -31,13 +31,12 @@ class EnsureUserTokenIsValid
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
-            $tokens = new Tokens();
+            $tokens = new Tokens("SESSION");
             $token = explode(" ", $authToken)[1];
-            $key = env("SESSION_KEY");
 
-            $decoded = JWT::decode($token, new Key($key, "HS256"));
+            $decoded = $tokens->decodeToken($token);
 
-            $isCorrectMetadata = $tokens->verifyTokenMetadata($decoded);
+            $isCorrectMetadata = $tokens->verifyMetadata($decoded);
 
             if (!$isCorrectMetadata) {
                 throw new UnauthorizedException("Your token is invalid. Please log in again.");

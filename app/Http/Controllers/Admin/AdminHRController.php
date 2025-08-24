@@ -96,20 +96,21 @@ class AdminHRController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $hr)
     {
-
-        $attributes = $request->validate([
-            "type" => ["required", "string"]
-        ]);
-
         try {
+
+            $attributes = $request->validate([
+                "type" => ["required", "string"]
+            ]);
 
             switch ($attributes["type"]) {
                 case "deactivate":
-                    return $this->deactivate($id);
+                    $updated = $hr->update(["email_verified_at" => null]);
+                    return response()->json(["success" => $updated]);
                 case "verify":
-                    return $this->verify($id);
+                    $updated = $hr->update(["email_verified_at" => Carbon::now()]);
+                    return response()->json(["success" => $updated]);
                 default:
                     throw new Exception("Invalid update action");
             }
@@ -126,30 +127,5 @@ class AdminHRController extends Controller
     public function destroy(string $id)
     {
         //
-    }
-
-    private function deactivate(string $id) {
-        try {
-
-            $hr = User::ofRole("hr")
-                    ->where("id", "=", $id)
-                    ->update(["email_verified_at" => null]);
-
-            return response()->json(["success" => $hr]);
-        } catch (\Throwable $th) {
-            throw new Exception($th->getMessage());
-        }
-    }
-
-    private function verify(string $id) {
-        try {
-            $hr = User::ofRole("hr")
-                    ->where("id", "=", $id)
-                    ->update(["email_verified_at" => Carbon::now()]);
-
-            return response()->json(["success" => $hr]);
-        } catch (\Throwable $th) {
-            throw new Exception($th->getMessage());
-        }
     }
 }

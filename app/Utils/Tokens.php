@@ -3,6 +3,7 @@
 namespace App\Utils;
 
 use Carbon\Carbon;
+use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use stdClass;
@@ -12,15 +13,23 @@ class Tokens {
     protected string $key;
     protected bool $isAdmin;
 
-    public function __construct(bool $isAdmin=false) {
-        $this->key = $isAdmin ? env("ADMIN_VERIFICATION_KEY") : env("VERIFICATION_KEY");
-        $this->isAdmin = $isAdmin;
+    /**
+     * Initialize the Tokens class
+     * @param string $key The type of key to be used. VERIFICATION | SESSION | RESET
+     */
+    public function __construct(string $key) {
+
+        if (!env("{$key}_KEY")) {
+            throw new Exception("The {$key} is not defined in the environment.");
+        }
+
+        $this->key = env("VERIFICATION_KEY");
     }
 
-    public function createVerificationToken(int $identifier, string $name, string $email, string $role) {
+    public function createToken(int $identifier, string $name, string $email, string $role) {
 
         $payload = [
-            ($this->isAdmin  ? "admin" : "user") => $identifier,
+            "user" => $identifier,
             "name" => $name,
             "email" => $email,
             "role" => $role,
@@ -35,14 +44,14 @@ class Tokens {
         return $token;
     }
 
-    public function decodeVerificationToken(string $token) {
+    public function decodeToken(string $token) {
 
         $decoded = JWT::decode($token, new Key($this->key, "HS256"));
         return $decoded;
 
     }
 
-    public function verifyTokenMetadata(stdClass $decodedToken) {
+    public function verifyMetadata(stdClass $decodedToken) {
 
         // check if expired
         $expiration = Carbon::createFromTimestamp($decodedToken->exp);

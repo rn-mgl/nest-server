@@ -32,7 +32,7 @@ class AuthController extends Controller
                 "last_name" => ["required", "string"],
                 "email" => ["required", "string", "email", "unique:users,email"],
                 "password" => ["required", Password::min(8)],
-                "role" => ["required", "string"]
+                "role" => ["required", "string", "in:employee,hr"]
             ]);
 
             $role = Role::where("role", "=", $attributes["role"])->firstOrFail();
@@ -42,8 +42,8 @@ class AuthController extends Controller
             unset($attributes["role"]);
 
             $user = User::create($attributes);
-            $tokens = new Tokens();
-            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $tokens = new Tokens("VERIFICATION");
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             Auth::login($user);
 
@@ -61,9 +61,9 @@ class AuthController extends Controller
         try {
             $token = $request->get("token");
 
-            $tokens = new Tokens();
-            $decoded = $tokens->decodeVerificationToken($token);
-            $correctMetadata = $tokens->verifyTokenMetadata($decoded);
+            $tokens = new Tokens("VERIFICATION");
+            $decoded = $tokens->decodeToken($token);
+            $correctMetadata = $tokens->verifyMetadata($decoded);
 
             if (!$correctMetadata) {
                 throw new UnauthorizedException("The token you used is invalid");
@@ -107,24 +107,14 @@ class AuthController extends Controller
             $isVerified = $user->email_verified_at;
 
             if (!$isVerified) {
-                $tokens = new Tokens();
-                $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+                $tokens = new Tokens("VERIFICATION");
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
                 event(new Registered($user, $token));
                 return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
             }
 
-            $payload = [
-                "user" => $user->id,
-                "name" => "{$user->first_name} {$user->last_name}",
-                "email" => $user->email,
-                "role" => $user->roles->role,
-                "iss" => env("TOKEN_ISSUER"),
-                "aud" => env("TOKEN_AUDIENCE"),
-                "iat" => Carbon::now()->timestamp,
-                "exp" => Carbon::now()->addDay()->timestamp,
-            ];
-
-            $token = JWT::encode($payload, env("SESSION_KEY"), "HS256");
+            $tokens = new Tokens("SESSION");
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->roles->role, "isVerified" => $isVerified]);
         } catch (\Throwable $th) {
@@ -138,8 +128,8 @@ class AuthController extends Controller
             $id = Auth::id();
             $user = User::findOrFail($id);
 
-            $tokens = new Tokens();
-            $token = $tokens->createVerificationToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $tokens = new Tokens("VERIFICATION");
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             event(new Registered($user, $token));
 
@@ -206,18 +196,8 @@ class AuthController extends Controller
 
             $user = User::where("email", "=", $attributes["email"])->firstOrFail();
 
-            $payload = [
-                "user" => $user->id,
-                "name" => "{$user->first_name} {$user->last_name}",
-                "email" => $user->email,
-                "role" => $user->roles->role,
-                "iss" => env("TOKEN_ISSUER"),
-                "aud" => env("TOKEN_AUDIENCE"),
-                "iat" => Carbon::now()->timestamp,
-                "exp" => Carbon::now()->addMinutes(30)->timestamp,
-            ];
-
-            $token = JWT::encode($payload, env("RESET_KEY"), "HS256");
+            $tokens = new Tokens("RESET");
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
 
             Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
 
@@ -241,11 +221,10 @@ class AuthController extends Controller
                 "reset_token" => ["required", "string"]
             ]);
 
-            $token = JWT::decode($attributes["reset_token"], new Key(env("RESET_KEY"), "HS256"));
+            $tokens = new Tokens("RESET");
+            $token = $tokens->decodeToken($attributes["reset_token"]);
 
-            $tokens = new Tokens();
-
-            if (!$tokens->verifyTokenMetadata($token)) {
+            if (!$tokens->verifyMetadata($token)) {
                 throw new UnauthorizedException("The token you used is invalid.");
             }
 
