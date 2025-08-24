@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Onboarding>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PerformanceReview>
  */
-class OnboardingFactory extends Factory
+class PerformanceReviewFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,7 +18,7 @@ class OnboardingFactory extends Factory
     {
         return [
             "created_by" => 1,
-            "title" => fake()->title,
+            "title" => fake()->word,
             "description" => fake()->text
         ];
     }

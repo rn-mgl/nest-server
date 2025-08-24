@@ -72,7 +72,7 @@ class EmployeeController extends Controller
 
 
             if ($request->hasFile("image")) {
-                $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
+                $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
                 $attributes["image"] = $uploaded;
             }
 

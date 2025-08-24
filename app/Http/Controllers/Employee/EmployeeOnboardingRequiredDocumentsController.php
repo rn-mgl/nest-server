@@ -42,7 +42,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             $uploaded = "";
 
             if ($request->hasFile("document")) {
-                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
+                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
             }
 
             $user = Auth::id();
@@ -92,7 +92,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             $uploaded = null;
 
             if ($request->hasFile("document")) {
-                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folders" => "nest-uploads"])->getSecurePath();
+                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
             }
 
             $updated = $required_document->update(["document" => $uploaded]);

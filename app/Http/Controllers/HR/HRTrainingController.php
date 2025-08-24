@@ -307,7 +307,7 @@ class HRTrainingController extends Controller
                 ];
 
                 if ($request->hasFile("contentFile.$key")) {
-                    $contentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath())->getSecurePath();
+                    $contentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
                     $contentAttr["content"] = $contentFile;
                 }
 

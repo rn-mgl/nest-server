@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('training_reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Training::class, "training_id")->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained()->nullOnDelete();
             $table->longText("question");
             $table->tinyInteger("answer");
             $table->text("choice_1");

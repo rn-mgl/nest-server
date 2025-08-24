@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Onboarding;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,7 @@ return new class extends Migration
         Schema::create('onboarding_required_documents', function(Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained()->nullOnDelete();
             $table->string("title");
             $table->longText("description");
             $table->timestamp('created_at')->useCurrent();
@@ -25,6 +27,7 @@ return new class extends Migration
         Schema::create('onboarding_policy_acknowledgements', function(Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Onboarding::class, 'onboarding_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained()->nullOnDelete();
             $table->string("title");
             $table->longText("description");
             $table->timestamp('created_at')->useCurrent();
