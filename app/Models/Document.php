@@ -12,6 +12,11 @@ class Document extends Model
 
     protected $guarded = [];
 
+    public function document()
+    {
+        return $this->morphOne(File::class, "fileable");
+    }
+
     public function folders()
     {
         return $this->belongsTo(Folder::class, "path");

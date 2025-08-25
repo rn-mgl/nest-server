@@ -12,6 +12,11 @@ class Training extends Model
 
     protected $guarded = [];
 
+    public function certificate()
+    {
+        return $this->morphOne(File::class, "fileable");
+    }
+
     /**
      * Summary of contents
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<TrainingContent, Training>
