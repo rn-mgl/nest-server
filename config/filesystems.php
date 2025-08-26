@@ -57,20 +57,32 @@ return [
             'throw' => false,
         ],
 
-        'ftp' => [
+        'user' => [
             'driver' => 'ftp',
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-            'root' => env("FTP_ROOT")
-
-            // Optional FTP Settings...
-            // 'port' => env('FTP_PORT', 21),
-            // 'root' => env('FTP_ROOT'),
-            // 'passive' => true,
-            // 'ssl' => true,
-            // 'timeout' => 30,
+            'root' => env("FTP_USER_ROOT"),
+            'throw' => true
         ],
+
+        'onboarding' => [
+            'driver' => 'ftp',
+            'host' => env('FTP_HOST'),
+            'username' => env('FTP_USERNAME'),
+            'password' => env('FTP_PASSWORD'),
+            'root' => env('FTP_ONBOARDING_ROOT'),
+            'throw' => true
+        ],
+
+        'document' => [
+            'driver' => 'ftp',
+            'host' => env('FTP_HOST'),
+            'username' => env('FTP_USERNAME'),
+            'password' => env('FTP_PASSWORD'),
+            'root' => env('FTP_DOCUMENT_ROOT'),
+            'throw' => true
+        ]
 
     ],
 

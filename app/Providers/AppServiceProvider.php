@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Onboarding;
+use App\Models\Training;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -25,7 +27,9 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(true);
 
         Relation::enforceMorphMap([
-            'user' => User::class
+            "user" => User::class,
+            "onboarding" => Onboarding::class,
+            "training" => Training::class
         ]);
     }
 }
