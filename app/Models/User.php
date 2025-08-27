@@ -57,9 +57,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->morphMany(Activity::class, 'activitable');
     }
 
-    public function profilePicture()
+    public function profilePictures()
     {
-        return $this->morphOne(File::class, "fileable");
+        return $this->morphMany(File::class, "fileable");
+    }
+
+    public function currentProfilePicture()
+    {
+        return $this->morphOne(File::class, "fileable")->latestOfMany();
     }
 
     /**

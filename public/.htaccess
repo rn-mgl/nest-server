@@ -3,7 +3,17 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <FilesMatch "(^\.env|\.env\..*|composer\.(json|lock)|package\.(json|lock)|yarn\.lock|phpunit\.xml|artisan|server\.php|webpack\.mix\.js|\.git)">
+        Require all denied
+    </FilesMatch>
+
+    # Disable directory listings globally
+    Options -Indexes
+
     RewriteEngine On
+
+    # Block direct access to the /server directory
+    RewriteRule ^server/ - [F,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
