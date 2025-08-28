@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -39,6 +41,11 @@ class AdminController extends Controller
     public function show(User $admin)
     {
         try {
+
+            $admin->load("currentProfilePicture");
+
+            $admin->currentProfilePicture->url = Storage::disk("user")->url($admin->currentProfilePicture->path);
+
             return response()->json(["profile" => $admin]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -67,9 +74,18 @@ class AdminController extends Controller
             ]);
 
             if ($request->hasFile("image")) {
-                $uploadedFile = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                $attributes["image"] = $uploadedFile;
+                $uploadedFile = Storage::disk("user")->put("/profile", $request->file("image"));
+
+                $admin->profilePictures()->create([
+                    "disk" => "user",
+                    "path" => $uploadedFile,
+                    "original_name" => $request->file("image")->getClientOriginalName(),
+                    "mime_type" => $request->file("image")->getMimeType(),
+                    "size" => $request->file("image")->getSize()
+                ]);
             }
+
+            unset($attributes['image']);
 
             $updated = $admin->update($attributes);
 

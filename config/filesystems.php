@@ -62,7 +62,9 @@ return [
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-            'root' => env("FTP_USER_ROOT"),
+            'root' => env("FTP_ROOT"),
+            'url' => env("FILESYSTEM_URL"),
+            'prefix' => 'users',
             'throw' => true
         ],
 
@@ -71,7 +73,9 @@ return [
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-            'root' => env('FTP_ONBOARDING_ROOT'),
+            'root' => env('FTP_ROOT'),
+            'url' => env('FILESYSTEM_URL'),
+            'prefix' => 'onboardings',
             'throw' => true
         ],
 
@@ -80,7 +84,9 @@ return [
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-            'root' => env('FTP_DOCUMENT_ROOT'),
+            'root' => env('FTP_ROOT'),
+            'url' => env('FILESYSTEM_URL'),
+            'prefix' => 'documents',
             'throw' => true
         ]
 

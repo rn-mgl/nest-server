@@ -52,8 +52,7 @@ class HREmployeeController extends Controller
                                         "users.id as user_id",
                                         "users.first_name as first_name",
                                         "users.last_name as last_name",
-                                        "users.email as email",
-                                        "users.image"
+                                        "users.email as email"
                                     ])
                                 ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
                                 ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
@@ -79,8 +78,7 @@ class HREmployeeController extends Controller
                                         "u.id as user_id",
                                         "u.first_name as first_name",
                                         "u.last_name as last_name",
-                                        "u.email as email",
-                                        "u.image"
+                                        "u.email as email"
                                     ])
                                     ->join("onboardings as o", function(JoinClause $join) {
                                         $join->on("o.id", "=", "uo.onboarding_id")
@@ -118,8 +116,7 @@ class HREmployeeController extends Controller
                                 "u.id as user_id",
                                 "u.first_name",
                                 "u.last_name",
-                                "u.email",
-                                "u.image"
+                                "u.email"
                             ])
                             ->join("leave_types as lt", function(JoinClause $join) {
                                 $join->on("lt.id", "=", "lr.leave_type_id");
@@ -154,7 +151,6 @@ class HREmployeeController extends Controller
                                     "pr.title",
                                     "pr.description",
                                     "u.id as user_id",
-                                    "u.image",
                                     "u.first_name",
                                     "u.last_name",
                                     "u.email"
@@ -197,8 +193,7 @@ class HREmployeeController extends Controller
                                 "u.id as user_id",
                                 "u.first_name",
                                 "u.last_name",
-                                "u.email",
-                                "u.image"
+                                "u.email"
                             ])
                             ->join("trainings as t", function (JoinClause $join) {
                                 $join->on("t.id", "=", "ut.training_id")
@@ -253,8 +248,7 @@ class HREmployeeController extends Controller
                             "first_name",
                             "last_name",
                             "email",
-                            "email_verified_at",
-                            "image",
+                            "email_verified_at"
                         ])
                         ->where("id", "=", $user_id)
                         ->ofRole("employee")
