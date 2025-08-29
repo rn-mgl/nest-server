@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\UnauthorizedException;
 
 class HRController extends Controller
@@ -42,7 +43,7 @@ class HRController extends Controller
     {
         try {
 
-            return response()->json(["profile" => $hr]);
+            return response()->json(["profile" => $hr->load("currentProfilePicture")]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -71,9 +72,18 @@ class HRController extends Controller
             ]);
 
             if ($request->hasFile("image")) {
-                $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                $attributes["image"] = $uploaded;
+                $uploaded = Storage::disk("user")->put("/profile", $request->file("image"));
+
+                $hr->profilePictures()->create([
+                    "disk" => "user",
+                    "path" => $uploaded,
+                    "original_name" => $request->file("image")->getClientOriginalName(),
+                    "mime_type" => $request->file("image")->getMimeType(),
+                    "size" => $request->file("image")->getSize()
+                ]);
             }
+
+            unset($attributes['image']);
 
             $updated = $hr->update($attributes);
 
