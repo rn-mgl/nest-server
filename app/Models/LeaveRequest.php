@@ -30,4 +30,13 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(User::class, "user_id", "id");
     }
+
+    /**
+     * Summary of approvedBy
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, LeaveRequest>
+     */
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, "approved_by", "id");
+    }
 }
