@@ -46,17 +46,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     # Relationships #
-
-    /**
-     * Summary of activities
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Activity, User>
-     */
-    public function activities()
-    {
-        return $this->morphMany(Activity::class, 'activitable');
-    }
-
     public function profilePictures()
     {
         return $this->morphMany(File::class, "fileable");
@@ -85,6 +74,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function createdLeaveRequests()
     {
         return $this->hasMany(LeaveRequest::class, "user_id", "id");
+    }
+
+    /**
+     * Summary of assignedLeaveBalances
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<LeaveBalance, User>
+     */
+    public function assignedLeaveBalances()
+    {
+        return $this->hasMany(LeaveBalance::class, "user_id", "id");
     }
 
     /**

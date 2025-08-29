@@ -41,12 +41,7 @@ class AdminController extends Controller
     public function show(User $admin)
     {
         try {
-
-            $admin->load("currentProfilePicture");
-
-            $admin->currentProfilePicture->url = Storage::disk("user")->url($admin->currentProfilePicture->path);
-
-            return response()->json(["profile" => $admin]);
+            return response()->json(["profile" => $admin->load("currentProfilePicture")]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

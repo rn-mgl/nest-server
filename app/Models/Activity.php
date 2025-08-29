@@ -12,9 +12,4 @@ class Activity extends Model
 
     protected $guarded = [];
 
-    public function activitable()
-    {
-        return $this->morphTo();
-    }
-
 }
