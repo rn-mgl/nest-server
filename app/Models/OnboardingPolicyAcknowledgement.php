@@ -22,8 +22,8 @@ class OnboardingPolicyAcknowledgement extends Model
         return $this->belongsTo(Onboarding::class, "onboarding_id", "id");
     }
 
-    public function acknowledgedBy()
+    public function userAcknowledgement()
     {
-        return $this->belongsToMany(User::class, "user_onboarding_policy_acknowledgements", "policy_acknowledgement_id", "acknowledged_by");
+        return $this->hasMany(UserOnboardingPolicyAcknowledgement::class, "policy_acknowledgement_id", "id");
     }
 }

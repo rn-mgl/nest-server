@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class EmployeeAttendanceController extends Controller
 {
@@ -69,17 +67,17 @@ class EmployeeAttendanceController extends Controller
             ];
 
             $log = Attendance::where("user_id", "=", $user)
-                    ->whereDate("login_time", $currentDate)
-                    ->where(fn($query) => $query->whereDate("logout_time", $currentDate)->orWhereNull("logout_time"))
-                    ->first();
+                ->whereDate("login_time", $currentDate)
+                ->where(fn($query) => $query->whereDate("logout_time", $currentDate)->orWhereNull("logout_time"))
+                ->first();
 
             if ($log) {
                 $attendance = [
-                "attendance_id" => $log->id,
-                "login_time" => $log->login_time,
-                "logout_time" => $log->logout_time,
-                "late" => Carbon::parse($log->login_time)->greaterThan(Carbon::parse($lateThreshold)),
-                "absent" => false
+                    "attendance_id" => $log->id,
+                    "login_time" => $log->login_time,
+                    "logout_time" => $log->logout_time,
+                    "late" => Carbon::parse($log->login_time)->greaterThan($lateThreshold),
+                    "absent" => false
                 ];
             }
 

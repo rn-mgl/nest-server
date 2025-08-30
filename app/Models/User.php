@@ -94,6 +94,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserOnboarding::class, "assigned_to", "id");
     }
 
+    public function acknowledgedPolicies()
+    {
+        return $this->hasMany(UserOnboardingPolicyAcknowledgement::class, "acknowledged_by", "id");
+    }
+
     /**
      * Summary of assignedPerformanceReviews
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<UserPerformanceReview, User>

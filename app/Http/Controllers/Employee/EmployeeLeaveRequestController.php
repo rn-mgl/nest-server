@@ -19,52 +19,13 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
-
-            $searchKey = $attributes["searchKey"];
-            $searchValue = $attributes["searchValue"] ?? "";
-
-            $categoryKey = $attributes["categoryKey"];
-            $categoryValue = $attributes["categoryValue"] === "all" ? "" : $attributes["categoryValue"];
-
-            $sortKey = $attributes["sortKey"];
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-
             $user = Auth::id();
 
-            $leaveRequests = DB::table("leave_requests as lr")
-                ->select([
-                    "lr.id as leave_request_id",
-                    "lr.approved_by",
-                    "lr.start_date",
-                    "lr.end_date",
-                    "lr.reason",
-                    "lr.status",
-                    "lr.requested_by",
-                    "lr.created_at as requested_at",
-                    "lt.id as leave_type_id",
-                    "lt.type",
-                    "lt.description",
-                ])
-                ->join("leave_types as lt", function (JoinClause $join) {
-                    $join->on("lt.id", "=", "lr.leave_type_id")
-                        ->where("lt.deleted_at", "=", false);
-                })
-                ->where("lr.deleted_at", "=", false)
-                ->where("lr.requested_by", "=", $user)
-                ->where($searchKey, "LIKE", "%{$searchValue}%")
-                ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                ->orderBy("lr.{$sortKey}", $sortType)
-                ->get();
+            $leaveRequests = LeaveRequest::with(["leave"])->where("requested_by", "=", $user)->get();
 
             return response()->json(["requests" => $leaveRequests]);
 

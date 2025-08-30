@@ -7,6 +7,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\UnauthorizedException;
 
 class EmployeeController extends Controller
@@ -42,7 +43,7 @@ class EmployeeController extends Controller
     {
         try {
 
-            return response()->json(["profile" => $employee]);
+            return response()->json(["profile" => $employee->load("currentProfilePicture")]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -67,14 +68,23 @@ class EmployeeController extends Controller
             $attributes = $request->validate([
                 "first_name" => ["required", "string"],
                 "last_name" => ["required", "string"],
-                "image" => ["nullable"]
+                "image" => ["nullable", "file"]
             ]);
 
 
             if ($request->hasFile("image")) {
-                $uploaded = cloudinary()->uploadFile($request->file("image")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                $attributes["image"] = $uploaded;
+                $uploaded = Storage::disk("user")->put("/profile", $request->file("image"));
+
+                $employee->profilePictures()->create([
+                    "disk" => "user",
+                    "path" => $uploaded,
+                    "original_name" => $request->file("image")->getClientOriginalName(),
+                    "mime_type" => $request->file("image")->getMimeType(),
+                    "size" => $request->file("image")->getSize(),
+                ]);
             }
+
+            unset($attributes["image"]);
 
             $updated = $employee->update($attributes);
 

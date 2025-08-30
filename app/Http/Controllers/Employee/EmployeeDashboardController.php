@@ -30,12 +30,12 @@ class EmployeeDashboardController extends Controller
             $user = User::findOrFail($id);
 
             $attendance = Attendance::where("user_id", "=", $id)
-                            ->whereToday("login_time")
-                            ->where(function($query) {
-                                $query->whereToday("logout_time")
-                                ->orWhereNull("logout_time");
-                            })
-                            ->first();
+                ->whereToday("login_time")
+                ->where(function ($query) {
+                    $query->whereToday("logout_time")
+                        ->orWhereNull("logout_time");
+                })
+                ->first();
 
             $lateThreshold = Carbon::now()->startOfDay()->addHours(6);
             $late = Carbon::now()->greaterThan($lateThreshold);
@@ -53,24 +53,24 @@ class EmployeeDashboardController extends Controller
             ];
 
             $onboardings = UserOnboarding::where("user_id", "=", $user)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn($onboarding) => $onboarding->count());
+                ->get()
+                ->groupBy("status")
+                ->map(fn($onboarding) => $onboarding->count());
 
             $leaves = LeaveRequest::where("user_id", "=", $user)
-                        ->get()
-                        ->groupBy("status")
-                        ->map(fn ($leave) => $leave->count());
+                ->get()
+                ->groupBy("status")
+                ->map(fn($leave) => $leave->count());
 
             $performances = UserPerformanceReview::where("user_id", "=", $user)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn ($performance) => $performance->count());
+                ->get()
+                ->groupBy("status")
+                ->map(fn($performance) => $performance->count());
 
             $trainings = UserTraining::where("user_id", "=", $user)
-                            ->get()
-                            ->groupBy("status")
-                            ->map(fn ($training) => $training->count());
+                ->get()
+                ->groupBy("status")
+                ->map(fn($training) => $training->count());
 
             $documents = Document::all()->count();
 

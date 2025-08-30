@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->softDeletes("deleted_at", 0);
         });
 
-        Schema::create("user_onboarding_required_document", function (Blueprint $table) {
+        Schema::create("user_onboarding_required_documents", function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class, "complied_by")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingRequiredDocument::class, "required_document_id")->constrained("onboarding_required_documents", "id", "required_document_id_foreign")->cascadeOnDelete();

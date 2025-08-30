@@ -7,7 +7,6 @@ use App\Models\UserOnboardingPolicyAcknowledgement;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class EmployeeOnboardingPolicyAcknowledgementController extends Controller
 {
@@ -41,13 +40,13 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
 
             $user = Auth::id();
 
-            $acknowledgement_attributes = [
+            $acknowledgementAttributes = [
                 "user_id" => $user,
                 "policy_acknowledgement_id" => $attributes["policy_acknowledgement_id"],
                 "acknowledged" => $attributes["policy_acknowledged"]
             ];
 
-            $acknowledged = UserOnboardingPolicyAcknowledgement::create($acknowledgement_attributes);
+            $acknowledged = UserOnboardingPolicyAcknowledgement::create($acknowledgementAttributes);
 
             return response()->json(["success" => $acknowledged]);
 
