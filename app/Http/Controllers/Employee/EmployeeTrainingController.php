@@ -35,44 +35,44 @@ class EmployeeTrainingController extends Controller
             $isAsc = filter_var($attributes["sortKey"], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
             $sortType = $isAsc ? "ASC" : "DESC";
             $categoryKey = $attributes["categoryKey"];
-            $categoryValue = $attributes["categoryValue"] ==="all" ? "" : $attributes["categoryValue"];
+            $categoryValue = $attributes["categoryValue"] === "all" ? "" : $attributes["categoryValue"];
 
             $user = Auth::id();
 
             $trainings = DB::table("user_trainings as ut")
-                        ->join("users as u", function(JoinClause $join) {
-                            $join->on("ut.assigned_by", "=", "u.id")
-                            ->where("u.deleted_at", "=", false);
-                        })
-                        ->join("trainings as t", function(JoinClause $join) {
-                            $join->on("ut.training_id", "=", "t.id")
-                            ->where("t.deleted_at", "=", false);
-                        })
-                        ->where("ut.deleted_at", "=", false)
-                        ->where("ut.user_id", "=", $user)
-                        ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
-                        ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
-                        ->select([
-                            'ut.id as user_training_id',
-                            'ut.status',
-                            'ut.deadline',
-                            't.id as training_id',
-                            't.title',
-                            't.description',
-                            't.deadline_days',
-                            't.created_by',
-                            DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
-                            'u.id as user_id',
-                            'u.first_name',
-                            'u.last_name',
-                            'u.email',
-                            'u.email_verified_at',
-                            'u.created_at',
-                        ])
-                        ->orderBy("{$sortKey}", $sortType)
-                        ->get();
+                ->join("users as u", function (JoinClause $join) {
+                    $join->on("ut.assigned_by", "=", "u.id")
+                        ->where("u.deleted_at", "=", false);
+                })
+                ->join("trainings as t", function (JoinClause $join) {
+                    $join->on("ut.training_id", "=", "t.id")
+                        ->where("t.deleted_at", "=", false);
+                })
+                ->where("ut.deleted_at", "=", false)
+                ->where("ut.assigned_to", "=", $user)
+                ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                ->where("{$categoryKey}", "LIKE", "%{$categoryValue}%")
+                ->select([
+                    'ut.id as user_training_id',
+                    'ut.status',
+                    'ut.deadline',
+                    't.id as training_id',
+                    't.title',
+                    't.description',
+                    't.deadline_days',
+                    't.created_by',
+                    DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
+                    'u.id as user_id',
+                    'u.first_name',
+                    'u.last_name',
+                    'u.email',
+                    'u.email_verified_at',
+                    'u.created_at',
+                ])
+                ->orderBy("{$sortKey}", $sortType)
+                ->get();
 
-        return response()->json(["trainings" => $trainings]);
+            return response()->json(["trainings" => $trainings]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -102,53 +102,53 @@ class EmployeeTrainingController extends Controller
     {
         try {
             $training = DB::table("user_trainings as et")
-                        ->join("trainings as t", function(JoinClause $join) {
-                            $join->on("ut.training_id", "=", "t.id")
-                            ->where("t.deleted_at", "=", false);
-                        })
-                        ->where("ut.id", "=", $employeeTraining)
-                        ->select([
-                            "t.id as training_id",
-                            "t.title",
-                            "t.description",
-                            "t.deadline_days",
-                            DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
-                            "ut.score",
-                            "ut.id as user_training_id",
-                            "ut.status",
-                            "ut.deadline",
-                        ])
-                        ->first();
+                ->join("trainings as t", function (JoinClause $join) {
+                    $join->on("ut.training_id", "=", "t.id")
+                        ->where("t.deleted_at", "=", false);
+                })
+                ->where("ut.id", "=", $employeeTraining)
+                ->select([
+                    "t.id as training_id",
+                    "t.title",
+                    "t.description",
+                    "t.deadline_days",
+                    DB::raw("CASE WHEN ut.status != 'done' THEN NULL ELSE t.certificate END as certificate"),
+                    "ut.score",
+                    "ut.id as user_training_id",
+                    "ut.status",
+                    "ut.deadline",
+                ])
+                ->first();
 
             $training->contents = TrainingContent::where("deleted_at", "=", false)
-                                ->select([
-                                    "id as training_content_id",
-                                    "title",
-                                    "description",
-                                    "content",
-                                    "type"
-                                ])
-                                ->get();
+                ->select([
+                    "id as training_content_id",
+                    "title",
+                    "description",
+                    "content",
+                    "type"
+                ])
+                ->get();
 
             $training->reviews = DB::table("training_reviews as tr")
-                                ->leftJoin("user_training_review_responses as etrr", function(JoinClause $join) {
-                                    $join->on("tr.id", "=", "etrr.training_review_id")
-                                    ->where("etrr.deleted_at", "=", false);
-                                })
-                                ->where("tr.training_id", "=", $training->training_id)
-                                ->where("tr.deleted_at", "=", false)
-                                ->select([
-                                    "etrr.id as user_training_review_response_id",
-                                    "tr.id as training_review_id",
-                                    "etrr.answer as user_answer",
-                                    DB::raw("CASE WHEN etrr.answer = tr.answer THEN true ELSE false END as is_correct"),
-                                    "tr.question",
-                                    "tr.choice_1",
-                                    "tr.choice_2",
-                                    "tr.choice_3",
-                                    "tr.choice_4",
-                                ])
-                                ->get();
+                ->leftJoin("user_training_review_responses as etrr", function (JoinClause $join) {
+                    $join->on("tr.id", "=", "etrr.training_review_id")
+                        ->where("etrr.deleted_at", "=", false);
+                })
+                ->where("tr.training_id", "=", $training->training_id)
+                ->where("tr.deleted_at", "=", false)
+                ->select([
+                    "etrr.id as user_training_review_response_id",
+                    "tr.id as training_review_id",
+                    "etrr.answer as user_answer",
+                    DB::raw("CASE WHEN etrr.answer = tr.answer THEN true ELSE false END as is_correct"),
+                    "tr.question",
+                    "tr.choice_1",
+                    "tr.choice_2",
+                    "tr.choice_3",
+                    "tr.choice_4",
+                ])
+                ->get();
 
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {

@@ -120,7 +120,7 @@ class User extends Authenticatable implements MustVerifyEmail
     #[Scope]
     protected function ofRole(Builder $query, string $role)
     {
-        $query->whereHas("roles", function (Builder $query2) use ($role) {
+        $query->whereHas("role", function (Builder $query2) use ($role) {
             $query2->where("role", "=", $role);
         });
     }

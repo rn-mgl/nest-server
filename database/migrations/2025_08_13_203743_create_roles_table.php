@@ -22,10 +22,10 @@ return new class extends Migration {
         });
 
         Role::insert([
-            ["role" => "employee"],
-            ["role" => "hr"],
+            ["role" => "super_admin"],
             ["role" => "admin"],
-            ["role" => "super_admin"]
+            ["role" => "hr"],
+            ["role" => "employee"],
         ]);
 
         Schema::table("users", function (Blueprint $table) {

@@ -34,34 +34,34 @@ class EmployeeLeaveBalanceController extends Controller
             $user = Auth::id();
 
             $leaveBalances = DB::table("leave_balances as lb")
-                            ->join("users as u", function(JoinClause $join) {
-                                $join->on("u.id", "=", "lb.provided_by")
-                                ->where("u.deleted_at", "=", false);
-                            })
-                            ->join("leave_types as lt", function(JoinClause $join) {
-                                $join->on("lt.id", "=", "lb.leave_type_id")
-                                ->where("lt.deleted_at", "=", false);
-                            })
-                            ->where("lb.user_id", "=", $user)
-                            ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
-                            ->orderBy("{$sortKey}", "{$sortType}")
-                            ->select([
-                                'lb.id as leave_balance_id',
-                                'lb.balance',
-                                'lt.id as leave_type_id',
-                                'lt.type',
-                                'lt.description',
-                                'lt.created_by',
-                                'u.id as user_id',
-                                'u.first_name',
-                                'u.last_name',
-                                'u.email',
-                                'u.email_verified_at',
-                                'u.created_at',
-                            ])
-                            ->get();
+                ->join("users as u", function (JoinClause $join) {
+                    $join->on("u.id", "=", "lb.provided_by")
+                        ->where("u.deleted_at", "=", false);
+                })
+                ->join("leave_types as lt", function (JoinClause $join) {
+                    $join->on("lt.id", "=", "lb.leave_type_id")
+                        ->where("lt.deleted_at", "=", false);
+                })
+                ->where("lb.assigned_to", "=", $user)
+                ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
+                ->orderBy("{$sortKey}", "{$sortType}")
+                ->select([
+                    'lb.id as leave_balance_id',
+                    'lb.balance',
+                    'lt.id as leave_type_id',
+                    'lt.type',
+                    'lt.description',
+                    'lt.created_by',
+                    'u.id as user_id',
+                    'u.first_name',
+                    'u.last_name',
+                    'u.email',
+                    'u.email_verified_at',
+                    'u.created_at',
+                ])
+                ->get();
 
-        return response()->json(["leave_balances" => $leaveBalances]);
+            return response()->json(["leave_balances" => $leaveBalances]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

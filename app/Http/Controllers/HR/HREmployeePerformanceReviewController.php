@@ -24,20 +24,20 @@ class HREmployeePerformanceReviewController extends Controller
             ]);
 
             $employees = DB::table("users as u")
-                        ->leftJoin("user_performance_reviews as upr", function(JoinClause $join) use($attributes) {
-                            $join->on("u.id", "=", "upr.user_id")
-                            ->where("upr.performance_review_id", "=", $attributes["performance_review_id"]);
-                        })
-                        ->select([
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "u.email_verified_at",
-                            "u.created_at",
-                            "upr.id as user_performance_review_id"
-                        ])
-                        ->get();
+                ->leftJoin("user_performance_reviews as upr", function (JoinClause $join) use ($attributes) {
+                    $join->on("u.id", "=", "upr.assigned_to")
+                        ->where("upr.performance_review_id", "=", $attributes["performance_review_id"]);
+                })
+                ->select([
+                    "u.id as user_id",
+                    "u.first_name",
+                    "u.last_name",
+                    "u.email",
+                    "u.email_verified_at",
+                    "u.created_at",
+                    "upr.id as user_performance_review_id"
+                ])
+                ->get();
 
             return response()->json(["employees" => $employees]);
 
@@ -89,8 +89,8 @@ class HREmployeePerformanceReviewController extends Controller
             foreach ($alreadyAssigned as $id) {
                 if (!in_array($id, $employeeIds)) {
                     $deleted = UserPerformanceReview::where("user_id", "=", $id)
-                                ->where("performance_review_id", "=", $performanceReviewId)
-                                ->delete();
+                        ->where("performance_review_id", "=", $performanceReviewId)
+                        ->delete();
                 }
             }
 

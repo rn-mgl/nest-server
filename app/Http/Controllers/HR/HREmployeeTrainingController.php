@@ -29,22 +29,22 @@ class HREmployeeTrainingController extends Controller
             $trainingId = $attributes["training_id"];
 
             $employees = DB::table("users as u")
-                        ->leftJoin("user_trainings as ut", function(JoinClause $join) use($trainingId) {
-                            $join->on("u.id", "=", "ut.user_id")
-                            ->where("ut.training_id", "=", $trainingId);
-                        })
-                        ->select([
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "u.email_verified_at",
-                            "u.created_at",
-                            "ut.id as user_training_id",
-                            "ut.status",
-                            "ut.deadline"
-                        ])
-                        ->get();
+                ->leftJoin("user_trainings as ut", function (JoinClause $join) use ($trainingId) {
+                    $join->on("u.id", "=", "ut.assigned_to")
+                        ->where("ut.training_id", "=", $trainingId);
+                })
+                ->select([
+                    "u.id as user_id",
+                    "u.first_name",
+                    "u.last_name",
+                    "u.email",
+                    "u.email_verified_at",
+                    "u.created_at",
+                    "ut.id as user_training_id",
+                    "ut.status",
+                    "ut.deadline"
+                ])
+                ->get();
 
             return response()->json(["employees" => $employees]);
         } catch (\Throwable $th) {
@@ -101,8 +101,8 @@ class HREmployeeTrainingController extends Controller
 
                 if (!in_array($id, $employeeIds)) {
                     $deletedEmployeeTraining = UserTraining::where("user_id", "=", $id)
-                                                ->where("training_id", "=", $trainingId)
-                                                ->delete();
+                        ->where("training_id", "=", $trainingId)
+                        ->delete();
                 }
 
             }

@@ -25,7 +25,8 @@ use Illuminate\Validation\UnauthorizedException;
 class AuthController extends Controller
 {
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         try {
             $attributes = $request->validate([
                 "first_name" => ["required", "string"],
@@ -43,7 +44,7 @@ class AuthController extends Controller
 
             $user = User::create($attributes);
             $tokens = new Tokens("VERIFICATION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
             Auth::login($user);
 
@@ -72,12 +73,12 @@ class AuthController extends Controller
             $user = User::findOrFail($decoded->user);
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->roles->role !== $decoded->role) {
+            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role->role !== $decoded->role) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
             $verify = User::where("id", "=", $user->id)
-                        ->update(["email_verified_at" => Carbon::now()]);
+                ->update(["email_verified_at" => Carbon::now()]);
 
             return response()->json(["success" => $verify > 0]);
         } catch (\Throwable $th) {
@@ -108,15 +109,15 @@ class AuthController extends Controller
 
             if (!$isVerified) {
                 $tokens = new Tokens("VERIFICATION");
-                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "role" => $user->roles->role, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "role" => $user->role->role, "isVerified" => false]);
             }
 
             $tokens = new Tokens("SESSION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->roles->role, "isVerified" => $isVerified]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role->role, "isVerified" => $isVerified]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -129,7 +130,7 @@ class AuthController extends Controller
             $user = User::findOrFail($id);
 
             $tokens = new Tokens("VERIFICATION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
             event(new Registered($user, $token));
 
@@ -197,7 +198,7 @@ class AuthController extends Controller
             $user = User::where("email", "=", $attributes["email"])->firstOrFail();
 
             $tokens = new Tokens("RESET");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->roles->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
             Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
 

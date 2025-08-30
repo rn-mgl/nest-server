@@ -118,7 +118,7 @@ class HREmployeeController extends Controller
             // leave balances
 
             $leaveBalances = LeaveBalance::with(["leave", "assignedTo"])
-                ->where("leave_balance.user_id", "=", $employee->id)
+                ->where("leave_balance.assigned_to", "=", $employee->id)
                 ->get();
 
             $leaveRequests = LeaveRequest::with(["leave", "requestedBy"])
@@ -130,7 +130,7 @@ class HREmployeeController extends Controller
                 ->get();
 
             $trainings = UserTraining::with(["training", "assignedTo"])
-                ->where("user_trainings.user_id", "=", $employee->id)
+                ->where("user_trainings.assigned_to", "=", $employee->id)
                 ->get();
 
             return response()

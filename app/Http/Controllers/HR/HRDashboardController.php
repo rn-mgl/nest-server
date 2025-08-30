@@ -27,15 +27,15 @@ class HRDashboardController extends Controller
     {
         try {
 
-            $users = User::with("roles")->get();
+            $users = User::with("role")->get();
 
-            $attendances = Attendance::where(function(Builder $query) {
-                                $query->whereToday("login_time");
-                            })
-                            ->where(function (Builder $query) {
-                                $query->whereToday("logout_time")->orWhereNull("logout_time");
-                            })
-                            ->get();
+            $attendances = Attendance::where(function (Builder $query) {
+                $query->whereToday("login_time");
+            })
+                ->where(function (Builder $query) {
+                    $query->whereToday("logout_time")->orWhereNull("logout_time");
+                })
+                ->get();
 
             $userIds = $users->pluck("id");
             $attendanceUsers = $attendances->pluck("user_id");
@@ -63,26 +63,26 @@ class HRDashboardController extends Controller
             ];
 
             $onboardings = UserOnboarding::all()
-                            ->groupBy("status")
-                            ->map(fn($onboarding) => $onboarding->count());
+                ->groupBy("status")
+                ->map(fn($onboarding) => $onboarding->count());
 
             $leaves = LeaveRequest::all()
-                        ->groupBy("status")
-                        ->map(fn ($leave) => $leave->count());
+                ->groupBy("status")
+                ->map(fn($leave) => $leave->count());
 
             $performances = UserPerformanceReview::all()
-                            ->groupBy("status")
-                            ->map(fn ($performance) => $performance->count());
+                ->groupBy("status")
+                ->map(fn($performance) => $performance->count());
 
             $trainings = UserTraining::all()
-                            ->groupBy("status")
-                            ->map(fn ($training) => $training->count());
+                ->groupBy("status")
+                ->map(fn($training) => $training->count());
 
             $documents = Document::count();
 
             $folders = Folder::count();
 
-            $users = $users->groupBy(fn($user) => $user->roles->role)->map(fn($user) => $user->count());
+            $users = $users->groupBy(fn($user) => $user->role->role)->map(fn($user) => $user->count());
 
             $documentAndFolders = [
                 'documents' => $documents,
@@ -98,7 +98,8 @@ class HRDashboardController extends Controller
                     "performances" => $performances,
                     "trainings" => $trainings,
                     "documents" => $documentAndFolders
-                ]);
+                ]
+            );
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

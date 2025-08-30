@@ -25,21 +25,21 @@ class HREmployeeOnboardingController extends Controller
             ]);
 
             $employees = User::ofRole("employee")
-                        ->leftJoin("user_onboardings", function(JoinClause $join) use($attributes) {
-                            $join->on("users.id", "=", "user_onboardings.user_id")
-                            ->whereNull("users.deleted_at")
-                            ->where("onboarding_id", "=", $attributes["onboarding_id"]);
-                        })
-                        ->select([
-                            "users.id as user_id",
-                            "users.first_name",
-                            "users.last_name",
-                            "users.email",
-                            "users.email_verified_at",
-                            "users.created_at",
-                            "user_onboardings.id as user_onboarding_id",
-                        ])
-                        ->get();
+                ->leftJoin("user_onboardings", function (JoinClause $join) use ($attributes) {
+                    $join->on("users.id", "=", "user_onboardings.assigned_to")
+                        ->whereNull("users.deleted_at")
+                        ->where("onboarding_id", "=", $attributes["onboarding_id"]);
+                })
+                ->select([
+                    "users.id as user_id",
+                    "users.first_name",
+                    "users.last_name",
+                    "users.email",
+                    "users.email_verified_at",
+                    "users.created_at",
+                    "user_onboardings.id as user_onboarding_id",
+                ])
+                ->get();
 
             return response()->json(["employees" => $employees]);
 
@@ -74,12 +74,12 @@ class HREmployeeOnboardingController extends Controller
             ];
 
             $alreadyAssigned = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
-                        ->get()
-                        ->pluck("user_id")
-                        ->toArray();
+                ->get()
+                ->pluck("user_id")
+                ->toArray();
 
             // assign to employees
-            foreach($attributes["user_ids"] as $id) {
+            foreach ($attributes["user_ids"] as $id) {
                 if (!in_array($id, $alreadyAssigned)) {
                     $employeeOnboardingAttr["user_id"] = $id;
                     $created = UserOnboarding::create($employeeOnboardingAttr);
@@ -87,11 +87,11 @@ class HREmployeeOnboardingController extends Controller
             }
 
             // remove unassigned
-            foreach($alreadyAssigned as $id) {
+            foreach ($alreadyAssigned as $id) {
                 if (!in_array($id, $attributes["user_ids"])) {
                     $employeeOnboarding = UserOnboarding::where("user_id", "=", $id)
-                                            ->where("onboarding_id", "=", $attributes["onboarding_id"])
-                                            ->first();
+                        ->where("onboarding_id", "=", $attributes["onboarding_id"])
+                        ->first();
 
                     if (!empty($employeeOnboarding)) {
                         $employeeOnboarding->delete();

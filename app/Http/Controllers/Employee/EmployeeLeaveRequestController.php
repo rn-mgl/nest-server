@@ -42,29 +42,29 @@ class EmployeeLeaveRequestController extends Controller
             $user = Auth::id();
 
             $leaveRequests = DB::table("leave_requests as lr")
-                            ->select([
-                                "lr.id as leave_request_id",
-                                "lr.approved_by",
-                                "lr.start_date",
-                                "lr.end_date",
-                                "lr.reason",
-                                "lr.status",
-                                "lr.user_id",
-                                "lr.created_at as requested_at",
-                                "lt.id as leave_type_id",
-                                "lt.type",
-                                "lt.description",
-                            ])
-                            ->join("leave_types as lt", function (JoinClause $join) {
-                                $join->on("lt.id", "=", "lr.leave_type_id")
-                                ->where("lt.deleted_at", "=", false);
-                            })
-                            ->where("lr.deleted_at", "=", false)
-                            ->where("lr.user_id", "=", $user)
-                            ->where($searchKey, "LIKE", "%{$searchValue}%")
-                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                            ->orderBy("lr.{$sortKey}", $sortType)
-                            ->get();
+                ->select([
+                    "lr.id as leave_request_id",
+                    "lr.approved_by",
+                    "lr.start_date",
+                    "lr.end_date",
+                    "lr.reason",
+                    "lr.status",
+                    "lr.requested_by",
+                    "lr.created_at as requested_at",
+                    "lt.id as leave_type_id",
+                    "lt.type",
+                    "lt.description",
+                ])
+                ->join("leave_types as lt", function (JoinClause $join) {
+                    $join->on("lt.id", "=", "lr.leave_type_id")
+                        ->where("lt.deleted_at", "=", false);
+                })
+                ->where("lr.deleted_at", "=", false)
+                ->where("lr.requested_by", "=", $user)
+                ->where($searchKey, "LIKE", "%{$searchValue}%")
+                ->where($categoryKey, "LIKE", "%{$categoryValue}%")
+                ->orderBy("lr.{$sortKey}", $sortType)
+                ->get();
 
             return response()->json(["requests" => $leaveRequests]);
 
