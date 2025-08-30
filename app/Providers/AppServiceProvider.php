@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Document;
 use App\Models\Onboarding;
 use App\Models\Training;
 use App\Models\User;
@@ -28,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             "user" => User::class,
-            "onboarding" => Onboarding::class,
+            "document" => Document::class,
             "training" => Training::class
         ]);
     }

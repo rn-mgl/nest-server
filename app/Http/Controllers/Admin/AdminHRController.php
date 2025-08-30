@@ -17,42 +17,22 @@ class AdminHRController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index()
     {
 
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes);
-
-            $categoryValue = $attributes["categoryValue"];
-
-            // Convert category and sort direction values to booleans
-            $verified= $categoryValue === "all" ? "" : $categoryValue === "verified";
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-            // Determine the sort direction
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $searchValue = $attributes["searchValue"] ?? ""; // Retain empty string if searchValue is empty
-
             // Query the 'users' table, applying search and sorting filters
             $hrs = User::ofRole("hr")
-                    ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
-                    ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
-                    ->whereLike($attributes["searchKey"], "%{$searchValue}%")
-                    ->orderBy($attributes["sortKey"], $sortType)
-                    ->select([
-                        "id as user_id",
-                        "first_name",
-                        "last_name",
-                        "email",
-                        "email_verified_at",
-                        "created_at"
-                    ])
-                    ->get();
+                ->select([
+                    "id as user_id",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "email_verified_at",
+                    "created_at"
+                ])
+                ->get();
 
             return response()->json(["hrs" => $hrs]);
         } catch (\Throwable $th) {

@@ -13,54 +13,28 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, SearchRequest $searchRequest, CategoryRequest $categoryRequest, SortRequest $sortRequest)
+    public function index(Request $request)
     {
         try {
 
-            $requestAttributes = $request->validate([
+            $attributes = $request->validate([
                 "path" => ["required", "integer"]
             ]);
 
-            $searchAttributes = $searchRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $categoryAttributes, $sortAttributes, $requestAttributes);
-
             $path = $attributes["path"];
-            $searchKey = $attributes["searchKey"];
-            $searchValue = $attributes["searchValue"] ?? "";
-            $sortKey = $attributes["sortKey"];
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $categoryKey = $attributes["categoryKey"];
-            $categoryValue = $attributes["categoryValue"];
 
-            if ($categoryValue === "folders") {
-                $searchKey = "name";
-            }
-
-            $documents = Document::where("documents.path", $path)
-                ->when(in_array($categoryValue, ["documents", "all"]), function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
-                    return $query->whereLike("documents.{$searchKey}", value: "%{$searchValue}%")
-                    ->orderBy("documents.{$sortKey}", $sortType);
-                })
-                ->join("users as u", function(JoinClause $join) {
-                    $join->on("u.id", "=", "documents.created_by");
-                })
+            $documents = Document::with(["createdBy"])
+                ->where("documents.path", "=", $path)
                 ->select([
                     "documents.id",
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                    "name",
+                    "documents.name",
                     "documents.created_at",
                     "description",
                     "document",
@@ -69,23 +43,11 @@ class DocumentController extends Controller
                     "path"
                 ]);
 
-            $folders = Folder::where("folders.deleted_at", false)
-                ->where("folders.path", $path)
-                ->when($categoryValue === "folders", function($query) use($searchKey, $searchValue, $sortKey, $sortType) {
-                    return $query->whereLike("folders.{$searchKey}", "%{$searchValue}%")
-                    ->orderBy("folders.{$sortKey}", $sortType);
-                })
-                ->join("users as u", function(JoinClause $join) {
-                    $join->on("u.id", "=", "folders.created_by")
-                    ->where("u.deleted_at", false);
-                })
+            $folders = Folder::with(["createdBy"])
+                ->where("folders.path", "=", $path)
                 ->select([
                     "folders.id",
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                    "name",
+                    "folders.name",
                     "folders.created_at",
                     DB::raw("NULL as description"),
                     DB::raw("NULL as document"),
@@ -94,21 +56,12 @@ class DocumentController extends Controller
                     "path"
                 ]);
 
-            if ($categoryValue === "all") {
-                $compiled = $documents->union($folders)
-                            ->orderBy("{$sortKey}", $sortType)
-                            ->get();
-            } else if ($categoryValue === "folders") {
-                $compiled = $folders->get();
-            } else if ($categoryValue === "documents") {
-                $compiled = $documents->get();
-            } else {
-                $compiled = null;
-            }
+
+            $compiled = $documents->union($folders)->get();
 
             return response()->json(["documents" => $compiled]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -134,14 +87,34 @@ class DocumentController extends Controller
                 "document" => ["required", "File"]
             ]);
 
-            $document = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+            $createdDocument = DB::transaction(function () use ($attributes, $request) {
 
-            $attributes["document"] = $document;
-            $attributes["created_by"] = Auth::id();
+                $createdDocument = Document::create($attributes);
 
-            $createdDocument = Document::create($attributes);
+                if ($request->hasFile("document")) {
+
+                    $uploaded = Storage::disk("document")->put("", $request->file("document"));
+
+                    $createdDocument->document()->create([
+                        "disk" => "document",
+                        "path" => $uploaded,
+                        "original_name" => $request->file("document")->getClientOriginalName(),
+                        "mime_type" => $request->file("document")->getMimeType(),
+                        "size" => $request->file("document")->getSize()
+                    ]);
+                }
+
+                $document = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+
+                $attributes["document"] = $document;
+                $attributes["created_by"] = Auth::id();
+
+                return $createdDocument;
+
+            });
 
             return response()->json(["success" => $createdDocument]);
+
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -187,25 +160,38 @@ class DocumentController extends Controller
                 throw new Exception("Invalid Document");
             }
 
-            $documentAttr = [
-                "name" => $attributes["name"],
-                "description" => $attributes["description"],
-                "document" => $attributes["document"],
-                "path" => $attributes["path"],
-                "type" => $attributes["type"],
-            ];
+            $updated = DB::transaction(function () use ($attributes, $request, $document) {
+                $documentAttr = [
+                    "name" => $attributes["name"],
+                    "description" => $attributes["description"],
+                    "document" => $attributes["document"],
+                    "path" => $attributes["path"],
+                    "type" => $attributes["type"],
+                ];
 
-            if ($request->hasFile("document")) {
-                $file = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                $documentAttr['document'] = $file;
-            }
+                if ($request->hasFile("document")) {
+                    $uploaded = Storage::disk("document")->put("", $request->file("document"));
 
-            $updatedDocument = $document->update($documentAttr);
+                    $document->document()->create([
+                        "disk" => "document",
+                        "path" => $uploaded,
+                        "original_name" => $request->file("document")->getClientOriginalName(),
+                        "mime_type" => $request->file("document")->getMimeType(),
+                        "size" => $request->file("document")->getSize()
+                    ]);
+                }
 
-            return response()->json(["success" => $updatedDocument]);
+                $updatedDocument = $document->update($documentAttr);
+
+                return $updatedDocument;
+            });
+
+
+
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 

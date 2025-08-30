@@ -19,6 +19,11 @@ class Document extends Model
 
     public function folders()
     {
-        return $this->belongsTo(Folder::class, "path");
+        return $this->belongsTo(Folder::class, "path", "id");
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, "created_by", "id");
     }
 }

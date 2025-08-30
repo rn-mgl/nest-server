@@ -97,7 +97,7 @@ class FolderController extends Controller
     {
         try {
             // delete folder and everything below it
-            $paths = $this->get_child_paths($folder)->pluck("id")->push($folder)->toArray();
+            $paths = $this->get_child_folders($folder)->pluck("id")->push($folder)->toArray();
 
             $deletedFolders = Folder::whereIn("id", $paths)->delete();
             $deletedDocuments = Document::whereIn("path", $paths)->delete();
@@ -131,15 +131,15 @@ class FolderController extends Controller
             // the paths to avoid are the children of the current folder to be moved if the folder is not the base
             // do not move a parent folder to its child folders, "ouroboros"
             // allow documents to be moved anywhere
-            $pathToAvoid = $folder === 0 ? [] : $this->get_child_paths($folder)->pluck("id")->toArray();
+            $pathToAvoid = $folder === 0 ? [] : $this->get_child_folders($folder)->pluck("id")->toArray();
 
             // other available paths that are not the children of the folder to move
             $paths = Folder::whereNotIn("id", $pathToAvoid)->get();
 
             // map as label => value object pairs
             $availablePaths = $paths->map(fn($path) => ["label" => $path->name, "value" => $path->id])
-                                ->prepend(["label" => "Home", "value" => 0])
-                                ->toArray();
+                ->prepend(["label" => "Home", "value" => 0])
+                ->toArray();
 
             return response()->json(["paths" => $availablePaths]);
 
@@ -154,41 +154,43 @@ class FolderController extends Controller
      * This method returns a collection of Folder instances representing
      * the hierarchical path from the specified parent folder up to the root.
      *
-     * @param int $currentFolder The ID of the parent folder to start from.
+     * @param int $folderId The ID of the current folder to start from.
      * @throws \Exception If the folder cannot be found or another error occurs.
      * @return \Illuminate\Support\Collection<int, \App\Models\Folder> Collection of Folder instances representing the parent path.
      */
-    public function get_parent_paths(int $currentFolder)
+    public function get_parent_paths(int $folderId)
     {
         try {
 
             $parents = collect();
 
-            $current = Folder::find($currentFolder);
+            $current = Folder::find($folderId);
 
             // get the parent folder of the current folder
-            // NOTE: using this as the starting point of getting folders via path will include the sibling folders of $currentFolder
-            $parentFolder = $current->path;
+            // NOTE: using this as the starting point of getting folders via path will include the sibling folders of $folderId
+            $currentPath = $current->path;
 
             // if the base path hasn't been reached yet
-            while ($parentFolder !== 0) {
+            while ($currentPath !== 0) {
 
                 // get the parent folder details
-                $parent = Folder::find($parentFolder);
+                $currentFolder = Folder::find($currentPath);
 
-                if (!$parent) {
+                if (!$currentFolder) {
                     break;
                 }
 
                 // move up a level to find the parent paths and not get the siblings
                 // set the new parent path
-                $parentFolder = $parent->path;
+                $parentPath = $currentFolder->path;
 
                 // get folders under parent path
-                $children = Folder::where("path", "=", $parentFolder)->get();
+                $children = Folder::where("path", "=", $parentPath)->get();
 
                 // merge the folders
                 $parents = $parents->merge($children);
+
+                $currentPath = $parentPath;
             }
 
             // return the parents
@@ -201,17 +203,17 @@ class FolderController extends Controller
     /**
      * Retrieves all child folder paths of the specified parent folder using depth-first search.
      *
-     * @param int $parentFolder The ID of the parent folder to start the search from.
+     * @param int $folderId The ID of the parent folder to start the search from.
      * @return \Illuminate\Support\Collection Collection of child folder paths.
      * @throws \Exception If an error occurs during retrieval.
      */
-    public function get_child_paths(int $parentFolder)
+    public function get_child_folders(int $folderId)
     {
         try {
 
             $children = collect();
 
-            $this->dfs_child_paths($parentFolder, $children);
+            $this->dfs_child_folders($folderId, $children);
 
             return $children;
 
@@ -229,15 +231,15 @@ class FolderController extends Controller
      * @param string $parentPath The parent path whose children should be removed from the list.
      * @return void
      */
-    private function dfs_child_paths(int $parentFolder, Collection &$children)
+    private function dfs_child_folders(int $path, Collection &$children)
     {
         // get the folders where the path is the parent
-        $childPaths = Folder::where("path", "=", $parentFolder)->get();
+        $childPaths = Folder::where("path", "=", $path)->get();
 
-        foreach($childPaths as $child) {
+        foreach ($childPaths as $child) {
             // push the current child to the children record to be stored in the next iteration and recursion
             $children->push($child);
-            $this->dfs_child_paths($child->id, $children);
+            $this->dfs_child_folders($child->id, $children);
         }
     }
 }

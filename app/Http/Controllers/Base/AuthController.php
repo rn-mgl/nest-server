@@ -11,8 +11,6 @@ use App\Utils\Tokens;
 use Carbon\Carbon;
 use Exception;
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,19 +34,21 @@ class AuthController extends Controller
                 "role" => ["required", "string", "in:employee,hr"]
             ]);
 
-            $role = Role::where("role", "=", $attributes["role"])->firstOrFail();
+            DB::transaction(function () use ($attributes) {
 
-            $attributes["role_id"] = $role->id;
+                $role = Role::where("role", "=", $attributes["role"])->firstOrFail();
 
-            unset($attributes["role"]);
+                $attributes["role_id"] = $role->id;
 
-            $user = User::create($attributes);
-            $tokens = new Tokens("VERIFICATION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+                unset($attributes["role"]);
 
-            Auth::login($user);
+                $user = User::create($attributes);
+                $tokens = new Tokens("VERIFICATION");
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
-            event(new Registered($user, $token));
+                event(new Registered($user, $token));
+
+            });
 
             return response()->json(['success' => true]);
         } catch (\Throwable $th) {

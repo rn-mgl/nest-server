@@ -16,4 +16,19 @@ class Folder extends Model
     {
         return $this->hasMany(Document::class);
     }
+
+    public function parentFolder()
+    {
+        return $this->belongsTo(Folder::class, "id", "path");
+    }
+
+    public function childFolders()
+    {
+        return $this->hasMany(Folder::class, "path", "id");
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, "created_by", "id");
+    }
 }
