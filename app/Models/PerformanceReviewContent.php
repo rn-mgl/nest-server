@@ -12,7 +12,8 @@ class PerformanceReviewContent extends Model
 
     protected $guarded = [];
 
-    public function review() {
-        return $this->belongsTo(PerformanceReview::class);
+    public function review()
+    {
+        return $this->belongsTo(PerformanceReview::class, "performance_review_id", "id");
     }
 }

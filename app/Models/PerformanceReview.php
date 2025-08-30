@@ -18,7 +18,7 @@ class PerformanceReview extends Model
      */
     public function contents()
     {
-        return $this->hasMany(PerformanceReviewContent::class);
+        return $this->hasMany(PerformanceReviewContent::class, "performance_review_id", "id");
     }
 
     /**
@@ -27,6 +27,6 @@ class PerformanceReview extends Model
      */
     public function assignedUsers()
     {
-        return $this->belongsToMany(User::class, "user_performance_review", "performance_review_id", "user_id");
+        return $this->belongsToMany(User::class, "user_performance_review", "performance_review_id", "assigned_to");
     }
 }

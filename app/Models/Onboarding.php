@@ -19,7 +19,7 @@ class Onboarding extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, "created_by", "id");
     }
 
     /**
@@ -28,7 +28,7 @@ class Onboarding extends Model
      */
     public function assignedUsers()
     {
-        return $this->belongsToMany(User::class, "onboarding_user", "onboarding_id", "user_id");
+        return $this->belongsToMany(User::class, "onboarding_user", "onboarding_id", "assigned_to");
     }
 
     /**
@@ -38,7 +38,7 @@ class Onboarding extends Model
      */
     public function policyAcknolwedgements()
     {
-        return $this->hasMany(OnboardingPolicyAcknowledgement::class, "id", "onboarding_id");
+        return $this->hasMany(OnboardingPolicyAcknowledgement::class, "onboarding_id", "id");
     }
 
     /**
@@ -48,6 +48,6 @@ class Onboarding extends Model
      */
     public function requiredDocuments()
     {
-        return $this->hasMany(OnboardingRequiredDocument::class, "id", "onboarding_id");
+        return $this->hasMany(OnboardingRequiredDocument::class, "onboarding_id", "id");
     }
 }

@@ -21,16 +21,18 @@ class Training extends Model
      * Summary of contents
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<TrainingContent, Training>
      */
-    public function contents() {
-        return $this->hasMany(TrainingContent::class);
+    public function contents()
+    {
+        return $this->hasMany(TrainingContent::class, "training_id", "id");
     }
 
     /**
      * Summary of reviews
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<TrainingReview, Training>
      */
-    public function reviews() {
-        return $this->hasMany(TrainingReview::class);
+    public function reviews()
+    {
+        return $this->hasMany(TrainingReview::class, "training_id", "id");
     }
 
     /**
@@ -40,6 +42,6 @@ class Training extends Model
      */
     public function assignedUsers()
     {
-        return $this->belongsToMany(User::class, "user_trainings", "training_id", "user_id");
+        return $this->belongsToMany(User::class, "user_trainings", "training_id", "assigned_to");
     }
 }

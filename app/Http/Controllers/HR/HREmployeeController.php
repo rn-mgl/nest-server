@@ -3,217 +3,83 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
+use App\Models\LeaveBalance;
+use App\Models\LeaveRequest;
 use App\Models\User;
+use App\Models\UserOnboarding;
+use App\Models\UserPerformanceReview;
+use App\Models\UserTraining;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class HREmployeeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index(Request $request)
     {
         try {
 
-            $validated = $request->validate([
+            $attributes = $request->validate([
                 "tab" => ["required", "string", "in:employees,onboardings,leaves,performances,trainings"]
             ]);
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes, $categoryAttributes, $validated);
-
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $sortKey = $attributes["sortKey"];
-
-            $searchKey = $attributes["searchKey"];
-            $searchValue = $attributes["searchValue"] ?? "";
-
-            $categoryKey = $attributes["categoryKey"];
-            $categoryValue = $attributes["categoryValue"];
-
             $tab = $attributes["tab"];
 
-            if ($tab === "employees") {
-                $verified = $categoryValue === "all" ? "" : $categoryValue === "verified";
+            switch ($tab) {
+                case "onboardings":
+                    $onboardings = UserOnboarding::with(
+                        [
+                            "onboarding",
+                            "assignedTo" => ["currentProfilePicture"],
+                            "assignedBy" => ["currentProfilePicture"]
+                        ]
+                    )->get();
 
-                $employees = User::ofRole("employee")
-                                ->select([
-                                        "users.id as user_id",
-                                        "users.first_name as first_name",
-                                        "users.last_name as last_name",
-                                        "users.email as email"
-                                    ])
-                                ->when($verified === true, fn($query) => $query->whereNotNull("email_verified_at"))
-                                ->when($verified === false, fn($query) => $query->whereNull("email_verified_at"))
-                                ->whereLike($searchKey, "%$searchValue%")
-                                ->orderBy($sortKey, $sortType)
-                                ->get();
+                    return response()->json(["onboardings" => $onboardings]);
+                case "leaves":
+                    // TO DO: Enhance to avoid N+1 Loading
+                    $leaves = LeaveRequest::with([
+                        "leaves",
+                        "requestedBy" => ["currentProfilePicture"],
+                        "approvedBy" => ["currentProfilePicture"]
+                    ])->get()->map(function ($leave) {
+                        $leave->balance = LeaveBalance::where(
+                            [
+                                "leave_type_id" => $leave->leave_type_id,
+                                "user_id" => $leave->user_id
+                            ]
+                        )->first();
 
-                return response()->json(["employees" => $employees]);
+                        return $leave;
+                    });
+                    return response()->json(["leaves" => $leaves]);
+                case "performances":
+                    $performances = UserPerformanceReview::with([
+                        "performanceReview",
+                        "assignedUser" => ["currentProfilePicture"],
+                        "assignedBy" => ["currentProfilePicture"]
+                    ])->get();
+
+                    return response()->json(["performances" => $performances]);
+
+                case "trainings":
+                    $trainings = UserTraining::with([
+                        "training",
+                        "assignedTo" => ["currentProfilePicture"],
+                        "assignedBy" => ["currentProfilePicture"],
+                    ])->get();
+
+                    return response()->json(["trainings" => $trainings]);
+
+                default:
+                    $employees = User::with(["currentProfilePicture"])
+                        ->ofRole("employee")
+                        ->get();
+
+                    return response()->json(["employees" => $employees]);
             }
-
-            if ($tab === "onboardings") {
-                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
-
-                $onboardings = DB::table("user_onboardings as uo")
-                                    ->select([
-                                        "uo.id as user_onboarding_id",
-                                        "uo.assigned_by",
-                                        "uo.status",
-                                        "uo.created_at",
-                                        "o.id as onboarding_id",
-                                        "o.title",
-                                        "o.description",
-                                        "u.id as user_id",
-                                        "u.first_name as first_name",
-                                        "u.last_name as last_name",
-                                        "u.email as email"
-                                    ])
-                                    ->join("onboardings as o", function(JoinClause $join) {
-                                        $join->on("o.id", "=", "uo.onboarding_id")
-                                        ->whereNull("o.deleted_at");
-                                    })
-                                    ->join("users as u", function(JoinClause $join) {
-                                        $join->on("u.id", "=", "uo.user_id")
-                                        ->whereNull("u.deleted_at");
-                                    })
-                                    ->whereNull("uo.deleted_at")
-                                    ->whereLike($searchKey,"%{$searchValue}%")
-                                    ->whereLike($categoryKey, "%{$categoryValue}%")
-                                    ->orderBy($sortKey, $sortType)
-                                ->get();
-
-                return response()->json(["onboardings" => $onboardings]);
-            }
-
-            if ($tab === "leaves") {
-
-                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
-
-                $leaves = DB::table("leave_requests as lr")
-                            ->select([
-                                "lr.id as leave_request_id",
-                                "lr.approved_by",
-                                "lr.start_date",
-                                "lr.end_date",
-                                "lr.status",
-                                "lr.reason",
-                                "lb.id as leave_balance_id",
-                                "lb.balance",
-                                "lt.id as leave_type_id",
-                                "lt.type",
-                                "u.id as user_id",
-                                "u.first_name",
-                                "u.last_name",
-                                "u.email"
-                            ])
-                            ->join("leave_types as lt", function(JoinClause $join) {
-                                $join->on("lt.id", "=", "lr.leave_type_id");
-                            })
-                            ->join("leave_balances as lb", function(JoinClause $join) {
-                                $join->on("lb.leave_type_id", "=", "lt.id")
-                                ->whereColumn("lb.user_id", "=", "lr.user_id");
-                            })
-                            ->join("users as u", function(JoinClause $join) {
-                                $join->on("u.id", "=", "lr.user_id");
-                            })
-                            ->whereIn("lr.status", ["pending", "in_progress", "done"])
-                            ->where($searchKey, "LIKE", "%{$searchValue}%")
-                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                            ->orderBy($sortKey, $sortType)
-                            ->get();
-
-                return response()->json(["leaves" => $leaves]);
-            }
-
-            if ($tab === "performances") {
-
-                $sortKey = $sortKey === "created_at" ? "upr.{$sortKey}" : "pr.{$sortKey}";
-                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
-
-                $performances = DB::table("user_performance_reviews as upr")
-                                ->select([
-                                    "upr.id as user_performance_review_id",
-                                    "upr.status",
-                                    "upr.created_at",
-                                    "pr.id as performance_review_id",
-                                    "pr.title",
-                                    "pr.description",
-                                    "u.id as user_id",
-                                    "u.first_name",
-                                    "u.last_name",
-                                    "u.email"
-                                ])
-                                ->join("performance_reviews as pr", function (JoinClause $join) {
-                                    $join->on("pr.id", "=", "upr.performance_review_id")
-                                    ->whereNull("pr.deleted_at");
-                                })
-                                ->join("users as u", function (JoinClause $join) {
-                                    $join->on("u.id", "=", "upr.user_id")
-                                    ->whereNull("u.deleted_at");
-                                })
-                                ->whereNull("upr.deleted_at")
-                                ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                                ->where($searchKey, "LIKE", "%{$searchValue}%")
-                                ->orderBy($sortKey, $sortType)
-                                ->get();
-
-                return response()->json(["performances" => $performances]);
-
-            }
-
-            if ($tab === "trainings") {
-
-                $sortKey = "ut.{$sortKey}";
-                $categoryValue = $categoryValue === "all" ? "" : $categoryValue;
-
-                $trainings = DB::table("user_trainings as ut")
-                            ->select([
-                                "ut.id as user_training_id",
-                                "ut.status",
-                                "ut.score",
-                                "ut.deadline",
-                                "ut.created_at",
-                                "t.id as training_id",
-                                "t.title",
-                                "t.description",
-                                "t.deadline_days",
-                                "t.certificate",
-                                "u.id as user_id",
-                                "u.first_name",
-                                "u.last_name",
-                                "u.email"
-                            ])
-                            ->join("trainings as t", function (JoinClause $join) {
-                                $join->on("t.id", "=", "ut.training_id")
-                                ->whereNull("t.deleted_at");
-                            })
-                            ->join("users as u", function (JoinClause $join) {
-                                $join->on("u.id", "=", "ut.user_id")
-                                ->whereNull("u.deleted_at");
-                            })
-                            ->whereNull("ut.deleted_at")
-                            ->where($searchKey, "LIKE", "%{$searchValue}%")
-                            ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                            ->orderBy($sortKey, $sortType)
-                            ->get();
-
-                return response()->json(["trainings" => $trainings]);
-
-            }
-
-            return response()->json(["data" => []]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -239,166 +105,45 @@ class HREmployeeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $user_id)
+    public function show(User $employee)
     {
         try {
 
-            $employee = User::select([
-                            "id as user_id",
-                            "first_name",
-                            "last_name",
-                            "email",
-                            "email_verified_at"
-                        ])
-                        ->where("id", "=", $user_id)
-                        ->ofRole("employee")
-                        ->firstOrFail();
+            $employee->load("currentProfilePicture");
 
-            // onboarding
-            $onboardings = DB::table("user_onboardings as uo")
-                            ->select([
-                                "o.id as onboarding_id",
-                                "o.title",
-                                "o.description",
-                                "o.created_by",
-                                "uo.id as user_onboarding_id",
-                                "uo.status",
-                                "u.id as user_id",
-                                "u.first_name",
-                                "u.last_name",
-                                "u.email",
-                            ])
-                            ->join("onboardings as o", function(JoinClause $join) {
-                                $join->on("o.id", "=", "uo.onboarding_id")
-                                ->whereNull("o.deleted_at");
-                            })
-                            ->join("users as u", function(JoinClause $join) {
-                                $join->on("u.id", "=", "o.created_by")
-                                ->whereNull("u.deleted_at");
-                            })
-                            ->whereNull("uo.deleted_at")
-                            ->where("uo.user_id", "=", $user_id)
-                            ->get();
+            $onboardings = UserOnboarding::with(["onboarding", "assignedBy"])
+                ->where("user_onboarding.id", "=", $employee->id)
+                ->get();
 
             // leave balances
-            $leave_balances = DB::table("leave_balances as lb")
-                                ->select([
-                                    "lb.id as leave_balance_id",
-                                    "lb.balance",
-                                    "lt.id as leave_type_id",
-                                    "lt.type",
-                                    "lt.description",
-                                    "lt.created_by",
-                                    "u.first_name",
-                                    "u.last_name",
-                                    "u.email",
-                                    "u.id as user_id"
-                                ])
-                                ->join("leave_types as lt", function(JoinClause $join) {
-                                    $join->on("lt.id", "=", "lb.leave_type_id")
-                                    ->whereNull("lt.deleted_at");
-                                })
-                                ->join("users as u", function(JoinClause $join) {
-                                    $join->on("u.id", "=", "lt.created_by")
-                                    ->whereNull('u.deleted_at');
-                                })
-                                ->where("lb.user_id", "=", $user_id)
-                                ->whereNull("lb.deleted_at")
-                                ->get();
 
-            // leave requests
-            $leave_requests = DB::table("leave_requests as lr")
-                                ->select([
-                                    "lt.id as leave_type_id",
-                                    "lt.type",
-                                    "lt.description",
-                                    "lr.id as leave_request_id",
-                                    "lr.start_date",
-                                    "lr.end_date",
-                                    "lr.reason",
-                                    "lr.approved_by",
-                                    "lr.status",
-                                    "u.first_name",
-                                    "u.last_name",
-                                    "u.email",
-                                    "u.id as user_id"
-                                ])
-                                ->join("leave_types as lt", function(JoinClause $join) {
-                                    $join->on("lt.id", "=", "lr.leave_type_id")
-                                    ->whereNull("lt.deleted_at");
-                                })
-                                ->join("users as u", function(JoinClause $join) {
-                                    $join->on("u.id", "=", "lt.created_by")
-                                    ->whereNull("u.deleted_at");
-                                })
-                                ->where("lr.user_id", "=", $user_id)
-                                ->whereNull("lr.deleted_at")
-                                ->get();
+            $leaveBalances = LeaveBalance::with(["leave", "assignedTo"])
+                ->where("leave_balance.user_id", "=", $employee->id)
+                ->get();
 
-            // performance
-            $performance_reviews = DB::table("user_performance_reviews as upr")
-                                    ->select([
-                                        "pr.id as performance_review_id",
-                                        "pr.title",
-                                        "pr.description",
-                                        "upr.id as user_performance_review_id",
-                                        "upr.status",
-                                        "u.id as user_id",
-                                        "u.first_name",
-                                        "u.last_name",
-                                        "u.email"
-                                    ])
-                                    ->join("performance_reviews as pr", function(JoinClause $join) {
-                                        $join->on("pr.id", "=", "upr.performance_review_id")
-                                        ->whereNull("pr.deleted_at");
-                                    })
-                                    ->join("users as u", function(JoinClause $join) {
-                                        $join->on("u.id", "=", "pr.created_by")
-                                        ->whereNull("u.deleted_at");
-                                    })
-                                    ->where("upr.user_id", "=", $user_id)
-                                    ->whereNull("upr.deleted_at")
-                                    ->get();
-            // training
-            $trainings = DB::table("user_trainings as et")
-                        ->select([
-                            "t.id as training_id",
-                            "t.title",
-                            "t.description",
-                            "t.deadline_days",
-                            "t.created_by",
-                            DB::raw("CASE WHEN ut.score IS NOT NULL THEN t.certificate ELSE NULL END AS certificate"),
-                            "ut.status",
-                            "ut.score",
-                            "ut.deadline",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "u.id as user_id"
-                        ])
-                        ->join("trainings as t", function (JoinClause $join) {
-                            $join->on("t.id", "=", "ut.training_id")
-                            ->whereNull("t.deleted_at");
-                        })
-                        ->join("users as u", function(JoinClause $join) {
-                            $join->on("u.id", "=", "t.created_by")
-                            ->whereNull("u.deleted_at");
-                        })
-                        ->where("ut.user_id", "=", $user_id)
-                        ->whereNull("ut.deleted_at")
-                        ->get();
+            $leaveRequests = LeaveRequest::with(["leave", "requestedBy"])
+                ->where("leave_request.requested_by", "=", $employee->id)
+                ->get();
 
+            $performanceReviews = UserPerformanceReview::with(["performanceReview", "assignedTo"])
+                ->where("user_performance_review.assigned_to", "=", $employee->id)
+                ->get();
+
+            $trainings = UserTraining::with(["training", "assignedTo"])
+                ->where("user_trainings.user_id", "=", $employee->id)
+                ->get();
 
             return response()
-                    ->json(
-                        [
-                            "employee" => $employee,
-                            "onboardings" => $onboardings,
-                            "leave_balances" => $leave_balances,
-                            "leave_requests" => $leave_requests,
-                            "performance_reviews" => $performance_reviews,
-                            "trainings" => $trainings
-                        ]);
+                ->json(
+                    [
+                        "employee" => $employee,
+                        "onboardings" => $onboardings,
+                        "leave_balances" => $leaveBalances,
+                        "leave_requests" => $leaveRequests,
+                        "performance_reviews" => $performanceReviews,
+                        "trainings" => $trainings
+                    ]
+                );
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

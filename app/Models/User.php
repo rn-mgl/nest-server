@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'role_id'
     ];
 
     /**
@@ -57,13 +58,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get role of the user
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Role, User>
+     * Summary of role
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Role, User>
      */
-    public function roles()
+    public function role()
     {
-        return $this->hasOne(Role::class, "id", "role_id");
+        return $this->belongsTo(Role::class, "role_id", "id");
     }
 
     /**
@@ -73,7 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function createdLeaveRequests()
     {
-        return $this->hasMany(LeaveRequest::class, "user_id", "id");
+        return $this->hasMany(LeaveRequest::class, "requested_by", "id");
     }
 
     /**
@@ -82,7 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function assignedLeaveBalances()
     {
-        return $this->hasMany(LeaveBalance::class, "user_id", "id");
+        return $this->hasMany(LeaveBalance::class, "assigned_to", "id");
     }
 
     /**
@@ -91,26 +91,25 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function assignedOnboardings()
     {
-        return $this->hasMany(UserOnboarding::class, "user_id", "id");
+        return $this->hasMany(UserOnboarding::class, "assigned_to", "id");
     }
 
     /**
      * Summary of assignedPerformanceReviews
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<PerformanceReview, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<UserPerformanceReview, User>
      */
     public function assignedPerformanceReviews()
     {
-        return $this->belongsToMany(PerformanceReview::class, "user_performance_reviews", "user_id", "performance_review_id");
+        return $this->hasMany(UserPerformanceReview::class, "assigned_to", "id");
     }
 
     /**
      * Summary of assignedTrainings
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Training, User, \Illuminate\Database\Eloquent\Relations\Pivot>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<UserTraining, User>
      */
     public function assignedTrainings()
     {
-        return $this->belongsToMany(Training::class, "user_trainings", "user_id", "training_id");
+        return $this->hasMany(UserTraining::class, "user_training", "id");
     }
 
     # Scopes #

@@ -11,9 +11,4 @@ class Role extends Model
     use SoftDeletes;
 
     protected $guarded = [];
-
-    public function users()
-    {
-        return $this->belongsToMany(User::class, "users");
-    }
 }

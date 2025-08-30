@@ -18,15 +18,20 @@ class LeaveBalance extends Model
      */
     public function leave()
     {
-        return $this->belongsTo(LeaveType::class);
+        return $this->belongsTo(LeaveType::class, "leave_type_id", "id");
     }
 
     /**
      * Summary of user
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, LeaveBalance>
      */
-    public function user()
+    public function assignedTo()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, "assigned_to", "id");
+    }
+
+    public function providedBy()
+    {
+        return $this->belongsTo(User::class, "provided_by", "id");
     }
 }

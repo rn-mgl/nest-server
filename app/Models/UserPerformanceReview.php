@@ -16,4 +16,14 @@ class UserPerformanceReview extends Model
     {
         return $this->belongsTo(PerformanceReview::class, "performance_review_id");
     }
+
+    public function assignedTo()
+    {
+        return $this->belongsTo(User::class, "assigned_to", "id");
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, "assigned_by", "id");
+    }
 }

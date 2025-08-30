@@ -17,9 +17,9 @@ class LeaveRequest extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<LeaveType, LeaveRequest>
      */
-    public function leaves()
+    public function leave()
     {
-        return $this->belongsTo(LeaveType::class, "leave_type_id");
+        return $this->belongsTo(LeaveType::class, "leave_type_id", "id");
     }
 
     /**
@@ -28,15 +28,15 @@ class LeaveRequest extends Model
      */
     public function requestedBy()
     {
-        return $this->belongsTo(User::class, "user_id", "id");
+        return $this->belongsTo(User::class, "requested_by", "id");
     }
 
     /**
      * Summary of approvedBy
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, LeaveRequest>
      */
-    public function approvedBy()
+    public function actionedBy()
     {
-        return $this->belongsTo(User::class, "approved_by", "id");
+        return $this->belongsTo(User::class, "actioned_by", "id");
     }
 }

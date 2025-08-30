@@ -16,9 +16,14 @@ class UserOnboarding extends Model
      * Summary of user
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, UserOnboarding>
      */
-    public function user()
+    public function assignedTo()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, "assigned_to", "id");
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, "assigned_by", "id");
     }
 
     /**

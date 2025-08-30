@@ -14,11 +14,11 @@ class LeaveType extends Model
 
     public function requests()
     {
-        return $this->hasMany(LeaveRequest::class);
+        return $this->hasMany(LeaveRequest::class, "leave_type_id", "id ");
     }
 
     public function balances()
     {
-        return $this->hasMany(LeaveBalance::class);
+        return $this->hasMany(LeaveBalance::class, "leave_type_id", "id");
     }
 }

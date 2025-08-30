@@ -8,16 +8,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create("user_onboarding_policy_acknowledgements", function(Blueprint $table) {
+        Schema::create("user_onboarding_policy_acknowledgements", function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "acknowledged_by")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingPolicyAcknowledgement::class, "policy_acknowledgement_id")->constrained("onboarding_policy_acknowledgements", "id", "policy_acknowledgement_id_foreign")->cascadeOnDelete();
             $table->boolean("acknowledged")->default(false);
             $table->timestamp("created_at")->useCurrent();
@@ -25,9 +24,9 @@ return new class extends Migration
             $table->softDeletes("deleted_at", 0);
         });
 
-        Schema::create("user_onboarding_required_document", function(Blueprint $table) {
+        Schema::create("user_onboarding_required_document", function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "complied_by")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingRequiredDocument::class, "required_document_id")->constrained("onboarding_required_documents", "id", "required_document_id_foreign")->cascadeOnDelete();
             $table->string("document")->nullable();
             $table->timestamp("created_at")->useCurrent();
