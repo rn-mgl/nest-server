@@ -69,14 +69,17 @@ class AdminController extends Controller
             ]);
 
             if ($request->hasFile("image")) {
-                $uploadedFile = Storage::disk("user")->put("/profile", $request->file("image"));
+
+                $file = $request->file("image");
+
+                $uploadedFile = Storage::disk("user")->put("/profile", $file);
 
                 $admin->profilePictures()->create([
                     "disk" => "user",
                     "path" => $uploadedFile,
-                    "original_name" => $request->file("image")->getClientOriginalName(),
-                    "mime_type" => $request->file("image")->getMimeType(),
-                    "size" => $request->file("image")->getSize()
+                    "original_name" => $file->getClientOriginalName(),
+                    "mime_type" => $file->getMimeType(),
+                    "size" => $file->getSize()
                 ]);
             }
 

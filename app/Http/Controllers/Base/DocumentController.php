@@ -92,19 +92,20 @@ class DocumentController extends Controller
                 $createdDocument = Document::create($attributes);
 
                 if ($request->hasFile("document")) {
+                    $file = $request->file("document");
 
-                    $uploaded = Storage::disk("document")->put("", $request->file("document"));
+                    $uploaded = Storage::disk("document")->put("", $file);
 
                     $createdDocument->document()->create([
                         "disk" => "document",
                         "path" => $uploaded,
-                        "original_name" => $request->file("document")->getClientOriginalName(),
-                        "mime_type" => $request->file("document")->getMimeType(),
-                        "size" => $request->file("document")->getSize()
+                        "original_name" => $file->getClientOriginalName(),
+                        "mime_type" => $file->getMimeType(),
+                        "size" => $file->getSize()
                     ]);
                 }
 
-                $document = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $document = cloudinary()->uploadFile($file->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
 
                 $attributes["document"] = $document;
                 $attributes["created_by"] = Auth::id();
@@ -170,14 +171,16 @@ class DocumentController extends Controller
                 ];
 
                 if ($request->hasFile("document")) {
-                    $uploaded = Storage::disk("document")->put("", $request->file("document"));
+                    $file = $request->file("document");
+
+                    $uploaded = Storage::disk("document")->put("", $file);
 
                     $document->document()->create([
                         "disk" => "document",
                         "path" => $uploaded,
-                        "original_name" => $request->file("document")->getClientOriginalName(),
-                        "mime_type" => $request->file("document")->getMimeType(),
-                        "size" => $request->file("document")->getSize()
+                        "original_name" => $file->getClientOriginalName(),
+                        "mime_type" => $file->getMimeType(),
+                        "size" => $file->getSize()
                     ]);
                 }
 

@@ -40,7 +40,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
         ],
@@ -87,6 +87,17 @@ return [
             'root' => env('FTP_ROOT'),
             'url' => env('FILESYSTEM_URL'),
             'prefix' => 'documents',
+            'throw' => true
+        ],
+
+        'training' => [
+            'driver' => 'ftp',
+            'host' => env('FTP_HOST'),
+            'username' => env('FTP_USERNAME'),
+            'password' => env('FTP_PASSWORD'),
+            'root' => env('FTP_ROOT'),
+            'url' => env('FILESYSTEM_URL'),
+            'prefix' => 'trainings',
             'throw' => true
         ]
 

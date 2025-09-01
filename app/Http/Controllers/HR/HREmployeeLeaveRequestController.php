@@ -52,7 +52,7 @@ class HREmployeeLeaveRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LeaveRequest $leave_request)
+    public function update(Request $request, LeaveRequest $leaveRequest)
     {
         try {
 
@@ -62,7 +62,7 @@ class HREmployeeLeaveRequestController extends Controller
 
             $status = $attributes["approved"] ? "approved" : "rejected";
 
-            $updated = $leave_request->update(["status" => $status]);
+            $updated = $leaveRequest->update(["status" => $status]);
 
             return response()->json(["success" => $updated]);
 

@@ -40,27 +40,27 @@ class HRLeaveRequestController extends Controller
             $user = Auth::id();
 
             $requests = DB::table("leave_requests as lr")
-                        ->select([
-                            "lr.id as leave_request_id",
-                            "lr.created_at as requested_at",
-                            "lr.start_date",
-                            "lr.end_date",
-                            "lr.status",
-                            "lr.reason",
-                            "lt.id as leave_type_id",
-                            "lt.type",
-                            "lt.description"
-                        ])
-                        ->join("leave_types as lt", function (JoinClause $join) {
-                            $join->on("lt.id", "=", "lr.leave_type_id")
-                            ->whereNull("lt.deleted_at");
-                        })
-                        ->whereNull("lr.deleted_at")
-                        ->where("user_id", "=", $user)
-                        ->where($searchKey, "LIKE", "%{$searchValue}%")
-                        ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                        ->orderBy("lr.{$sortKey}", $sortType)
-                        ->get();
+                ->select([
+                    "lr.id as leave_request_id",
+                    "lr.created_at as requested_at",
+                    "lr.start_date",
+                    "lr.end_date",
+                    "lr.status",
+                    "lr.reason",
+                    "lt.id as leave_type_id",
+                    "lt.type",
+                    "lt.description"
+                ])
+                ->join("leave_types as lt", function (JoinClause $join) {
+                    $join->on("lt.id", "=", "lr.leave_type_id")
+                        ->whereNull("lt.deleted_at");
+                })
+                ->whereNull("lr.deleted_at")
+                ->where("user_id", "=", $user)
+                ->where($searchKey, "LIKE", "%{$searchValue}%")
+                ->where($categoryKey, "LIKE", "%{$categoryValue}%")
+                ->orderBy("lr.{$sortKey}", $sortType)
+                ->get();
 
             return response()->json(["requests" => $requests]);
 
@@ -108,11 +108,11 @@ class HRLeaveRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LeaveRequest $leave_request)
+    public function show(LeaveRequest $leaveRequest)
     {
         try {
 
-            return response()->json(["request" => $leave_request]);
+            return response()->json(["request" => $leaveRequest]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -130,7 +130,7 @@ class HRLeaveRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LeaveRequest $leave_request)
+    public function update(Request $request, LeaveRequest $leaveRequest)
     {
         try {
 
@@ -143,7 +143,7 @@ class HRLeaveRequestController extends Controller
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
 
-            $updated = $leave_request->update($attributes);
+            $updated = $leaveRequest->update($attributes);
 
             return response()->json(["success" => $updated]);
 
@@ -155,11 +155,11 @@ class HRLeaveRequestController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(LeaveRequest $leave_request)
+    public function destroy(LeaveRequest $leaveRequest)
     {
         try {
 
-            $deleted = $leave_request->delete();
+            $deleted = $leaveRequest->delete();
 
             return response()->json(["success" => $deleted]);
 

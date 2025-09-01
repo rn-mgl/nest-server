@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->morphs("fileable");
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->softDeletes("deleted_at", 0);
         });
     }
 

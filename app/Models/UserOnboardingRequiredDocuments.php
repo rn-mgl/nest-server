@@ -21,4 +21,16 @@ class UserOnboardingRequiredDocuments extends Model
     {
         return $this->belongsTo(User::class, "complied_by", "id");
     }
+
+    /**
+     * Get all of the files for the UserOnboardingRequiredDocuments.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<File, UserOnboardingRequiredDocuments>
+     */
+    public function userRequiredDocuments()
+    {
+        return $this->morphMany(File::class, "fileable");
+    }
+
+
 }

@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeOnboardingRequiredDocumentsController extends Controller
 {
@@ -39,23 +40,28 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 "onboarding_required_document_id" => ["required", "exists:onboarding_required_documents,id"]
             ]);
 
-            $uploaded = "";
-
-            if ($request->hasFile("document")) {
-                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-            }
-
-            $user = Auth::id();
-
             $requiredDocumentsAttr = [
-                "user_id" => $user,
-                "required_document_id" => $attributes["onboarding_required_document_id"],
-                "document" => $uploaded
+                "user_id" => Auth::id(),
+                "required_document_id" => $attributes["onboarding_required_document_id"]
             ];
 
-            $created = UserOnboardingRequiredDocuments::create($requiredDocumentsAttr);
+            $requirement = UserOnboardingRequiredDocuments::create($requiredDocumentsAttr);
 
-            return response()->json(["success" => $created]);
+            if ($request->hasFile("document")) {
+                $file = $request->file("document");
+
+                $uploaded = Storage::disk("onboarding")->put("/requirements", $file);
+
+                $requirement->userRequiredDocuments()->create([
+                    "disk" => "onboarding",
+                    "path" => $uploaded,
+                    "original_name" => $file->getClientOriginalName(),
+                    "mime_type" => $file->getMimeType(),
+                    "size" => $file->getSize(),
+                ]);
+            }
+
+            return response()->json(["success" => $requirement]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -65,7 +71,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(UserOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function show(UserOnboardingRequiredDocuments $requiredDocument)
     {
         //
     }
@@ -73,7 +79,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(UserOnboardingRequiredDocuments $employeeOnboardingRequiredDocuments)
+    public function edit(UserOnboardingRequiredDocuments $requiredDocument)
     {
         //
     }
@@ -81,7 +87,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, UserOnboardingRequiredDocuments $required_document)
+    public function update(Request $request, UserOnboardingRequiredDocuments $requiredDocument)
     {
         try {
 
@@ -92,10 +98,20 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             $uploaded = null;
 
             if ($request->hasFile("document")) {
-                $uploaded = cloudinary()->uploadFile($request->file("document")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
+                $file = $request->file("document");
+
+                $uploaded = Storage::disk("onboarding")->put("/requirements", $file);
+
+                $requiredDocument->userRequiredDocuments()->create([
+                    "disk" => "onboarding",
+                    "path" => $uploaded,
+                    "original_name" => $file->getClientOriginalName(),
+                    "mime_type" => $file->getMimeType(),
+                    "size" => $file->getSize()
+                ]);
             }
 
-            $updated = $required_document->update(["document" => $uploaded]);
+            $updated = $requiredDocument->update(["document" => $uploaded]);
 
             return response()->json(["success" => $updated]);
 
@@ -107,10 +123,10 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(UserOnboardingRequiredDocuments $required_document)
+    public function destroy(UserOnboardingRequiredDocuments $requiredDocument)
     {
         try {
-            $deleted = $required_document->update(["document" => null]);
+            $deleted = $requiredDocument->userRequiredDocuments()->delete();
 
             return response()->json(["success" => $deleted]);
 

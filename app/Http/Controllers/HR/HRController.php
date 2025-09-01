@@ -72,14 +72,16 @@ class HRController extends Controller
             ]);
 
             if ($request->hasFile("image")) {
-                $uploaded = Storage::disk("user")->put("/profile", $request->file("image"));
+                $file = $request->file("image");
+
+                $uploaded = Storage::disk("user")->put("/profile", $file);
 
                 $hr->profilePictures()->create([
                     "disk" => "user",
                     "path" => $uploaded,
-                    "original_name" => $request->file("image")->getClientOriginalName(),
-                    "mime_type" => $request->file("image")->getMimeType(),
-                    "size" => $request->file("image")->getSize()
+                    "original_name" => $file->getClientOriginalName(),
+                    "mime_type" => $file->getMimeType(),
+                    "size" => $file->getSize()
                 ]);
             }
 

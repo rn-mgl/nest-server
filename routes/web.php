@@ -39,7 +39,7 @@ use App\Http\Controllers\Base\FolderController;
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix("api")->group(function() {
+Route::prefix("api")->group(function () {
 
     Route::get('/', fn() => redirect(env("NEST_URL")));
 
@@ -48,7 +48,7 @@ Route::prefix("api")->group(function() {
     // auth
     Route::controller(AuthController::class)
         ->prefix("auth")
-        ->group(function() {
+        ->group(function () {
             Route::post("/login", "login");
             Route::post("/register", "register");
             Route::patch('/verify', "verify");
@@ -58,19 +58,19 @@ Route::prefix("api")->group(function() {
         });
 
     // hr routes
-    Route::middleware(["auth", "user_token:hr"])->prefix("hr")->group(function() {
+    Route::middleware(["auth", "user_token:hr"])->prefix("hr")->group(function () {
 
         // dashboard route
         Route::controller(HRDashboardController::class)
             ->prefix("/dashboard")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
             });
 
         // session routes
         Route::controller(AuthController::class)
             ->prefix("auth")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/logout", "logout");
                 Route::patch("/change-password", "change_password");
             });
@@ -78,7 +78,7 @@ Route::prefix("api")->group(function() {
         // employee route
         Route::controller(HREmployeeController::class)
             ->prefix("employee")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::get("/{employee}", "show");
             });
@@ -86,7 +86,7 @@ Route::prefix("api")->group(function() {
         // leave route
         Route::controller(HRLeaveTypeController::class)
             ->prefix("leave_type")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
                 Route::get("/{leaveType}", "show");
@@ -97,38 +97,38 @@ Route::prefix("api")->group(function() {
         // leave balance route
         Route::controller(HRLeaveBalanceController::class)
             ->prefix("leave_balance")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
             });
 
         // employee and hr leave balance route
-            Route::controller(HREmployeeLeaveBalanceController::class)->prefix("employee_leave_balance")->group(function() {
-                Route::get("/", "index");
-                Route::post("/", "store");
-            });
+        Route::controller(HREmployeeLeaveBalanceController::class)->prefix("employee_leave_balance")->group(function () {
+            Route::get("/", "index");
+            Route::post("/", "store");
+        });
 
         // leave request
         Route::controller(HRLeaveRequestController::class)
             ->prefix("leave_request")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
-                Route::get("/{leave_request}", "show");
-                Route::patch("/{leave_request}", "update");
-                Route::delete("/{leave_request}", "destroy");
+                Route::get("/{leaveRequest}", "show");
+                Route::patch("/{leaveRequest}", "update");
+                Route::delete("/{leaveRequest}", "destroy");
             });
 
         // employee leave request route
         Route::controller(HREmployeeLeaveRequestController::class)
             ->prefix("employee_leave_request")
-            ->group(function() {
-                Route::patch("/{leave_request}", "update");
+            ->group(function () {
+                Route::patch("/{leaveRequest}", "update");
             });
 
         // onboarding route
         Route::controller(HROnboardingController::class)
             ->prefix("onboarding")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
                 Route::get("/{onboarding}", "show");
@@ -139,7 +139,7 @@ Route::prefix("api")->group(function() {
         // employee onboarding route
         Route::controller(HREmployeeOnboardingController::class)
             ->prefix("employee_onboarding")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
             });
@@ -147,7 +147,7 @@ Route::prefix("api")->group(function() {
         // attendance route
         Route::controller(HRAttendanceController::class)
             ->prefix("attendance")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::get("/{attendance}", "show");
             });
@@ -155,18 +155,18 @@ Route::prefix("api")->group(function() {
         // performance review route
         Route::controller(HRPerformanceReviewController::class)
             ->prefix("performance_review")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
-                Route::get("/{performance_review}", "show");
-                Route::patch("/{performance_review}", "update");
-                Route::delete("/{performance_review}", "destroy");
+                Route::get("/{performanceReview}", "show");
+                Route::patch("/{performanceReview}", "update");
+                Route::delete("/{performanceReview}", "destroy");
             });
 
         // employee performance review route
         Route::controller(HREmployeePerformanceReviewController::class)
             ->prefix("employee_performance_review")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
             });
@@ -174,7 +174,7 @@ Route::prefix("api")->group(function() {
         // training route
         Route::controller(HRTrainingController::class)
             ->prefix("training")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
                 Route::get("/{training}", "show");
@@ -185,7 +185,7 @@ Route::prefix("api")->group(function() {
         // employee training route
         Route::controller(HREmployeeTrainingController::class)
             ->prefix("employee_training")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
             });
@@ -193,7 +193,7 @@ Route::prefix("api")->group(function() {
         // document route
         Route::controller(DocumentController::class)
             ->prefix("document")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::get("/{document}", "show");
                 Route::patch("/{document}", "update");
@@ -204,7 +204,7 @@ Route::prefix("api")->group(function() {
         // document folder route
         Route::controller(FolderController::class)
             ->prefix("folder")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/paths", "get_folder_paths");
                 Route::get("/{folder}", "show");
                 Route::patch("/{folder}", "update");
@@ -215,26 +215,26 @@ Route::prefix("api")->group(function() {
         // hr profile
         Route::controller(HRController::class)
             ->prefix("profile")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/{hr}", "show");
                 Route::patch("/{hr}", "update");
             });
     });
 
     // employee routes
-    Route::middleware(["auth", "user_token:employee"])->prefix("employee")->group(function() {
+    Route::middleware(["auth", "user_token:employee"])->prefix("employee")->group(function () {
 
         // employee dashboard
         Route::controller(EmployeeDashboardController::class)
             ->prefix("dashboard")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
             });
 
         // employee auth
         Route::controller(AuthController::class)
             ->prefix("auth")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/logout", "logout");
                 Route::patch("/change-password", "change_password");
             });
@@ -242,88 +242,88 @@ Route::prefix("api")->group(function() {
         // attendance route
         Route::controller(EmployeeAttendanceController::class)
             ->prefix("attendance")
-            ->group(function() {
-                Route::get("/{attendance}","show");
-                Route::post("/","store");
+            ->group(function () {
+                Route::get("/{attendance}", "show");
+                Route::post("/", "store");
                 Route::patch("/{attendance}", "update");
             });
 
         // employee onboarding route
         Route::controller(EmployeeOnboardingController::class)
             ->prefix("employee_onboarding")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
-                Route::get("/{employee_onboarding}", "show");
+                Route::get("/{employeeOnboarding}", "show");
             });
 
         // employee onboarding policy acknowledgement
         Route::controller(EmployeeOnboardingPolicyAcknowledgementController::class)
             ->prefix("employee_onboarding_policy_acknowledgement")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/", "store");
             });
 
         // employee onboarding required documents
         Route::controller(EmployeeOnboardingRequiredDocumentsController::class)
             ->prefix("employee_onboarding_required_documents")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/", "store");
-                Route::patch("/{required_document}", "update");
-                Route::delete("/{required_document}", "destroy");
+                Route::patch("/{requiredDocument}", "update");
+                Route::delete("/{requiredDocument}", "destroy");
             });
 
         // employee performance review route
         Route::controller(EmployeePerformanceReviewController::class)
             ->prefix("employee_performance_review")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
-                Route::get("/{employee_performance_review}", "show");
+                Route::get("/{employeePerformanceReview}", "show");
             });
 
         // employee performance review response
         Route::controller(EmployeePerformanceReviewResponseController::class)
             ->prefix("employee_performance_review_response")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/", "store");
             });
 
         // employee leave balance route
         Route::controller(EmployeeLeaveBalanceController::class)
             ->prefix("leave_balance")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
             });
 
         // employee leave request route
         Route::controller(EmployeeLeaveRequestController::class)
             ->prefix("leave_request")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
-                Route::get("/{leave_request}", "show");
-                Route::patch("/{leave_request}", "update");
-                Route::delete("/{leave_request}", "destroy");
+                Route::get("/{leaveRequest}", "show");
+                Route::patch("/{leaveRequest}", "update");
+                Route::delete("/{leaveRequest}", "destroy");
             });
 
         // employee training
         Route::controller(EmployeeTrainingController::class)
             ->prefix("employee_training")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
-                Route::get("/{employee_training}", "show");
+                Route::get("/{employeeTraining}", "show");
             });
 
         // employee training review response
         Route::controller(EmployeeTrainingReviewResponseController::class)
             ->prefix("employee_training_review_response")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/", "store");
             });
 
         // employee document
         Route::controller(DocumentController::class)
             ->prefix("document")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::get("/{document}", "show");
             });
@@ -331,26 +331,26 @@ Route::prefix("api")->group(function() {
         // employee document folder
         Route::controller(FolderController::class)
             ->prefix("folder")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/{folder}", "show");
             });
 
         // employee profile controller
         Route::controller(EmployeeController::class)
             ->prefix("profile")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/{employee}", "show");
                 Route::patch("/{employee}", "update");
             });
     });
 
     // admin routes
-    Route::middleware(["auth", "user_token:admin"])->prefix("admin")->group(function() {
+    Route::middleware(["auth", "user_token:admin"])->prefix("admin")->group(function () {
 
         // admin auth
         Route::controller(AuthController::class)
             ->prefix("auth")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/change_password", "change_password");
                 Route::post("/logout", "logout");
             });
@@ -358,21 +358,21 @@ Route::prefix("api")->group(function() {
         // admin dashboard
         Route::controller(AdminDashboardController::class)
             ->prefix("dashboard")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
             });
 
         // admin hr auth
         Route::controller(AuthController::class)
             ->prefix("hr")
-            ->group(function() {
+            ->group(function () {
                 Route::post("/register", "register");
             });
 
         // admin hr
         Route::controller(AdminHRController::class)
             ->prefix("hr")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/", "index");
                 Route::patch("/{hr}", "update");
             });
@@ -380,7 +380,7 @@ Route::prefix("api")->group(function() {
         // admin profile
         Route::controller(AdminController::class)
             ->prefix("profile")
-            ->group(function() {
+            ->group(function () {
                 Route::get("/{admin}", "show");
                 Route::patch("/{admin}", "update");
             });

@@ -34,24 +34,24 @@ class HRPerformanceReviewController extends Controller
             $searchKey = $attributes["searchKey"];
 
             $performances = DB::table("performance_reviews as pr")
-                            ->join("users as u", function(JoinClause $join) {
-                                $join->on("u.id", "=", "pr.created_by")
-                                ->whereNull("u.deleted_at");
-                            })
-                            ->whereNull("pr.deleted_at")
-                            ->whereLike($searchKey, "%$searchValue%")
-                            ->orderBy("pr.$sortKey", $sortType)
-                            ->select([
-                                "pr.id as performance_review_id",
-                                "pr.title",
-                                "pr.description",
-                                "pr.created_by",
-                                "u.id as user_id",
-                                "u.first_name",
-                                "u.last_name",
-                                "u.email",
-                            ])
-                            ->get();
+                ->join("users as u", function (JoinClause $join) {
+                    $join->on("u.id", "=", "pr.created_by")
+                        ->whereNull("u.deleted_at");
+                })
+                ->whereNull("pr.deleted_at")
+                ->whereLike($searchKey, "%$searchValue%")
+                ->orderBy("pr.$sortKey", $sortType)
+                ->select([
+                    "pr.id as performance_review_id",
+                    "pr.title",
+                    "pr.description",
+                    "pr.created_by",
+                    "u.id as user_id",
+                    "u.first_name",
+                    "u.last_name",
+                    "u.email",
+                ])
+                ->get();
 
             return response()->json(["performances" => $performances]);
         } catch (\Throwable $th) {
@@ -91,7 +91,7 @@ class HRPerformanceReviewController extends Controller
 
             $createdPerformanceReviews = 0;
 
-            foreach($surveys as $survey) {
+            foreach ($surveys as $survey) {
                 $performanceReviewAttr = [
                     "survey" => $survey["survey"],
                     "performance_review_id" => $createdPerformance->id
@@ -114,11 +114,11 @@ class HRPerformanceReviewController extends Controller
     {
         try {
             $contents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)
-                        ->select([
-                            "id as performance_review_content_id",
-                            "survey"
-                        ])
-                        ->get();
+                ->select([
+                    "id as performance_review_content_id",
+                    "survey"
+                ])
+                ->get();
 
             $performanceReview->contents = $contents;
 
@@ -161,7 +161,7 @@ class HRPerformanceReviewController extends Controller
             ];
 
             // edit or update survey if performance_review_content_id is set
-            foreach($surveys as $survey) {
+            foreach ($surveys as $survey) {
                 $id = $survey["performance_review_content_id"] ?? null;
                 if ($id) {
                     $performanceReviewContent = PerformanceReviewContent::find($id);
@@ -180,7 +180,7 @@ class HRPerformanceReviewController extends Controller
             }
 
             // delete surveys marked for deletion
-            foreach($surveyToDelete as $toDelete) {
+            foreach ($surveyToDelete as $toDelete) {
                 $performanceReviewContent = PerformanceReviewContent::find($toDelete);
 
                 if ($performanceReviewContent) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\UserPerformanceReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -131,7 +132,7 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
+    public function edit(UserPerformanceReview $employeePerformanceReview)
     {
         //
     }
@@ -139,7 +140,7 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EmployeePerformanceReviewController $EmployeePerformanceReviewController)
+    public function update(Request $request, UserPerformanceReview $employeePerformanceReview)
     {
         //
     }
@@ -147,7 +148,7 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmployeePerformanceReviewController $EmployeePerformanceReviewController)
+    public function destroy(UserPerformanceReview $employeePerformanceReview)
     {
         //
     }

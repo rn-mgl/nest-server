@@ -73,10 +73,10 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LeaveRequest $leave_request)
+    public function show(LeaveRequest $leaveRequest)
     {
         try {
-            return response()->json(["request" => $leave_request]);
+            return response()->json(["request" => $leaveRequest]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -93,7 +93,7 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LeaveRequest $leave_request)
+    public function update(Request $request, LeaveRequest $leaveRequest)
     {
         try {
 
@@ -103,7 +103,7 @@ class EmployeeLeaveRequestController extends Controller
                 "reason" => ["required", "string"]
             ]);
 
-            $updated = $leave_request->update($attributes);
+            $updated = $leaveRequest->update($attributes);
 
             return response()->json(["success" => $updated]);
 
@@ -115,10 +115,10 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(LeaveRequest $leave_request)
+    public function destroy(LeaveRequest $leaveRequest)
     {
         try {
-            return response()->json(["success" => $leave_request->delete()]);
+            return response()->json(["success" => $leaveRequest->delete()]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
