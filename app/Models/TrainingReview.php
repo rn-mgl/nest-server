@@ -16,4 +16,9 @@ class TrainingReview extends Model
     {
         return $this->belongsTo(Training::class, "training_id", "id");
     }
+
+    public function userResponse()
+    {
+        return $this->hasOne(UserTrainingReviewResponse::class, "training_review_id", "id");
+    }
 }

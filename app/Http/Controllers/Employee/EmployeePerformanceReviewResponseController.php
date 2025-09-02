@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserPerformanceReview;
 use App\Models\UserPerformanceReviewResponse;
 use Exception;
 use Illuminate\Http\Request;
@@ -41,27 +42,16 @@ class EmployeePerformanceReviewResponseController extends Controller
                 "response.*.response" => ["required", "string"],
             ]);
 
-            $responseAttribute = [
-                "performance_review_content_id" => null,
-                "response_by" => Auth::id(),
-                "response" => "",
-            ];
+            DB::transaction(function () use ($attributes) {
 
-            DB::transaction(function() use ($attributes, $responseAttribute) {
+                $user = Auth::id();
 
                 foreach ($attributes["response"] as $response) {
-
-                    $responseAttribute["response"] = $response["response"];
-                    $responseAttribute["performance_review_content_id"] = $response["performance_review_content_id"];
-                    $responseId = $response["user_performance_review_response_id"];
-
-                    // if there is an existing response, update it, else insert
-                    if ($responseId) {
-                        $update = UserPerformanceReviewResponse::find($responseId)->update($responseAttribute);
-                    } else {
-                        $created = UserPerformanceReviewResponse::create($responseAttribute);
-                    }
-
+                    UserPerformanceReview::updateOrInsert(['id' => $response["user_performance_review_response_id"]], [
+                        'response' => $response["response"],
+                        'response_from' => $user,
+                        'performance_review_content_id' => $response["performance_review_content_id"]
+                    ]);
                 }
 
             });

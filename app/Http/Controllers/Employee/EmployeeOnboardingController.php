@@ -58,7 +58,9 @@ class EmployeeOnboardingController extends Controller
     {
         try {
 
-            // an employee onboarding is connected to the parent onboarding, the parent onboarding has acknowledgement and document, each has user compliance
+            // an employee onboarding is connected to the parent onboarding,
+            // the parent onboarding has acknowledgement and document,
+            // acknowledgement and document each has user compliance
             $onboarding = $employeeOnboarding->load(
                 [
                     "onboarding" =>

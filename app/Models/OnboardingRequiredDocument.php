@@ -24,6 +24,6 @@ class OnboardingRequiredDocument extends Model
 
     public function userCompliance()
     {
-        return $this->hasMany(UserOnboardingRequiredDocuments::class, "required_document_id", "id");
+        return $this->hasOne(UserOnboardingRequiredDocuments::class, "required_document_id", "id");
     }
 }

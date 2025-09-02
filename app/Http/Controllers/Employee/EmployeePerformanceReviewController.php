@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\UserOnboarding;
 use App\Models\UserPerformanceReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -17,48 +18,14 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes);
-
-            $searchKey = $attributes["searchKey"];
-            $sortKey = $attributes["sortKey"];
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $searchValue = $attributes["searchValue"] ?? "";
-
             $user = Auth::id();
 
-            $performanceReviews = DB::table("user_performance_reviews as upr")
-                ->join("performance_reviews as pr", function (JoinClause $join) {
-                    $join->on("pr.id", "=", "upr.performance_review_id")
-                        ->where("pr.deleted_at", "=", false);
-                })
-                ->join("users as u", function (JoinClause $join) {
-                    $join->on("u.id", "=", "upr.assigned_by")
-                        ->where("u.deleted_at", "=", false);
-                })
-                ->where("upr.assigned_to", "=", $user)
-                ->where("{$searchKey}", "LIKE", "%{$searchValue}%")
-                ->orderBy("{$sortKey}", "{$sortType}")
-                ->select([
-                    'upr.id as user_performance_review_id',
-                    'pr.id as performance_review_id',
-                    'pr.title',
-                    'pr.description',
-                    'pr.created_by',
-                    'u.id as user_id',
-                    'u.first_name',
-                    'u.last_name',
-                    'u.email',
-                    'u.email_verified_at',
-                    'u.created_at',
-                ])
+            $performanceReviews = UserPerformanceReview::with(["performanceReview", "assignedBy"])
+                ->where("assigned_to", "=", $user)
                 ->get();
 
             return response()->json(["performance_reviews" => $performanceReviews]);
@@ -87,42 +54,23 @@ class EmployeePerformanceReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($employeePerformanceReview)
+    public function show(UserPerformanceReview $employeePerformanceReview)
     {
         try {
 
-            $user = Auth::id();
+            $employeePerformanceReview->load(
+                [
+                    "performanceReview" => [
+                        "contents" => [
+                            "userResponse" => function ($query) use ($employeePerformanceReview) {
+                                $query->where("response_from", "=", $employeePerformanceReview->assigned_to);
+                            }
+                        ]
+                    ]
+                ]
+            );
 
-            $performanceReview = DB::table("user_performance_reviews as upr")
-                ->join("performance_reviews as pr", function (JoinClause $join) {
-                    $join->on("upr.performance_review_id", "=", "pr.id")
-                        ->where("pr.deleted_at", "=", false);
-                })
-                ->select([
-                    "pr.id as performance_review_id",
-                    "pr.title",
-                    "pr.description",
-                    "pr.created_by"
-                ])
-                ->where("upr.id", "=", $employeePerformanceReview)
-                ->first();
-
-            $performanceReview->contents = DB::table("performance_review_contents as prc")
-                ->leftJoin("user_performance_review_responses as uprr", function (JoinClause $join) use ($user) {
-                    $join->on("prc.id", "=", "uprr.performance_review_content_id")
-                        ->where("uprr.response_by", "=", $user)
-                        ->where("prc.deleted_at", "=", false);
-                })
-                ->where("prc.performance_review_id", "=", $performanceReview->performance_review_id)
-                ->select([
-                    "prc.id as performance_review_content_id",
-                    "prc.survey",
-                    "uprr.id as user_performance_review_response_id",
-                    "uprr.response",
-                ])
-                ->get();
-
-            return response()->json(["performance_review" => $performanceReview]);
+            return response()->json(["performance_review" => $employeePerformanceReview]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

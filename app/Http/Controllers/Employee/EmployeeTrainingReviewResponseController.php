@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Models\Training;
 use App\Models\UserTraining;
 use App\Models\UserTrainingReviewResponse;
 use App\Models\TrainingReview;
@@ -42,49 +43,51 @@ class EmployeeTrainingReviewResponseController extends Controller
             ]);
 
             $user = Auth::id();
+            $trainingId = $attributes['training_id'];
 
-            // check if there are records that are already answered and stored
-            $alreadyAnsweredReviews = UserTrainingReviewResponse::where("user_id", "=", $user)
-                                        ->pluck("training_review_id")
-                                        ->toArray();
+            $answeredReviews = collect($attributes['reviews'])->pluck('training_review_id');
 
-            // get test reviews and map as [id => answer]
-            $reviews = TrainingReview::where("training_id", "=", $attributes["training_id"])
-                        ->where("deleted_at", "=", false)
-                        ->get()
-                        ->mapWithKeys(fn($item) => [$item->id => $item->answer]);
+            // cross check already answered reviews and newly answered
+            $alreadyAnswered = UserTrainingReviewResponse::where("response_from", "=", $user)
+                ->whereIn("training_review_id", $answeredReviews)
+                ->pluck("training_review_id");
 
-            $score = 0;
-            $shouldUpdateScore = false;
+            // get the responses that are not recorded yet
+            $pendingReviews = collect($attributes['reviews'])
+                ->whereNotIn('training_review_id', $alreadyAnswered);
 
-            foreach ($attributes["reviews"] as $review) {
+            // get test reviews for answer checking
+            $trainingReviews = TrainingReview::where("training_id", "=", $trainingId)
+                ->get()
+                ->keyBy("id");
 
-                // if current review is already stored, skip it
-                if (in_array($review["training_review_id"], $alreadyAnsweredReviews)) {
-                    continue;
+            // for score tracking
+            $userTraining = UserTraining::where([
+                "training_id" => $trainingId,
+                "assigned_to" => $user
+            ])->first();
+
+            $newScore = $userTraining->score;
+
+            foreach ($pendingReviews as $review) {
+
+                $reviewId = $review['training_review_id'];
+                $userAnswer = $review['user_answer'];
+
+                if ($trainingReviews->get($reviewId)?->answer === $userAnswer) {
+                    $newScore++;
                 }
 
-                // check if training review's answer is similar to the employee's answer, add 1 to score if yes, retain if no
-                $score = $reviews[$review['training_review_id']] === $review['user_answer'] ? $score + 1 : $score;
-
-                $trainingReviewResponseAttr = [
+                UserTrainingReviewResponse::create([
                     "response_by" => $user,
-                    "training_review_id" => $review["training_review_id"],
-                    "answer" => $review["user_answer"]
-                ];
-
-                $created = UserTrainingReviewResponse::create($trainingReviewResponseAttr);
-
-                $shouldUpdateScore = true;
+                    "training_review_id" => $reviewId,
+                    "answer" => $userAnswer
+                ]);
             }
 
-            // update score if there is a stored response
-            if ($shouldUpdateScore) {
-
-                $updateScore = UserTraining::where("user_id", "=", $user)
-                                ->where("training_id", "=", $attributes["training_id"])
-                                ->update(["score" => $score]);
-
+            // update score if there is a change
+            if ($newScore !== $userTraining->score) {
+                $userTraining->update(["score" => $newScore]);
             }
 
             return response()->json(["success" => true]);
