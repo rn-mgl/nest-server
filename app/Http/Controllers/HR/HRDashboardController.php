@@ -29,9 +29,7 @@ class HRDashboardController extends Controller
 
             $users = User::with("role")->get();
 
-            $attendances = Attendance::where(function (Builder $query) {
-                $query->whereToday("login_time");
-            })
+            $attendances = Attendance::whereToday("login_time")
                 ->where(function (Builder $query) {
                     $query->whereToday("logout_time")->orWhereNull("logout_time");
                 })
@@ -41,25 +39,16 @@ class HRDashboardController extends Controller
             $attendanceUsers = $attendances->pluck("user_id");
 
             $lateThreshold = Carbon::now()->startOfDay()->addHours(6);
-            $lates = 0;
-            $outs = 0;
-            // users not in attendance ids are absent
-            $absents = $userIds->diff($attendanceUsers);
 
-            foreach ($attendances as $attendance) {
-                $isLate = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
-                $lates = $isLate ? $lates + 1 : $lates;
-
-                if (!empty($attendance->logout_time)) {
-                    $outs += 1;
-                }
-            }
+            $lates = $attendances->filter(fn($attendance) => Carbon::parse($attendance->login_time)->greaterThan($lateThreshold))->count();
+            $outs = $attendances->whereNotNull("logout_time")->count();
+            $absents = $userIds->diff($attendanceUsers)->count();
 
             $attendanceStatus = [
                 "in" => $attendances->count(),
                 "out" => $outs,
                 "late" => $lates,
-                "absent" => $absents->count()
+                "absent" => $absents
             ];
 
             $onboardings = UserOnboarding::all()
