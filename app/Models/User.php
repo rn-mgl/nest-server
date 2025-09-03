@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->morphOne(File::class, "fileable")->latestOfMany();
     }
 
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, "user_id", "id");
+    }
+
     /**
      * Summary of role
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Role, User>

@@ -53,8 +53,7 @@ class EmployeeAttendanceController extends Controller
     {
         try {
             $parsedDate = Carbon::parse($requestDate)->startOfDay();
-            $currentDate = $parsedDate->format("Y-m-d H:i:s");
-            $lateThreshold = $parsedDate->copy()->addHours(6)->format("Y-m-d H:i:s");
+            $lateThreshold = $parsedDate->copy()->addHours(6);
 
             $user = Auth::id();
 
@@ -62,13 +61,13 @@ class EmployeeAttendanceController extends Controller
                 "attendance_id" => null,
                 "login_time" => null,
                 "logout_time" => null,
-                "late" => true,
+                "late" => null,
                 "absent" => true
             ];
 
             $log = Attendance::where("user_id", "=", $user)
-                ->whereDate("login_time", $currentDate)
-                ->where(fn($query) => $query->whereDate("logout_time", $currentDate)->orWhereNull("logout_time"))
+                ->whereDate("login_time", $parsedDate)
+                ->where(fn($query) => $query->whereDate("logout_time", $parsedDate)->orWhereNull("logout_time"))
                 ->first();
 
             if ($log) {
