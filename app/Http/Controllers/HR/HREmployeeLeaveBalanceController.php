@@ -4,6 +4,7 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\LeaveBalance;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -24,30 +25,20 @@ class HREmployeeLeaveBalanceController extends Controller
                 "leave_type_id" => ["required", "integer"]
             ]);
 
-            $users = DB::table("users as u")
-                ->leftJoin("leave_balances as lb", function (JoinClause $join) use ($attributes) {
-                    $join->on("u.id", "=", "lb.assigned_to")
-                        ->where("lb.leave_type_id", "=", $attributes["leave_type_id"]);
-                })
-                ->select([
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                    "u.email_verified_at",
-                    "u.created_at",
-                    "lb.id as leave_balance_id",
-                    "lb.leave_type_id",
-                    "lb.balance",
-                    "lb.deleted_at"
-                ])
-                ->get()
-                ->map(function ($leave) {
-                    // the leave is not assigned if it is deleted
-                    if ($leave->deleted_at) {
-                        $leave->leave_balance_id = null;
+            $users = User::with(
+                [
+                    "assignedLeaveBalances" => function ($query) use ($attributes) {
+                        $query->where("leave_type_id", "=", $attributes["leave_type_id"])
+                            ->withTrashed();
                     }
-                    return $leave;
+                ]
+            )
+                ->get()
+                ->each(function ($user) {
+                    if ($user->relationLoaded("assignedLeaveBalances")) {
+                        $user->assigned_leave_balances = $user->assignedLeaveBalances->first();
+                        $user->unsetRelation("assignedLeaveBalances");
+                    }
                 });
 
             return response()->json(["users" => $users]);
@@ -92,7 +83,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 $leaveBalances = LeaveBalance::withTrashed()
                     ->where("leave_type_id", "=", $leaveTypeId)
                     ->get()
-                    ->keyBy("user_id");
+                    ->keyBy("assigned_to");
 
                 $alreadyAssigned = $leaveBalances->keys();
 
@@ -102,7 +93,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 // if the user id is not yet assigned, create new leave balance record
                 foreach ($newUsers as $user) {
                     $leaveBalances->put($user, LeaveBalance::create([
-                        "user_id" => $user,
+                        "assigned_to" => $user,
                         "provided_by" => Auth::id(),
                         "leave_type_id" => $leaveTypeId,
                         "balance" => 0
@@ -113,7 +104,7 @@ class HREmployeeLeaveBalanceController extends Controller
                 $revokedUsers = $alreadyAssigned->diff($checkedUserIds);
 
                 // soft delete revoked users
-                $deleted = LeaveBalance::whereIn("user_id", $revokedUsers)
+                LeaveBalance::whereIn("assigned_to", $revokedUsers)
                     ->where("leave_type_id", $leaveTypeId)
                     ->delete();
 
