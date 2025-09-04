@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserOnboarding;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,24 +23,22 @@ class HREmployeeOnboardingController extends Controller
                 "onboarding_id" => ["required", "integer"]
             ]);
 
-            $employees = User::ofRole("employee")
-                ->leftJoin("user_onboardings", function (JoinClause $join) use ($attributes) {
-                    $join->on("users.id", "=", "user_onboardings.assigned_to")
-                        ->whereNull("users.deleted_at")
-                        ->where("onboarding_id", "=", $attributes["onboarding_id"]);
-                })
-                ->select([
-                    "users.id as user_id",
-                    "users.first_name",
-                    "users.last_name",
-                    "users.email",
-                    "users.email_verified_at",
-                    "users.created_at",
-                    "user_onboardings.id as user_onboarding_id",
-                ])
-                ->get();
+            $users = User::with(
+                [
+                    "assignedOnboardings" => function ($query) use ($attributes) {
+                        $query->where("onboarding_id", "=", $attributes["onboarding_id"]);
+                    }
+                ]
+            )
+                ->get()
+                ->each(function ($user) {
+                    if ($user->relationLoaded("assignedOnboardings")) {
+                        $user->assigned_onboarding = $user->assignedOnboardings?->first();
+                        $user->unsetRelation("assignedOnboardings");
+                    }
+                });
 
-            return response()->json(["employees" => $employees]);
+            return response()->json(["users" => $users]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -68,36 +65,40 @@ class HREmployeeOnboardingController extends Controller
                 "onboarding_id" => ["required", "integer", "exists:onboardings,id"]
             ]);
 
-            $employeeOnboardingAttr = [
-                "assigned_by" => Auth::id(),
-                "onboarding_id" => $attributes["onboarding_id"]
-            ];
+            DB::transaction(function () use ($attributes) {
+                $checkedUserIds = collect($attributes["user_ids"] ?? []);
 
-            $alreadyAssigned = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
-                ->get()
-                ->pluck("user_id")
-                ->toArray();
+                $assignedOnboardings = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
+                    ->withTrashed()
+                    ->get()
+                    ->keyBy("assigned_to");
 
-            // assign to employees
-            foreach ($attributes["user_ids"] as $id) {
-                if (!in_array($id, $alreadyAssigned)) {
-                    $employeeOnboardingAttr["user_id"] = $id;
-                    $created = UserOnboarding::create($employeeOnboardingAttr);
-                }
-            }
+                $alreadyAssigned = $assignedOnboardings->keys();
+                $newlyAssigned = $checkedUserIds->diff($alreadyAssigned);
+                $revoked = $alreadyAssigned->diff($checkedUserIds);
 
-            // remove unassigned
-            foreach ($alreadyAssigned as $id) {
-                if (!in_array($id, $attributes["user_ids"])) {
-                    $employeeOnboarding = UserOnboarding::where("user_id", "=", $id)
-                        ->where("onboarding_id", "=", $attributes["onboarding_id"])
-                        ->first();
+                // assign to employees
+                $userOnboardingData = $newlyAssigned->map(function ($id) use ($attributes) {
+                    return [
+                        "assigned_by" => Auth::id(),
+                        "onboarding_id" => $attributes["onboarding_id"],
+                        "user_id" => $id
+                    ];
+                });
 
-                    if (!empty($employeeOnboarding)) {
-                        $employeeOnboarding->delete();
-                    }
-                }
-            }
+                UserOnboarding::create($userOnboardingData->all());
+
+                // trashed records that were re-checked
+                $assignedOnboardings
+                    ->filter(
+                        fn($onboarding, $assignedTo) => $onboarding->trashed() && $checkedUserIds->contains($assignedTo)
+                    )->each
+                    ->restore();
+
+                UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
+                    ->whereIn($revoked)
+                    ->delete();
+            });
 
             return response()->json(["success" => true]);
 
