@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UserTraining;
 use App\Models\EmployeeTrainingReview;
 use App\Models\Training;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -26,27 +27,21 @@ class HREmployeeTrainingController extends Controller
                 "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
 
-            $trainingId = $attributes["training_id"];
+            $users = User::with(
+                [
+                    "assignedTrainings" => function ($query) use ($attributes) {
+                        $query->where("training_id", "=", $attributes["training_id"])
+                            ->withTrashed();
+                    }
+                ]
+            )->get()->each(function ($user) {
+                if ($user->relationLoaded("assignedTrainings")) {
+                    $user->assigned_training = $user->assignedTrainings->first();
+                    $user->unsetRelation("assignedTrainings");
+                }
+            });
 
-            $employees = DB::table("users as u")
-                ->leftJoin("user_trainings as ut", function (JoinClause $join) use ($trainingId) {
-                    $join->on("u.id", "=", "ut.assigned_to")
-                        ->where("ut.training_id", "=", $trainingId);
-                })
-                ->select([
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                    "u.email_verified_at",
-                    "u.created_at",
-                    "ut.id as user_training_id",
-                    "ut.status",
-                    "ut.deadline"
-                ])
-                ->get();
-
-            return response()->json(["employees" => $employees]);
+            return response()->json(["users" => $users]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -72,40 +67,42 @@ class HREmployeeTrainingController extends Controller
                 "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
 
-            $employeeIds = $attributes["user_ids"];
-            $trainingId = $attributes["training_id"];
-            $training = Training::find($trainingId);
-            $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
+            DB::transaction(function () use ($attributes) {
+                $checkedUserIds = collect($attributes["user_ids"]);
+                $trainingId = $attributes["training_id"];
+                $training = Training::find($trainingId);
+                $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
-            $employeeTrainings = UserTraining::where("training_id", "=", $trainingId)->get();
+                $employeeTrainings = UserTraining::withTrashed()
+                    ->where("training_id", "=", $trainingId)
+                    ->get();
 
-            $alreadyAssigned = $employeeTrainings->pluck("user_id")->toArray();
+                $alreadyAssignedIds = $employeeTrainings->pluck("user_id");
 
-            foreach ($employeeIds as $employee) {
+                $newlyAssigned = $checkedUserIds->diff($alreadyAssignedIds);
 
-                if (!in_array($employee, $alreadyAssigned)) {
-
-                    $employeeTrainingAttr = [
-                        "user_id" => $employee,
+                $assignData = $newlyAssigned->map(function ($user) use ($trainingId, $deadline) {
+                    return [
+                        "assigned_to" => $user,
                         "assigned_by" => Auth::id(),
                         "training_id" => $trainingId,
                         "deadline" => $deadline
                     ];
+                });
 
-                    $created = UserTraining::create($employeeTrainingAttr);
-                }
+                UserTraining::create($assignData->all());
 
-            }
+                // re-assign deleted records that were rechecked
+                $employeeTrainings
+                    ->filter(fn($training) => $training->trashed() && $checkedUserIds->contains($training->user_id))
+                    ->each(fn($training) => $training->restore());
 
-            foreach ($alreadyAssigned as $id) {
+                $revoked = $alreadyAssignedIds->diff($checkedUserIds);
 
-                if (!in_array($id, $employeeIds)) {
-                    $deletedEmployeeTraining = UserTraining::where("user_id", "=", $id)
-                        ->where("training_id", "=", $trainingId)
-                        ->delete();
-                }
-
-            }
+                UserTraining::where("training_id", "=", $trainingId)
+                    ->whereIn("user_id", $revoked)
+                    ->delete();
+            });
 
             return response()->json(["success" => true]);
 

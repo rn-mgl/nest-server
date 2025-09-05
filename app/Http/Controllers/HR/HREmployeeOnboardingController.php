@@ -91,8 +91,7 @@ class HREmployeeOnboardingController extends Controller
                 $assignedOnboardings
                     ->filter(
                         fn($onboarding, $assignedTo) => $onboarding->trashed() && $checkedUserIds->contains($assignedTo)
-                    )->each
-                    ->restore();
+                    )->each(fn($onboarding) => $onboarding->restore());
 
                 UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
                     ->whereIn($revoked)

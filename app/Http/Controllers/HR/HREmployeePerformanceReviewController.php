@@ -80,7 +80,7 @@ class HREmployeePerformanceReviewController extends Controller
                 $assignData = $newlyAssigned->map(function ($user) use ($performanceReviewId) {
                     return [
                         "performance_review_id" => $performanceReviewId,
-                        "user_id" => $user,
+                        "assigned_to" => $user,
                         "assigned_by" => Auth::id()
                     ];
                 });
@@ -90,8 +90,7 @@ class HREmployeePerformanceReviewController extends Controller
                 // re-assign the previously deleted records but were rechecked
                 $performanceReviews
                     ->filter(fn($performance) => $performance->trashed() && $checkedUserIds->contains($performance->user_id))
-                    ->each
-                    ->restore();
+                    ->each(fn($onboarding) => $onboarding->restore());
 
                 // revoke unchecked ids
                 $revoked = $alreadyAssignedIds->diff($checkedUserIds);
