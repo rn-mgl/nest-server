@@ -104,27 +104,7 @@ class HROnboardingController extends Controller
     public function show(Onboarding $onboarding)
     {
         try {
-
-            $required_documents = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
-                ->select([
-                    'id as onboarding_required_documents_id',
-                    'title',
-                    'description'
-                ])
-                ->get();
-
-
-            $policy_acknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
-                ->select([
-                    'id as onboarding_policy_acknowledgements_id',
-                    'title',
-                    'description'
-                ])
-                ->get();
-            $onboarding->required_documents = $required_documents;
-            $onboarding->policy_acknowledgements = $policy_acknowledgements;
-
-            return response()->json(["onboarding" => $onboarding]);
+            return response()->json(["onboarding" => $onboarding->load(["requiredDocuments", "policyAcknolwedgements"])]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -240,12 +220,17 @@ class HROnboardingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $onboarding)
+    public function destroy(Onboarding $onboarding)
     {
         try {
-            $deletedOnboarding = Onboarding::where("id", "=", $onboarding)->delete();
-            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding)->delete();
-            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding)->delete();
+
+            $deletedOnboarding = $onboarding->delete();
+
+            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
+                ->delete();
+
+            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
+                ->delete();
 
             return response()->json(["success" => $deletedOnboarding || $deletedRequiredDocuments || $deletedPolicyAcknowledgements]);
         } catch (\Throwable $th) {
