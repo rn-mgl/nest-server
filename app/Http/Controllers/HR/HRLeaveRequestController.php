@@ -19,48 +19,13 @@ class HRLeaveRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest, CategoryRequest $categoryRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $categoryAttributes = $categoryRequest->validated();
-
-            $searchKey = $searchAttributes["searchKey"];
-            $searchValue = $searchAttributes["searchValue"] ?? "";
-
-            $sortKey = $sortAttributes["sortKey"];
-            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-
-            $categoryKey = $categoryAttributes["categoryKey"];
-            $categoryValue = $categoryAttributes["categoryValue"] === "all" ? "" : $categoryAttributes["categoryValue"];
-
             $user = Auth::id();
 
-            $requests = DB::table("leave_requests as lr")
-                ->select([
-                    "lr.id as leave_request_id",
-                    "lr.created_at as requested_at",
-                    "lr.start_date",
-                    "lr.end_date",
-                    "lr.status",
-                    "lr.reason",
-                    "lt.id as leave_type_id",
-                    "lt.type",
-                    "lt.description"
-                ])
-                ->join("leave_types as lt", function (JoinClause $join) {
-                    $join->on("lt.id", "=", "lr.leave_type_id")
-                        ->whereNull("lt.deleted_at");
-                })
-                ->whereNull("lr.deleted_at")
-                ->where("user_id", "=", $user)
-                ->where($searchKey, "LIKE", "%{$searchValue}%")
-                ->where($categoryKey, "LIKE", "%{$categoryValue}%")
-                ->orderBy("lr.{$sortKey}", $sortType)
-                ->get();
+            $requests = LeaveRequest::with(["leave"])->where("requested_by", "=", $user)->get();
 
             return response()->json(["requests" => $requests]);
 
@@ -92,7 +57,6 @@ class HRLeaveRequestController extends Controller
             ]);
 
             $attributes["user_id"] = Auth::id();
-            $attributes["status"] = "pending";
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
 
@@ -159,9 +123,7 @@ class HRLeaveRequestController extends Controller
     {
         try {
 
-            $deleted = $leaveRequest->delete();
-
-            return response()->json(["success" => $deleted]);
+            return response()->json(["success" => $leaveRequest->delete()]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

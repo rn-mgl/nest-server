@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\LeaveBalance;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -17,37 +18,13 @@ class HRLeaveBalanceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $searchKey = $searchAttributes["searchKey"];
-            $searchValue = $searchAttributes["searchValue"] ?? "";
-
-            $sortKey = $sortAttributes["sortKey"];
-            $isAsc = filter_var($sortAttributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-
             $user = Auth::id();
 
-            $balances = DB::table("leave_balances as lb")
-                ->select([
-                    "lb.id as leave_balance_id",
-                    "lb.balance",
-                    "lt.id as leave_type_id",
-                    "lt.type",
-                    "lt.description"
-                ])
-                ->join("leave_types as lt", function (JoinClause $join) {
-                    $join->on("lt.id", "=", "lb.leave_type_id");
-                })
-                ->where("lb.assigned_to", "=", $user)
-                ->where($searchKey, "LIKE", "%{$searchValue}%")
-                ->orderBy($sortKey, $sortType)
-                ->get();
+            $balances = LeaveBalance::with(["leave", "assignedBy"])->where("assigned_to", "=", $user)->get();
 
             return response()->json(["balances" => $balances]);
 
