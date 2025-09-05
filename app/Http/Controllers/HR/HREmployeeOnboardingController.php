@@ -26,17 +26,16 @@ class HREmployeeOnboardingController extends Controller
             $users = User::with(
                 [
                     "assignedOnboardings" => function ($query) use ($attributes) {
-                        $query->where("onboarding_id", "=", $attributes["onboarding_id"]);
+                        $query->where("onboarding_id", "=", $attributes["onboarding_id"])
+                            ->withTrashed();
                     }
                 ]
-            )
-                ->get()
-                ->each(function ($user) {
-                    if ($user->relationLoaded("assignedOnboardings")) {
-                        $user->assigned_onboarding = $user->assignedOnboardings?->first();
-                        $user->unsetRelation("assignedOnboardings");
-                    }
-                });
+            )->get()->each(function ($user) {
+                if ($user->relationLoaded("assignedOnboardings")) {
+                    $user->assigned_onboarding = $user->assignedOnboardings?->first();
+                    $user->unsetRelation("assignedOnboardings");
+                }
+            });
 
             return response()->json(["users" => $users]);
 

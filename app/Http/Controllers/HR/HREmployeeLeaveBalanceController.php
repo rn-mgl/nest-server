@@ -88,10 +88,10 @@ class HREmployeeLeaveBalanceController extends Controller
                 $alreadyAssigned = $leaveBalances->keys();
 
                 // ticked user ids without any db records yet
-                $newUsers = $checkedUserIds->diff($alreadyAssigned);
+                $newlyAssigned = $checkedUserIds->diff($alreadyAssigned);
 
                 // if the user id is not yet assigned, create new leave balance record
-                foreach ($newUsers as $user) {
+                foreach ($newlyAssigned as $user) {
                     $leaveBalances->put($user, LeaveBalance::create([
                         "assigned_to" => $user,
                         "provided_by" => Auth::id(),

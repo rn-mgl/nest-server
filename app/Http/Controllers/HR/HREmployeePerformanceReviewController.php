@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\UserPerformanceReview;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -23,23 +24,21 @@ class HREmployeePerformanceReviewController extends Controller
                 "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
             ]);
 
-            $employees = DB::table("users as u")
-                ->leftJoin("user_performance_reviews as upr", function (JoinClause $join) use ($attributes) {
-                    $join->on("u.id", "=", "upr.assigned_to")
-                        ->where("upr.performance_review_id", "=", $attributes["performance_review_id"]);
-                })
-                ->select([
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                    "u.email_verified_at",
-                    "u.created_at",
-                    "upr.id as user_performance_review_id"
-                ])
-                ->get();
+            $users = User::with(
+                [
+                    "assignedPerformanceReviews" => function ($query) use ($attributes) {
+                        $query->where("performance_review_id", "=", $attributes["performance_review_id"])
+                            ->withTrashed();
+                    }
+                ]
+            )->get()->each(function ($user) {
+                if ($user->relationLoaded("assignedPerformanceReviews")) {
+                    $user->assigned_performance_review = $user->assignedPerformanceReviews->first();
+                    $user->unsetRelation("assignedPerformanceReviews");
+                }
+            });
 
-            return response()->json(["employees" => $employees]);
+            return response()->json(["users" => $users]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -66,33 +65,42 @@ class HREmployeePerformanceReviewController extends Controller
                 "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
             ]);
 
-            $performanceReviewId = $attributes["performance_review_id"];
-            $employeeIds = $attributes["user_ids"];
+            DB::transaction(function () use ($attributes) {
+                $performanceReviewId = $attributes["performance_review_id"];
+                $checkedUserIds = collect($attributes["user_ids"]);
 
-            $performanceReviews = UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)->get();
+                $performanceReviews = UserPerformanceReview::withTrashed()
+                    ->where("performance_review_id", "=", $performanceReviewId)
+                    ->get();
 
-            $alreadyAssigned = $performanceReviews->pluck("user_id")->toArray();
+                $alreadyAssignedIds = $performanceReviews->pluck("user_id");
 
-            foreach ($employeeIds as $employee) {
-                if (!in_array($employee, $alreadyAssigned)) {
+                $newlyAssigned = $checkedUserIds->diff($alreadyAssignedIds);
 
-                    $employeePerformanceReviewAttr = [
+                $assignData = $newlyAssigned->map(function ($user) use ($performanceReviewId) {
+                    return [
                         "performance_review_id" => $performanceReviewId,
-                        "user_id" => $employee,
+                        "user_id" => $user,
                         "assigned_by" => Auth::id()
                     ];
+                });
 
-                    $created = UserPerformanceReview::create($employeePerformanceReviewAttr);
-                }
-            }
+                UserPerformanceReview::create($assignData->all());
 
-            foreach ($alreadyAssigned as $id) {
-                if (!in_array($id, $employeeIds)) {
-                    $deleted = UserPerformanceReview::where("user_id", "=", $id)
-                        ->where("performance_review_id", "=", $performanceReviewId)
-                        ->delete();
-                }
-            }
+                // re-assign the previously deleted records but were rechecked
+                $performanceReviews
+                    ->filter(fn($performance) => $performance->trashed() && $checkedUserIds->contains($performance->user_id))
+                    ->each
+                    ->restore();
+
+                // revoke unchecked ids
+                $revoked = $alreadyAssignedIds->diff($checkedUserIds);
+
+                UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)
+                    ->whereIn("user_id", $revoked)
+                    ->delete();
+
+            });
 
             return response()->json(["success" => true]);
 
