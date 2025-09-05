@@ -85,7 +85,7 @@ class HREmployeeOnboardingController extends Controller
                     ];
                 });
 
-                UserOnboarding::create($userOnboardingData->all());
+                UserOnboarding::insert($userOnboardingData->all());
 
                 // trashed records that were re-checked
                 $assignedOnboardings

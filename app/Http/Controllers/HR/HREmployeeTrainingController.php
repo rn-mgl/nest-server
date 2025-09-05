@@ -90,7 +90,7 @@ class HREmployeeTrainingController extends Controller
                     ];
                 });
 
-                UserTraining::create($assignData->all());
+                UserTraining::insert($assignData->all());
 
                 // re-assign deleted records that were rechecked
                 $employeeTrainings

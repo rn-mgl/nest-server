@@ -21,4 +21,9 @@ class LeaveType extends Model
     {
         return $this->hasMany(LeaveBalance::class, "leave_type_id", "id");
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, "created_by", "id");
+    }
 }

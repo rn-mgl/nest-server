@@ -8,6 +8,7 @@ use App\Http\Requests\SortRequest;
 use App\Models\Onboarding;
 use App\Models\OnboardingPolicyAcknowledgement;
 use App\Models\OnboardingRequiredDocument;
+use App\Models\UserOnboarding;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,40 +19,13 @@ class HROnboardingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searcAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-            $attributes = array_merge($searcAttributes, $sortAttributes);
+            $user = Auth::id();
 
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $sortKey = $attributes["sortKey"];
-            $searchValue = $attributes["searchValue"] ?? "";
-            $searchKey = $attributes["searchKey"];
-
-            $onboardings = DB::table("onboardings as o")
-                            ->join("users as u",  function(JoinClause $join) {
-                                $join->on("u.id", "=", "o.created_by")
-                                ->whereNull("u.deleted_at");
-                            })
-                            ->whereNull("o.deleted_at")
-                            ->whereLike($searchKey, "%{$searchValue}%")
-                            ->orderBy("o.{$sortKey}", $sortType)
-                            ->select([
-                                "o.id as onboarding_id",
-                                "o.created_by",
-                                "o.title",
-                                "o.description",
-                                "u.first_name",
-                                "u.last_name",
-                                "u.email",
-                                "u.id as user_id"
-                            ])
-                            ->get();
+            $onboardings = Onboarding::with(["createdBy"])->get();
 
             return response()->json(["onboardings" => $onboardings]);
 
@@ -85,32 +59,37 @@ class HROnboardingController extends Controller
                 'policy_acknowledgements.*.description' => ["string"],
             ]);
 
-            $onboardingAttributes = [
-                'title' => $attributes['title'],
-                'description' => $attributes['description'],
-                'created_by' => Auth::id()
-            ];
-
-            $onboarding = Onboarding::create($onboardingAttributes);
-
-            foreach ($attributes["required_documents"] as $req) {
-                $documentsAttributes = [
-                    'title' => $req["title"],
-                    'description' => $req["description"],
-                    'onboarding_id' => $onboarding->id
+            $onboarding = DB::transaction(function () use ($attributes) {
+                $onboardingAttributes = [
+                    'title' => $attributes['title'],
+                    'description' => $attributes['description'],
+                    'created_by' => Auth::id()
                 ];
-                OnboardingRequiredDocument::create($documentsAttributes);
-            }
 
-            foreach ($attributes["policy_acknowledgements"] as $ack) {
-                $policyAttributes = [
-                    'title' => $ack["title"],
-                    'description' => $ack["description"],
-                    'onboarding_id' => $onboarding->id
-                ];
-                OnboardingPolicyAcknowledgement::create($policyAttributes);
-            }
+                $onboarding = Onboarding::create($onboardingAttributes);
 
+                $documentsData = collect($attributes["required_documents"])->map(function ($document) use ($onboarding) {
+                    return [
+                        "title" => $document["title"],
+                        "description" => $document["description"],
+                        "onboarding_id" => $onboarding->id
+                    ];
+                });
+
+                OnboardingRequiredDocument::insert($documentsData->all());
+
+                $policiesData = collect($attributes["policy_acknowledgements"])->map(function ($policy) use ($onboarding) {
+                    return [
+                        "title" => $policy["title"],
+                        "description" => $policy["description"],
+                        "onboarding_id" => $onboarding->id
+                    ];
+                });
+
+                OnboardingPolicyAcknowledgement::insert($policiesData->all());
+
+                return $onboarding;
+            });
 
             return response()->json(["success" => $onboarding]);
 
@@ -127,21 +106,21 @@ class HROnboardingController extends Controller
         try {
 
             $required_documents = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
-                                    ->select([
-                                        'id as onboarding_required_documents_id',
-                                        'title',
-                                        'description'
-                                    ])
-                                    ->get();
+                ->select([
+                    'id as onboarding_required_documents_id',
+                    'title',
+                    'description'
+                ])
+                ->get();
 
 
             $policy_acknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
-                                    ->select([
-                                        'id as onboarding_policy_acknowledgements_id',
-                                        'title',
-                                        'description'
-                                    ])
-                                    ->get();
+                ->select([
+                    'id as onboarding_policy_acknowledgements_id',
+                    'title',
+                    'description'
+                ])
+                ->get();
             $onboarding->required_documents = $required_documents;
             $onboarding->policy_acknowledgements = $policy_acknowledgements;
 
@@ -188,7 +167,7 @@ class HROnboardingController extends Controller
             $documentsToDelete = $attributes["documentsToDelete"];
             $policiesToDelete = $attributes["policiesToDelete"];
 
-            foreach($documents as $requirement) {
+            foreach ($documents as $requirement) {
                 $id = $requirement['onboarding_required_document_id'] ?? null;
 
                 logger($requirement);
@@ -209,7 +188,7 @@ class HROnboardingController extends Controller
                 }
             }
 
-            foreach($policies as $acknowledgement) {
+            foreach ($policies as $acknowledgement) {
                 $id = $acknowledgement['onboarding_policy_acknowledgement_id'] ?? null;
 
                 $acknowledgementAttributes = [
@@ -228,7 +207,7 @@ class HROnboardingController extends Controller
                 }
             }
 
-            foreach($documentsToDelete as $toDelete) {
+            foreach ($documentsToDelete as $toDelete) {
                 $document = OnboardingRequiredDocument::find($toDelete);
 
                 if ($document) {
@@ -236,7 +215,7 @@ class HROnboardingController extends Controller
                 }
             }
 
-            foreach($policiesToDelete as $toDelete) {
+            foreach ($policiesToDelete as $toDelete) {
                 $acknowledgement = OnboardingPolicyAcknowledgement::find($toDelete);
 
                 if ($acknowledgement) {

@@ -17,40 +17,11 @@ class HRLeaveTypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes);
-
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $searchValue = $attributes["searchValue"] ?? "";
-
-            $leaves = DB::table("leave_types as lt")
-                    ->join("users as u", first: function (JoinClause $join) {
-                        $join->on("u.id", "=", "lt.created_by");
-                    })
-                    ->where($attributes["searchKey"], "LIKE", "%{$searchValue}%")
-                    ->select(
-                [
-                            "type",
-                            "description",
-                            "lt.id as leave_type_id",
-                            "lt.created_at",
-                            "lt.created_by",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            "u.id as user_id"
-                        ]
-                    )
-                    ->orderBy($attributes["sortKey"], $sortType)
-                    ->get();
+            $leaves = LeaveType::with(["createdBy"])->get();
 
             return response()->json(["leaves" => $leaves]);
         } catch (\Throwable $th) {
@@ -79,7 +50,7 @@ class HRLeaveTypeController extends Controller
 
             $attributes["created_by"] = Auth::id();
 
-            $leaveType = LeaveType::create($attributes);
+            LeaveType::create($attributes);
 
             return response()->json(["success" => true]);
         } catch (\Throwable $th) {
@@ -132,9 +103,7 @@ class HRLeaveTypeController extends Controller
     public function destroy(LeaveType $leaveType)
     {
         try {
-            $deletedLeaveType = $leaveType->delete();
-
-            return response()->json(["success" => $deletedLeaveType]);
+            return response()->json(["success" => $leaveType->delete()]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

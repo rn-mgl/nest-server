@@ -85,7 +85,7 @@ class HREmployeePerformanceReviewController extends Controller
                     ];
                 });
 
-                UserPerformanceReview::create($assignData->all());
+                UserPerformanceReview::insert($assignData->all());
 
                 // re-assign the previously deleted records but were rechecked
                 $performanceReviews
