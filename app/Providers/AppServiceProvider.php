@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Document;
 use App\Models\Training;
+use App\Models\TrainingContent;
 use App\Models\User;
 use App\Models\UserOnboardingRequiredDocuments;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             "user" => User::class,
             "document" => Document::class,
             "training" => Training::class,
+            "training_content" => TrainingContent::class,
             "user_required_documents" => UserOnboardingRequiredDocuments::class
         ]);
     }

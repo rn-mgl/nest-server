@@ -12,6 +12,11 @@ class TrainingContent extends Model
 
     protected $guarded = [];
 
+    public function content()
+    {
+        return $this->morphOne(File::class, "fileable");
+    }
+
     public function training()
     {
         return $this->belongsTo(Training::class, "training_id", "id");

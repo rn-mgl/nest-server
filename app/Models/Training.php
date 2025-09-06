@@ -35,4 +35,9 @@ class Training extends Model
         return $this->hasMany(TrainingReview::class, "training_id", "id");
     }
 
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, "created_by", "id");
+    }
+
 }

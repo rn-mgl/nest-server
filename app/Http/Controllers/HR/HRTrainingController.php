@@ -13,49 +13,21 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+
+use function PHPSTORM_META\map;
 
 class HRTrainingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes);
-
-            $searchKey = $attributes["searchKey"];
-            $searchValue = $attributes["searchValue"] ?? "";
-            $sortKey = $attributes["sortKey"];
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            $sortType = $isAsc ? "ASC" : "DESC";
-
-            $trainings = DB::table("trainings as t")
-                        ->join("users as u", function(JoinClause $join) {
-                            $join->on("t.created_by", "=", "u.id")
-                            ->whereNull("u.deleted_at");
-                        })
-                        ->whereNull("t.deleted_at")
-                        ->whereLike("t.$searchKey", "%$searchValue%")
-                        ->orderBy("t.$sortKey", $sortType)
-                        ->select(
-                            [
-                            "t.id as training_id",
-                            "t.title",
-                            "t.description",
-                            "t.deadline_days",
-                            "t.created_by",
-                            "t.certificate",
-                            "u.id as user_id",
-                            "u.first_name",
-                            "u.last_name",
-                            "u.email",
-                            ]
-                        )->get();
+            $trainings = Training::with(["createdBy"])->get();
 
             return response()->json(["trainings" => $trainings]);
         } catch (\Throwable $th) {
@@ -79,33 +51,30 @@ class HRTrainingController extends Controller
 
         try {
 
-            $contents = $request->input("contents");
+            $decode = fn($value) => collect($value ?? [])
+                ->map(fn($item) => json_decode($item, true))
+                ->all();
 
-            foreach($contents as $key => $value) {
-                $contents[$key] = json_decode($value, true);
-            }
+            $contents = $decode($request->input("contents"));
+            $review = $decode($request->input("reviews"));
 
-            $reviews = $request->input("reviews") ?? [];
-
-            foreach($reviews as $key => $value) {
-                $reviews[$key] = json_decode($value, true);
-            }
+            $request->merge(compact("contents", "reviews"));
 
             // convert json string to valid json
-            $request->merge(["contents" => $contents, "reviews" => $reviews]);
-
             $attributes = $request->validate([
                 "title" => ["required", "string"],
                 "description" => ["required", "string"],
                 "deadline_days" => ["required", "integer"],
                 "certificate" => ["required", "file"],
+
                 "contents" => ["array"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
                 "contents.*.content" => ["required_if:contents.*.type,text", "string"],
-                "contents.*.type" => ["required", "string", "in:text,image,video,file"],
-                "contentFile" => ["nullable", "array"],
-                "contentFile.*" => ["required_if:contents.*.type,image,video,file"],
+
+                "content_file" => ["nullable", "array"],
+                "content_file.*" => ["required_if:contents.*.type,image,video,file"],
+
                 "reviews" => ["array"],
                 "reviews.*.answer" => ["required", "integer"],
                 "reviews.*.choice_1" => ["required", "string"],
@@ -115,56 +84,73 @@ class HRTrainingController extends Controller
                 "reviews.*.question" => ["required", "string"],
             ]);
 
-            $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
+            $created = DB::transaction(function () use ($attributes, $request) {
+                $training = Training::create([
+                    "created_by" => Auth::id(),
+                    "title" => $attributes["title"],
+                    "description" => $attributes["description"],
+                    "deadline_days" => $attributes["deadline_days"]
+                ]);
 
-            $trainingAttr = [
-                "created_by" => Auth::id(),
-                "title" => $attributes["title"],
-                "description" => $attributes["description"],
-                "deadline_days" => $attributes["deadline_days"],
-                "certificate" => $certificate
-            ];
+                $disk = "training";
 
-            $training = Training::create($trainingAttr);
+                if ($request->hasFile("certificate")) {
+                    $file = $request->file("certificate");
 
-            foreach($contents as $key => $value) {
+                    $uploaded = Storage::disk($disk)->put("/certificates", $file);
 
-                $isFile = in_array($value["type"], ["image", "video", "file"]);
-
-                $contentAttr = [
-                    "training_id" => $training->id,
-                    "title" => $value["title"],
-                    "description" => $value["description"],
-                    "content" => $value["content"],
-                    "type" => $value["type"],
-                ];
-
-                if ($isFile) {
-                    $currentContentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath(), ['folder' => 'nest-uploads'])->getSecurePath();
-                    $contentAttr['content'] = $currentContentFile;
+                    $training->certificate()->create([
+                        "disk" => $disk,
+                        "path" => $uploaded,
+                        "original_name" => $file->getClientOriginalName(),
+                        "mime_type" => $file->getMimeType(),
+                        "size" => $file->getSize(),
+                    ]);
                 }
 
-                $trainingContent = TrainingContent::create($contentAttr);
-            }
+                foreach ($attributes["contents"] as $key => $value) {
+                    $content = TrainingContent::create([
+                        "training_id" => $training->id,
+                        "title" => $value["title"],
+                        "description" => $value["description"],
+                        "content" => $value["content"] ?? null
+                    ]);
 
-            foreach($reviews as $key => $value) {
+                    if ($request->hasFile("content_file.{$key}")) {
+                        $file = $request->file("content_file.{$key}");
 
-                $reviewAttr = [
-                    "training_id" => $training->id,
-                    "created_by" => Auth::id(),
-                    "answer" => $value["answer"],
-                    "choice_1" => $value["choice_1"],
-                    "choice_2" => $value["choice_2"],
-                    "choice_3" => $value["choice_3"],
-                    "choice_4" => $value["choice_4"],
-                    "question" => $value["question"],
-                ];
+                        $uploaded = Storage::disk($disk)->put("/contents", $file);
 
-                $trainingReview = TrainingReview::create($reviewAttr);
+                        $content->content()->create([
+                            "disk" => $disk,
+                            "path" => $uploaded,
+                            "original_name" => $file->getClientOriginalName(),
+                            "mime_type" => $file->getMimeType(),
+                            "size" => $file->getSize()
+                        ]);
+                    }
+                }
 
-            }
+                $reviewsData = collect($attributes["reviews"])
+                    ->map(function ($review) use ($training) {
+                        return [
+                            "training_id" => $training->id,
+                            "created_by" => Auth::id(),
+                            "answer" => $review["answer"],
+                            "choice_1" => $review["choice_1"],
+                            "choice_2" => $review["choice_2"],
+                            "choice_3" => $review["choice_3"],
+                            "choice_4" => $review["choice_4"],
+                            "question" => $review["question"],
+                        ];
+                    });
 
-            return response()->json(["success" => true]);
+                TrainingReview::insert($reviewsData->all());
+
+                return $training;
+            });
+
+            return response()->json(["success" => $created]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -178,33 +164,7 @@ class HRTrainingController extends Controller
     {
 
         try {
-            $contents = TrainingContent::where("training_id", "=", $training->id)
-                        ->select([
-                            "id as training_content_id",
-                            "title",
-                            "description",
-                            "content",
-                            "type"
-                        ])
-                        ->get();
-
-            $training->contents = $contents;
-
-            $reviews = TrainingReview::where("training_id", "=", $training->id)
-                        ->select([
-                            "id as training_review_id",
-                            "question",
-                            "answer",
-                            "choice_1",
-                            "choice_2",
-                            "choice_3",
-                            "choice_4",
-                        ])
-                        ->get();
-
-            $training->reviews = $reviews;
-
-            return response()->json(["training" => $training]);
+            return response()->json(["training" => $training->load(["contents", "reviews"])]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -224,43 +184,55 @@ class HRTrainingController extends Controller
     public function update(Request $request, Training $training)
     {
         try {
-            $contents = $request->input("contents");
 
-            foreach ($contents as $key => $value) {
-                $decoded = json_decode($value, true);
-                $type = $decoded['type'];
-                $isFile = in_array($type, ['image','video','file']);
+            $decode = fn($value) => collect($value ?? [])
+                ->map(fn($item) => json_decode($item, true))
+                ->all();
 
-                // if the content is a file, the content is empty, and there is no file for in this index - throw an error
-                if ($isFile && empty($decoded['content']) && !$request->hasFile("contentFile.{$key}")) {
-                    throw new Exception("No file attached for {$type} Content " . $key + 1);
-                }
+            $contents = $decode($request->input("contents", "[]"));
+            $reviews = $decode($request->input("reviews", "[]"));
+            $contentsToDelete = json_decode($request->input("contents_to_delete"), true);
+            $reviewsToDelete = json_decode($request->input("reviews_to_delete"), true);
 
-                $contents[$key] = $decoded;
-            }
-
-            $reviews = $request->input("reviews") ?? [];
-
-            foreach ($reviews as $key => $value) {
-                $reviews[$key] = json_decode($value, true);
-            }
-
-            $request->merge(["contents" => $contents, "reviews" => $reviews]);
+            $request->merge([
+                "contents" => $contents,
+                "reviews" => $reviews,
+                "contents_to_delete" => $contentsToDelete,
+                "reviews_to_delete" => $reviewsToDelete
+            ]);
 
             $attributes = $request->validate([
                 "title" => ["required", "string"],
                 "description" => ["required", "string"],
-                "certificate" => ["required"],
                 "deadline_days" => ["required", "integer"],
+                "certificate" => [
+                    "required",
+                    Rule::when(
+                        $request->hasFile("certificate"),
+                        ["file"],
+                        ["string"]
+                    )
+                ],
+
                 "contents" => ["required", "array"],
                 "contents.*.training_content_id" => ["nullable"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
                 "contents.*.content" => ["required_if:content.*.type,text", "string"],
-                "contents.*.type" => ["required", "string", "in:text,image,video,file"],
-                "contentFile" => ["required", "array"],
-                "contentsToDelete" => ["array", "nullable"],
-                "contentsToDelete.*" => ["nullable", "integer"],
+
+                "content_file" => ["required", "array"],
+                "content_file.*" => [
+                    "required_unless:contents.*.type,text",
+                    Rule::when(
+                        $request->hasFile("content_file.*"),
+                        ["file"],
+                        ["nullable"]
+                    )
+                ],
+
+                "contents_to_delete" => ["array", "nullable"],
+                "contents_to_delete.*" => ["nullable", "integer"],
+
                 "reviews" => ["array"],
                 "reviews.*.answer" => ["required", "integer", "in:1,2,3,4"],
                 "reviews.*.question" => ["required", "string"],
@@ -269,93 +241,105 @@ class HRTrainingController extends Controller
                 "reviews.*.choice_3" => ["required", "string"],
                 "reviews.*.choice_4" => ["required", "string"],
                 "reviews.*.training_review_id" => ["nullable"],
-                "reviewsToDelete" => ["array", "nullable"],
-                "reviewsToDelete.*" => ["integer"]
+
+                "reviews_to_delete" => ["array", "nullable"],
+                "reviews_to_delete.*" => ["integer"]
             ]);
 
-            if (!$request->hasFile("certificate") && !is_string($attributes["certificate"])) {
-                throw new Exception("Invalid certificate");
-            }
 
-            $trainingAttr = [
-                "title" => $attributes["title"],
-                "description" => $attributes["description"],
-                "deadline_days" => $attributes["deadline_days"],
-                "certificate" => $attributes["certificate"]
-            ];
 
-            if ($request->hasFile("certificate")) {
-                $certificate = cloudinary()->uploadFile($request->file("certificate")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                $trainingAttr["certificate"] = $certificate;
-            }
+            $updated = DB::transaction(function () use ($attributes, $training, $request) {
 
-            $updatedTraining = $training->update($trainingAttr);
-
-            $contents = $attributes["contents"];
-
-            foreach($contents as $key => $value) {
-
-                // if training_content_id is set, perform update
-                // if not set, perform create
-
-                $contentAttr = [
-                    "training_id" => $training->id,
-                    "title" => $value["title"],
-                    "description" => $value["description"],
-                    "content" => $value["content"],
-                    "type" => $value["type"],
+                $trainingAttr = [
+                    "title" => $attributes["title"],
+                    "description" => $attributes["description"],
+                    "deadline_days" => $attributes["deadline_days"],
+                    "certificate" => $attributes["certificate"]
                 ];
 
-                if ($request->hasFile("contentFile.$key")) {
-                    $contentFile = cloudinary()->uploadFile($request->file("contentFile.$key")->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-                    $contentAttr["content"] = $contentFile;
+                $updated = $training->update($trainingAttr);
+
+                $disk = "training";
+
+                if ($request->hasFile("certificate")) {
+                    // soft delete old certificate to be overwritten by new one
+                    $training->certificate()->delete();
+
+                    $file = $request->file("certificate");
+
+                    $uploaded = Storage::disk($disk)->put("/content", $file);
+
+                    $training->certificate()->create([
+                        "disk" => $disk,
+                        "path" => $uploaded,
+                        "original_name" => $file->getClientOriginalName(),
+                        "mime_type" => $file->getMimeType(),
+                        "size" => $file->getSize()
+                    ]);
                 }
 
-                if (!empty($value["training_content_id"])) {
-                    $updatedContent = TrainingContent::where("id", "=", $value["training_content_id"])->update($contentAttr);
-                } else {
-                    $createdContent = TrainingContent::create($contentAttr);
+                foreach ($attributes["contents"] as $index => $content) {
+
+                    if (!$content["training_content_id"]) {
+                        $content = TrainingContent::create([
+                            "training_id" => $training->id,
+                            "title" => $content["title"],
+                            "description" => $content["description"],
+                            "content" => $content["content"] ?? null,
+                        ]);
+                    } else {
+                        $content = TrainingContent::find($content["training_content_id"]);
+                        $content->update([
+                            "title" => $content["title"],
+                            "description" => $content["description"],
+                            "content" => $content["content"] ?? null,
+                        ]);
+                    }
+
+                    if ($request->hasFile("content_file.{$index}")) {
+                        $file = $request->file("content_file.{$index}");
+
+                        $content->content()->delete();
+
+                        $uploaded = Storage::disk($disk)->put("/contents", $file);
+
+                        $content->content()->create([
+                            "disk" => $disk,
+                            "path" => $uploaded,
+                            "original_name" => $file->getClientOriginalName(),
+                            "mime_type" => $file->getMimeType(),
+                            "size" => $file->getSize()
+                        ]);
+                    }
                 }
 
-            }
+                $reviewData = collect($attributes["reviews"] ?? [])->map(function ($review) use ($training) {
+                    return [
+                        "id" => $review["training_review_id"] ?? null,
+                        "training_id" => $training->id,
+                        "question" => $review["question"],
+                        "answer" => $review["answer"],
+                        "choice_1" => $review["choice_1"],
+                        "choice_2" => $review["choice_2"],
+                        "choice_3" => $review["choice_3"],
+                        "choice_4" => $review["choice_4"],
+                    ];
+                });
 
-            $contentsToDelete = $attributes["contentsToDelete"] ?? [];
+                TrainingReview::upsert(
+                    $reviewData->all(),
+                    ["id"],
+                    ["question", "answer", "choice_1", "choice_2", "choice_3", "choice_4"]
+                );
 
-            foreach($contentsToDelete as $toDelete) {
-                $deletedContents = TrainingContent::where("id", "=", $toDelete)->delete();
-            }
+                TrainingContent::whereIn("id", $attributes["contentsToDelete"] ?? [])->delete();
 
-            $reviews = $attributes["reviews"];
+                TrainingReview::whereIn("id", $attributes["reviewsToDelete"] ?? [])->delete();
 
-            foreach($reviews as $key => $value) {
+                return $updated;
+            });
 
-                $reviewAttr = [
-                    "training_id" => $training->id,
-                    "question" => $value["question"],
-                    "answer" => $value["answer"],
-                    "choice_1" => $value["choice_1"],
-                    "choice_2" => $value["choice_2"],
-                    "choice_3" => $value["choice_3"],
-                    "choice_4" => $value["choice_4"],
-                ];
-
-                if (!empty($value['training_review_id'])) {
-                    $updatedReview = TrainingReview::where("id", "=", $value['training_review_id'])->update($reviewAttr);
-                } else {
-                    $createdReview = TrainingReview::create($reviewAttr);
-                }
-
-            }
-
-            $reviewsToDelete = $attributes["reviewsToDelete"] ?? [];
-
-            foreach ($reviewsToDelete as $toDelete) {
-
-                $deletedReviews = TrainingReview::where("id", "=", $toDelete)->update(["deleted_at" => true]);
-
-            }
-
-            return response()->json(["success" => true]);
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -368,6 +352,7 @@ class HRTrainingController extends Controller
     public function destroy(Training $training)
     {
         try {
+
             $deleted = $training->delete();
             $deletedContents = TrainingContent::where("training_id", "=", $training->id)->delete();
 
