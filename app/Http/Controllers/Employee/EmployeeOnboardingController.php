@@ -65,7 +65,7 @@ class EmployeeOnboardingController extends Controller
                 [
                     "onboarding" =>
                         [
-                            "policyAcknolwedgements" => [
+                            "policyAcknowledgements" => [
                                 "userAcknowledgement" => function ($query) use ($employeeOnboarding) {
                                     $query->where("acknowledged_by", "=", $employeeOnboarding->assigned_to);
                                 }

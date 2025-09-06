@@ -32,11 +32,11 @@ class Onboarding extends Model
     }
 
     /**
-     * Summary of policyAcknolwedgements
+     * Summary of policyAcknowledgements
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<OnboardingPolicyAcknowledgement, Onboarding>
      */
-    public function policyAcknolwedgements()
+    public function policyAcknowledgements()
     {
         return $this->hasMany(OnboardingPolicyAcknowledgement::class, "onboarding_id", "id");
     }
