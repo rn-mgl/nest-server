@@ -142,45 +142,49 @@ class HROnboardingController extends Controller
                 "policies_to_delete.*" => ["integer", "nullable"]
             ]);
 
-            $documents = collect($attributes["required_documents"] ?? []);
-            $policies = collect($attributes["policy_acknowledgements"] ?? []);
-            $documentsToDelete = $attributes["documents_to_delete"];
-            $policiesToDelete = $attributes["policies_to_delete"];
+            $updated = DB::transaction(function () use ($attributes, $onboarding) {
+                $documents = collect($attributes["required_documents"] ?? []);
+                $policies = collect($attributes["policy_acknowledgements"] ?? []);
+                $documentsToDelete = $attributes["documents_to_delete"];
+                $policiesToDelete = $attributes["policies_to_delete"];
 
-            $documentsData = $documents->map(function ($document) use ($onboarding) {
-                return [
-                    "id" => $document["id"] ?? null,
-                    "onboarding_id" => $onboarding->id,
-                    "created_by" => Auth::id(),
-                    "title" => $document["title"],
-                    "description" => $document["description"],
-                ];
+                $documentsData = $documents->map(function ($document) use ($onboarding) {
+                    return [
+                        "id" => $document["id"] ?? null,
+                        "onboarding_id" => $onboarding->id,
+                        "created_by" => Auth::id(),
+                        "title" => $document["title"],
+                        "description" => $document["description"],
+                    ];
+                });
+
+                OnboardingRequiredDocument::upsert($documentsData->all(), ["id"], ["title", "description"]);
+
+                $policiesData = $policies->map(function ($policy) use ($onboarding) {
+                    return [
+                        "id" => $policy["id"] ?? null,
+                        "onboarding_id" => $onboarding->id,
+                        "created_by" => Auth::id(),
+                        "title" => $policy["title"],
+                        "description" => $policy["description"]
+                    ];
+                });
+
+                OnboardingPolicyAcknowledgement::upsert($policiesData->all(), ["id"], ["title", "description"]);
+
+                OnboardingRequiredDocument::whereIn("id", $documentsToDelete)->delete();
+
+                OnboardingPolicyAcknowledgement::whereIn("id", $policiesToDelete)->delete();
+
+                $updatedOnboarding = $onboarding->update([
+                    'title' => $attributes['title'],
+                    'description' => $attributes['description']
+                ]);
+
+                return $updatedOnboarding;
             });
 
-            OnboardingRequiredDocument::upsert($documentsData->all(), ["id"], ["title", "description"]);
-
-            $policiesData = $policies->map(function ($policy) use ($onboarding) {
-                return [
-                    "id" => $policy["id"] ?? null,
-                    "onboarding_id" => $onboarding->id,
-                    "created_by" => Auth::id(),
-                    "title" => $policy["title"],
-                    "description" => $policy["description"]
-                ];
-            });
-
-            OnboardingPolicyAcknowledgement::upsert($policiesData->all(), ["id"], ["title", "description"]);
-
-            OnboardingRequiredDocument::whereIn("id", $documentsToDelete)->delete();
-
-            OnboardingPolicyAcknowledgement::whereIn("id", $policiesToDelete)->delete();
-
-            $updatedOnboarding = $onboarding->update([
-                'title' => $attributes['title'],
-                'description' => $attributes['description']
-            ]);
-
-            return response()->json(["success" => $updatedOnboarding]);
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());

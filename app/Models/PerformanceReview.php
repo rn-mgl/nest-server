@@ -21,12 +21,9 @@ class PerformanceReview extends Model
         return $this->hasMany(PerformanceReviewContent::class, "performance_review_id", "id");
     }
 
-    /**
-     * Summary of assignedUsers
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, PerformanceReview, \Illuminate\Database\Eloquent\Relations\Pivot>
-     */
-    public function assignedUsers()
+    public function createdBy()
     {
-        return $this->belongsToMany(User::class, "user_performance_review", "performance_review_id", "assigned_to");
+        return $this->belongsTo(User::class, "created_by", "id");
     }
+
 }

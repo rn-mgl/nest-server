@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\PerformanceReview;
 use App\Models\PerformanceReviewContent;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,41 +14,11 @@ class HRPerformanceReviewController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(SearchRequest $searchRequest, SortRequest $sortRequest)
+    public function index()
     {
         try {
 
-            $searchAttributes = $searchRequest->validated();
-            $sortAttributes = $sortRequest->validated();
-
-            $attributes = array_merge($searchAttributes, $sortAttributes);
-
-            $searchValue = $attributes["searchValue"] ?? "";
-            $isAsc = filter_var($attributes["isAsc"], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-            $sortType = $isAsc ? "ASC" : "DESC";
-            $sortKey = $attributes["sortKey"];
-            $searchKey = $attributes["searchKey"];
-
-            $performances = DB::table("performance_reviews as pr")
-                ->join("users as u", function (JoinClause $join) {
-                    $join->on("u.id", "=", "pr.created_by")
-                        ->whereNull("u.deleted_at");
-                })
-                ->whereNull("pr.deleted_at")
-                ->whereLike($searchKey, "%$searchValue%")
-                ->orderBy("pr.$sortKey", $sortType)
-                ->select([
-                    "pr.id as performance_review_id",
-                    "pr.title",
-                    "pr.description",
-                    "pr.created_by",
-                    "u.id as user_id",
-                    "u.first_name",
-                    "u.last_name",
-                    "u.email",
-                ])
-                ->get();
+            $performances = PerformanceReview::with(["createdBy"])->get();
 
             return response()->json(["performances" => $performances]);
         } catch (\Throwable $th) {
@@ -80,27 +47,27 @@ class HRPerformanceReviewController extends Controller
                 "surveys.*.survey" => ["string"]
             ]);
 
-            $performanceAttr = [
-                "title" => $attributes["title"],
-                "description" => $attributes["description"],
-                "created_by" => Auth::id()
-            ];
+            $created = DB::transaction(function () use ($attributes) {
+                $createdPerformance = PerformanceReview::create([
+                    "title" => $attributes["title"],
+                    "description" => $attributes["description"],
+                    "created_by" => Auth::id()
+                ]);
 
-            $createdPerformance = PerformanceReview::create($performanceAttr);
-            $surveys = $attributes["surveys"];
+                $surveyData = collect($attributes["surveys"])->map(function ($survey) use ($createdPerformance) {
+                    return [
+                        "survey" => $survey["survey"],
+                        "created_by" => Auth::id(),
+                        "performance_review_id" => $createdPerformance->id
+                    ];
+                });
 
-            $createdPerformanceReviews = 0;
+                PerformanceReviewContent::insert($surveyData->all());
 
-            foreach ($surveys as $survey) {
-                $performanceReviewAttr = [
-                    "survey" => $survey["survey"],
-                    "performance_review_id" => $createdPerformance->id
-                ];
-                PerformanceReviewContent::create($performanceReviewAttr);
-                $createdPerformanceReviews++;
-            }
+                return $createdPerformance;
+            });
 
-            return response()->json(["success" => $createdPerformance, "contents" => $createdPerformanceReviews]);
+            return response()->json(["success" => $created]);
 
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
@@ -113,16 +80,7 @@ class HRPerformanceReviewController extends Controller
     public function show(PerformanceReview $performanceReview)
     {
         try {
-            $contents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)
-                ->select([
-                    "id as performance_review_content_id",
-                    "survey"
-                ])
-                ->get();
-
-            $performanceReview->contents = $contents;
-
-            return response()->json(["performance" => $performanceReview]);
+            return response()->json(["performance" => $performanceReview->load("contents")]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -153,42 +111,29 @@ class HRPerformanceReviewController extends Controller
                 "surveyToDelete.*" => ["integer", "nullable"]
             ]);
 
-            $surveyToDelete = $attributes["surveyToDelete"];
-            $surveys = $attributes["surveys"];
-            $performanceReviewAttr = [
-                "title" => $attributes["title"],
-                "description" => $attributes["description"],
-            ];
+            $updated = DB::transaction(function () use ($attributes, $performanceReview) {
+                $surveyToDelete = $attributes["surveyToDelete"];
 
-            // edit or update survey if performance_review_content_id is set
-            foreach ($surveys as $survey) {
-                $id = $survey["performance_review_content_id"] ?? null;
-                if ($id) {
-                    $performanceReviewContent = PerformanceReviewContent::find($id);
-
-                    if ($performanceReviewContent) {
-                        $performanceReviewContent->update([
-                            "survey" => $survey["survey"]
-                        ]);
-                    }
-                } else {
-                    PerformanceReviewContent::create([
+                $surveyData = collect($attributes["surveys"])->map(function ($survey) use ($performanceReview) {
+                    return [
+                        "id" => $survey["id"] ?? null,
                         "survey" => $survey["survey"],
+                        "created_by" => Auth::id(),
                         "performance_review_id" => $performanceReview->id
-                    ]);
-                }
-            }
+                    ];
+                });
 
-            // delete surveys marked for deletion
-            foreach ($surveyToDelete as $toDelete) {
-                $performanceReviewContent = PerformanceReviewContent::find($toDelete);
+                PerformanceReviewContent::upsert($surveyData->all(), ["id"], ["survey"]);
 
-                if ($performanceReviewContent) {
-                    $performanceReviewContent->delete();
-                }
-            }
+                PerformanceReviewContent::whereIn("id", $surveyToDelete)->delete();
 
-            $updated = $performanceReview->update($performanceReviewAttr);
+                $updated = $performanceReview->update([
+                    "title" => $attributes["title"],
+                    "description" => $attributes["description"],
+                ]);
+
+                return $updated;
+            });
 
             return response()->json(["success" => $updated]);
         } catch (\Throwable $th) {
@@ -202,9 +147,7 @@ class HRPerformanceReviewController extends Controller
     public function destroy(PerformanceReview $performanceReview)
     {
         try {
-            $deletedPerformanceReview = $performanceReview->delete();
-
-            return response()->json(["success" => $deletedPerformanceReview]);
+            return response()->json(["success" => $performanceReview->delete()]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

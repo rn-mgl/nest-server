@@ -35,13 +35,4 @@ class Training extends Model
         return $this->hasMany(TrainingReview::class, "training_id", "id");
     }
 
-    /**
-     * Summary of assignedUsers
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, Training, \Illuminate\Database\Eloquent\Relations\Pivot>
-     */
-    public function assignedUsers()
-    {
-        return $this->belongsToMany(User::class, "user_trainings", "training_id", "assigned_to");
-    }
 }
