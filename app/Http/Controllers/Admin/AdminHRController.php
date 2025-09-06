@@ -3,13 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class AdminHRController extends Controller
@@ -22,17 +18,7 @@ class AdminHRController extends Controller
 
         try {
 
-            // Query the 'users' table, applying search and sorting filters
-            $hrs = User::ofRole("hr")
-                ->select([
-                    "id as user_id",
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "email_verified_at",
-                    "created_at"
-                ])
-                ->get();
+            $hrs = User::ofRole("hr")->get();
 
             return response()->json(["hrs" => $hrs]);
         } catch (\Throwable $th) {
@@ -81,19 +67,14 @@ class AdminHRController extends Controller
         try {
 
             $attributes = $request->validate([
-                "type" => ["required", "string"]
+                "toggle" => ["required", "boolean"]
             ]);
 
-            switch ($attributes["type"]) {
-                case "deactivate":
-                    $updated = $hr->update(["email_verified_at" => null]);
-                    return response()->json(["success" => $updated]);
-                case "verify":
-                    $updated = $hr->update(["email_verified_at" => Carbon::now()]);
-                    return response()->json(["success" => $updated]);
-                default:
-                    throw new Exception("Invalid update action");
-            }
+            $verification = $attributes["toggle"] ? Carbon::now() : null;
+
+            $updated = $hr->update(["email_verified_at" => $verification]);
+
+            return response()->json(["success" => $updated]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
