@@ -41,18 +41,16 @@ class HREmployeeController extends Controller
                 case "leaves":
                     // TO DO: Enhance to avoid N+1 Loading
                     $leaves = LeaveRequest::with([
-                        "leaves",
+                        "leave",
                         "requestedBy" => ["currentProfilePicture"],
-                        "approvedBy" => ["currentProfilePicture"]
-                    ])->get()->map(function ($leave) {
+                        "actionedBy" => ["currentProfilePicture"]
+                    ])->get()->each(function ($leave) {
                         $leave->balance = LeaveBalance::where(
                             [
                                 "leave_type_id" => $leave->leave_type_id,
-                                "user_id" => $leave->user_id
+                                "assigned_to" => $leave->relationLoaded("requestedBy") ? $leave->requestedBy->id : 0
                             ]
                         )->first();
-
-                        return $leave;
                     });
                     return response()->json(["leaves" => $leaves]);
                 case "performances":
