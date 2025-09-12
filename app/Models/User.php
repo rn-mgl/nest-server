@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -32,6 +33,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
         'role_id'
     ];
+
+    /**
+     * Summary of appends
+     * @var array
+     */
+    protected $appends = ['verification_status'];
 
     /**
      * Get the attributes that should be cast.
@@ -133,6 +140,19 @@ class User extends Authenticatable implements MustVerifyEmail
         $query->whereHas("role", function (Builder $query2) use ($role) {
             $query2->where("role", "=", $role);
         });
+    }
+
+    # Attributes #
+
+    /**
+     * Summary of verificationStatus
+     * @return Attribute
+     */
+    protected function verificationStatus(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->email_verified_at ? "Verified" : "Deactivated"
+        );
     }
 
 }
