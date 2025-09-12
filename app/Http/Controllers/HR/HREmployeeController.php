@@ -110,24 +110,24 @@ class HREmployeeController extends Controller
             $employee->load("currentProfilePicture");
 
             $onboardings = UserOnboarding::with(["onboarding", "assignedBy"])
-                ->where("user_onboarding.id", "=", $employee->id)
+                ->where("user_onboardings.assigned_to", "=", $employee->id)
                 ->get();
 
             // leave balances
 
-            $leaveBalances = LeaveBalance::with(["leave", "assignedTo"])
-                ->where("leave_balance.assigned_to", "=", $employee->id)
+            $leaveBalances = LeaveBalance::with(["leave", "providedBy"])
+                ->where("leave_balances.assigned_to", "=", $employee->id)
                 ->get();
 
             $leaveRequests = LeaveRequest::with(["leave", "requestedBy"])
-                ->where("leave_request.requested_by", "=", $employee->id)
+                ->where("leave_requests.requested_by", "=", $employee->id)
                 ->get();
 
-            $performanceReviews = UserPerformanceReview::with(["performanceReview", "assignedTo"])
-                ->where("user_performance_review.assigned_to", "=", $employee->id)
+            $performanceReviews = UserPerformanceReview::with(["performanceReview", "assignedBy"])
+                ->where("user_performance_reviews.assigned_to", "=", $employee->id)
                 ->get();
 
-            $trainings = UserTraining::with(["training", "assignedTo"])
+            $trainings = UserTraining::with(["training", "assignedBy"])
                 ->where("user_trainings.assigned_to", "=", $employee->id)
                 ->get();
 
