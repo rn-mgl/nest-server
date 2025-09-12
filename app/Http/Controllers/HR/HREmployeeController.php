@@ -56,7 +56,7 @@ class HREmployeeController extends Controller
                 case "performances":
                     $performances = UserPerformanceReview::with([
                         "performanceReview",
-                        "assignedUser" => ["currentProfilePicture"],
+                        "assignedTo" => ["currentProfilePicture"],
                         "assignedBy" => ["currentProfilePicture"]
                     ])->get();
 
