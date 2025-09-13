@@ -3,15 +3,10 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\LeaveBalance;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class HRLeaveBalanceController extends Controller
 {
@@ -24,7 +19,7 @@ class HRLeaveBalanceController extends Controller
 
             $user = Auth::id();
 
-            $balances = LeaveBalance::with(["leave", "assignedBy"])->where("assigned_to", "=", $user)->get();
+            $balances = LeaveBalance::with(["leave", "providedBy"])->where("assigned_to", "=", $user)->get();
 
             return response()->json(["balances" => $balances]);
 
