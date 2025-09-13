@@ -82,32 +82,30 @@ class HRAttendanceController extends Controller
                 [
                     "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate)
                 ]
-            )
-                ->get()
-                ->map(function ($user) use ($lateThreshold) {
-                    $attendance = $user->attendances->first();
-                    $user->unsetRelation('attendances');
+            )->get()->map(function ($user) use ($lateThreshold) {
+                $attendance = $user->attendances->first();
+                $user->unsetRelation('attendances');
 
-                    if (!$attendance) {
-                        $user->attendance = [
-                            'id' => null,
-                            'user_id' => $user->id,
-                            'login_time' => null,
-                            'logout_time' => null,
-                            'late' => null,
-                            'absent' => true
-                        ];
-
-                        return $user;
-                    }
-
-                    $attendance->late = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
-                    $attendance->absent = false;
-
-                    $user->attendance = $attendance;
+                if (!$attendance) {
+                    $user->attendance = [
+                        'id' => null,
+                        'user_id' => $user->id,
+                        'login_time' => null,
+                        'logout_time' => null,
+                        'late' => null,
+                        'absent' => true
+                    ];
 
                     return $user;
-                });
+                }
+
+                $attendance->late = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
+                $attendance->absent = false;
+
+                $user->attendance = $attendance;
+
+                return $user;
+            });
 
             return response()->json(["attendances" => $attendances]);
         } catch (\Throwable $th) {
