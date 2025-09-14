@@ -34,12 +34,11 @@ class DocumentController extends Controller
                 ->where("documents.path", "=", $path)
                 ->select([
                     "documents.id",
-                    "documents.name",
+                    "documents.title",
                     "documents.created_at",
                     "description",
-                    "document",
                     "created_by",
-                    "type",
+                    DB::raw("'Document' as type"),
                     "path"
                 ]);
 
@@ -47,17 +46,16 @@ class DocumentController extends Controller
                 ->where("folders.path", "=", $path)
                 ->select([
                     "folders.id",
-                    "folders.name",
+                    "folders.title",
                     "folders.created_at",
                     DB::raw("NULL as description"),
-                    DB::raw("NULL as document"),
                     "created_by",
-                    DB::raw("'folder' as type"),
+                    DB::raw("'Folder' as type"),
                     "path"
                 ]);
 
 
-            $compiled = $documents->union($folders)->get();
+            $compiled = $documents->union($folders)->orderBy("created_at")->get();
 
             return response()->json(["documents" => $compiled]);
         } catch (\Throwable $th) {
