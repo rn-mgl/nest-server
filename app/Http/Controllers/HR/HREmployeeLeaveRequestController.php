@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HREmployeeLeaveRequestController extends Controller
 {
@@ -62,7 +63,7 @@ class HREmployeeLeaveRequestController extends Controller
 
             $status = $attributes["approved"] ? "approved" : "rejected";
 
-            $updated = $leaveRequest->update(["status" => $status]);
+            $updated = $leaveRequest->update(["status" => $status, "actioned_by" => Auth::id()]);
 
             return response()->json(["success" => $updated]);
 
