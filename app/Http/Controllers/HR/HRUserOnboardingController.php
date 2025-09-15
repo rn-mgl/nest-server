@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class HRUserLeaveOnboardingController extends Controller
+class HRUserOnboardingController extends Controller
 {
     /**
      * Display a listing of the resource.

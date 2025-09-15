@@ -13,9 +13,9 @@ use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
-use App\Http\Controllers\HR\HRUserLeaveOnboardingController;
-use App\Http\Controllers\HR\HRUserLeavePerformanceReviewController;
-use App\Http\Controllers\HR\HRUserLeaveTrainingController;
+use App\Http\Controllers\HR\HRUserOnboardingController;
+use App\Http\Controllers\HR\HRUserPerformanceReviewController;
+use App\Http\Controllers\HR\HRUserTrainingController;
 use App\Http\Controllers\HR\HRUserLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveRequestController;
@@ -137,7 +137,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee onboarding route
-        Route::controller(HRUserLeaveOnboardingController::class)
+        Route::controller(HRUserOnboardingController::class)
             ->prefix("employee_onboarding")
             ->group(function () {
                 Route::get("/", "index");
@@ -164,7 +164,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee performance review route
-        Route::controller(HRUserLeavePerformanceReviewController::class)
+        Route::controller(HRUserPerformanceReviewController::class)
             ->prefix("employee_performance_review")
             ->group(function () {
                 Route::get("/", "index");
@@ -183,7 +183,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee training route
-        Route::controller(HRUserLeaveTrainingController::class)
+        Route::controller(HRUserTrainingController::class)
             ->prefix("employee_training")
             ->group(function () {
                 Route::get("/", "index");

@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class HRUserLeaveTrainingController extends Controller
+class HRUserTrainingController extends Controller
 {
     /**
      * Display a listing of the resource.
