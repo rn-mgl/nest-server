@@ -81,7 +81,7 @@ class HRUserOnboardingController extends Controller
                     return [
                         "assigned_by" => Auth::id(),
                         "onboarding_id" => $attributes["onboarding_id"],
-                        "user_id" => $id
+                        "assigned_to" => $id
                     ];
                 });
 
@@ -94,7 +94,7 @@ class HRUserOnboardingController extends Controller
                     )->each(fn($onboarding) => $onboarding->restore());
 
                 UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
-                    ->whereIn($revoked)
+                    ->whereIn("assigned_to", $revoked)
                     ->delete();
             });
 
