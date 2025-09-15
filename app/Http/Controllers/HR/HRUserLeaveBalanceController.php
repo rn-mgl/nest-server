@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class HREmployeeLeaveBalanceController extends Controller
+class HRUserLeaveBalanceController extends Controller
 {
     /**
      * Display a listing of the resource.

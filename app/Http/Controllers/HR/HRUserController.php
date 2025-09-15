@@ -12,7 +12,7 @@ use App\Models\UserTraining;
 use Exception;
 use Illuminate\Http\Request;
 
-class HREmployeeController extends Controller
+class HRUserController extends Controller
 {
     /**
      * Display a listing of the resource.

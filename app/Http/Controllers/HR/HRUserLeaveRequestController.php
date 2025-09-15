@@ -8,7 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class HREmployeeLeaveRequestController extends Controller
+class HRUserLeaveRequestController extends Controller
 {
     /**
      * Display a listing of the resource.

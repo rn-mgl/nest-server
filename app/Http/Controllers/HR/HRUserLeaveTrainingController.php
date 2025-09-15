@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserTraining;
+use App\Models\EmployeeTrainingReview;
+use App\Models\Training;
 use App\Models\User;
-use App\Models\UserPerformanceReview;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class HREmployeePerformanceReviewController extends Controller
+class HRUserLeaveTrainingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,25 +24,24 @@ class HREmployeePerformanceReviewController extends Controller
         try {
 
             $attributes = $request->validate([
-                "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
+                "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
 
             $users = User::with(
                 [
-                    "assignedPerformanceReviews" => function ($query) use ($attributes) {
-                        $query->where("performance_review_id", "=", $attributes["performance_review_id"])
+                    "assignedTrainings" => function ($query) use ($attributes) {
+                        $query->where("training_id", "=", $attributes["training_id"])
                             ->withTrashed();
                     }
                 ]
             )->get()->each(function ($user) {
-                if ($user->relationLoaded("assignedPerformanceReviews")) {
-                    $user->assigned_performance_review = $user->assignedPerformanceReviews->first();
-                    $user->unsetRelation("assignedPerformanceReviews");
+                if ($user->relationLoaded("assignedTrainings")) {
+                    $user->assigned_training = $user->assignedTrainings->first();
+                    $user->unsetRelation("assignedTrainings");
                 }
             });
 
             return response()->json(["users" => $users]);
-
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -60,45 +62,46 @@ class HREmployeePerformanceReviewController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "user_ids" => ["required", "array"],
+                "user_ids" => ["array"],
                 "user_ids.*" => ["integer", "exists:users,id"],
-                "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
+                "training_id" => ["required", "integer", "exists:trainings,id"]
             ]);
 
             DB::transaction(function () use ($attributes) {
-                $performanceReviewId = $attributes["performance_review_id"];
                 $checkedUserIds = collect($attributes["user_ids"]);
+                $trainingId = $attributes["training_id"];
+                $training = Training::find($trainingId);
+                $deadline = $training->deadline_days ? Carbon::now()->addDays($training->deadline_days)->toDateTimeString() : null;
 
-                $performanceReviews = UserPerformanceReview::withTrashed()
-                    ->where("performance_review_id", "=", $performanceReviewId)
+                $employeeTrainings = UserTraining::withTrashed()
+                    ->where("training_id", "=", $trainingId)
                     ->get();
 
-                $alreadyAssignedIds = $performanceReviews->pluck("user_id");
+                $alreadyAssignedIds = $employeeTrainings->pluck("user_id");
 
                 $newlyAssigned = $checkedUserIds->diff($alreadyAssignedIds);
 
-                $assignData = $newlyAssigned->map(function ($user) use ($performanceReviewId) {
+                $assignData = $newlyAssigned->map(function ($user) use ($trainingId, $deadline) {
                     return [
-                        "performance_review_id" => $performanceReviewId,
                         "assigned_to" => $user,
-                        "assigned_by" => Auth::id()
+                        "assigned_by" => Auth::id(),
+                        "training_id" => $trainingId,
+                        "deadline" => $deadline
                     ];
                 });
 
-                UserPerformanceReview::insert($assignData->all());
+                UserTraining::insert($assignData->all());
 
-                // re-assign the previously deleted records but were rechecked
-                $performanceReviews
-                    ->filter(fn($performance) => $performance->trashed() && $checkedUserIds->contains($performance->user_id))
-                    ->each(fn($onboarding) => $onboarding->restore());
+                // re-assign deleted records that were rechecked
+                $employeeTrainings
+                    ->filter(fn($training) => $training->trashed() && $checkedUserIds->contains($training->user_id))
+                    ->each(fn($training) => $training->restore());
 
-                // revoke unchecked ids
                 $revoked = $alreadyAssignedIds->diff($checkedUserIds);
 
-                UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)
+                UserTraining::where("training_id", "=", $trainingId)
                     ->whereIn("user_id", $revoked)
                     ->delete();
-
             });
 
             return response()->json(["success" => true]);

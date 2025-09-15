@@ -23,8 +23,6 @@ class HROnboardingController extends Controller
     {
         try {
 
-            $user = Auth::id();
-
             $onboardings = Onboarding::with(["createdBy"])->get();
 
             return response()->json(["onboardings" => $onboardings]);
@@ -60,29 +58,34 @@ class HROnboardingController extends Controller
             ]);
 
             $onboarding = DB::transaction(function () use ($attributes) {
+
+                $hr = Auth::id();
+
                 $onboardingAttributes = [
                     'title' => $attributes['title'],
                     'description' => $attributes['description'],
-                    'created_by' => Auth::id()
+                    'created_by' => $hr
                 ];
 
                 $onboarding = Onboarding::create($onboardingAttributes);
 
-                $documentsData = collect($attributes["required_documents"])->map(function ($document) use ($onboarding) {
+                $documentsData = collect($attributes["required_documents"])->map(function ($document) use ($onboarding, $hr) {
                     return [
                         "title" => $document["title"],
                         "description" => $document["description"],
-                        "onboarding_id" => $onboarding->id
+                        "onboarding_id" => $onboarding->id,
+                        "created_by" => $hr
                     ];
                 });
 
                 OnboardingRequiredDocument::insert($documentsData->all());
 
-                $policiesData = collect($attributes["policy_acknowledgements"])->map(function ($policy) use ($onboarding) {
+                $policiesData = collect($attributes["policy_acknowledgements"])->map(function ($policy) use ($onboarding, $hr) {
                     return [
                         "title" => $policy["title"],
                         "description" => $policy["description"],
-                        "onboarding_id" => $onboarding->id
+                        "onboarding_id" => $onboarding->id,
+                        "created_by" => $hr
                     ];
                 });
 
@@ -178,7 +181,8 @@ class HROnboardingController extends Controller
 
                 $updatedOnboarding = $onboarding->update([
                     'title' => $attributes['title'],
-                    'description' => $attributes['description']
+                    'description' => $attributes['description'],
+                    "created_by" => Auth::id()
                 ]);
 
                 return $updatedOnboarding;

@@ -7,16 +7,16 @@ use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRAttendanceController;
-use App\Http\Controllers\HR\HREmployeeController;
-use App\Http\Controllers\HR\HREmployeeLeaveRequestController;
+use App\Http\Controllers\HR\HRUserController;
+use App\Http\Controllers\HR\HRUserLeaveRequestController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
 use App\Http\Controllers\HR\HROnboardingController;
 use App\Http\Controllers\HR\HRPerformanceReviewController;
 use App\Http\Controllers\HR\HRTrainingController;
-use App\Http\Controllers\HR\HREmployeeOnboardingController;
-use App\Http\Controllers\HR\HREmployeePerformanceReviewController;
-use App\Http\Controllers\HR\HREmployeeTrainingController;
-use App\Http\Controllers\HR\HREmployeeLeaveBalanceController;
+use App\Http\Controllers\HR\HRUserLeaveOnboardingController;
+use App\Http\Controllers\HR\HRUserLeavePerformanceReviewController;
+use App\Http\Controllers\HR\HRUserLeaveTrainingController;
+use App\Http\Controllers\HR\HRUserLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveBalanceController;
 use App\Http\Controllers\HR\HRLeaveRequestController;
 
@@ -76,7 +76,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee route
-        Route::controller(HREmployeeController::class)
+        Route::controller(HRUserController::class)
             ->prefix("employee")
             ->group(function () {
                 Route::get("/", "index");
@@ -102,7 +102,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee and hr leave balance route
-        Route::controller(HREmployeeLeaveBalanceController::class)->prefix("employee_leave_balance")->group(function () {
+        Route::controller(HRUserLeaveBalanceController::class)->prefix("employee_leave_balance")->group(function () {
             Route::get("/", "index");
             Route::post("/", "store");
         });
@@ -119,7 +119,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee leave request route
-        Route::controller(HREmployeeLeaveRequestController::class)
+        Route::controller(HRUserLeaveRequestController::class)
             ->prefix("employee_leave_request")
             ->group(function () {
                 Route::patch("/{leaveRequest}", "update");
@@ -137,7 +137,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee onboarding route
-        Route::controller(HREmployeeOnboardingController::class)
+        Route::controller(HRUserLeaveOnboardingController::class)
             ->prefix("employee_onboarding")
             ->group(function () {
                 Route::get("/", "index");
@@ -164,7 +164,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee performance review route
-        Route::controller(HREmployeePerformanceReviewController::class)
+        Route::controller(HRUserLeavePerformanceReviewController::class)
             ->prefix("employee_performance_review")
             ->group(function () {
                 Route::get("/", "index");
@@ -183,7 +183,7 @@ Route::prefix("api")->group(function () {
             });
 
         // employee training route
-        Route::controller(HREmployeeTrainingController::class)
+        Route::controller(HRUserLeaveTrainingController::class)
             ->prefix("employee_training")
             ->group(function () {
                 Route::get("/", "index");
