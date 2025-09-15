@@ -75,12 +75,12 @@ Route::prefix("api")->group(function () {
                 Route::patch("/change-password", "change_password");
             });
 
-        // employee route
+        // hr to user route
         Route::controller(HRUserController::class)
-            ->prefix("employee")
+            ->prefix("user")
             ->group(function () {
                 Route::get("/", "index");
-                Route::get("/{employee}", "show");
+                Route::get("/{user}", "show");
             });
 
         // leave route
@@ -101,8 +101,8 @@ Route::prefix("api")->group(function () {
                 Route::get("/", "index");
             });
 
-        // employee and hr leave balance route
-        Route::controller(HRUserLeaveBalanceController::class)->prefix("employee_leave_balance")->group(function () {
+        // hr to user leave balance route
+        Route::controller(HRUserLeaveBalanceController::class)->prefix("user_leave_balance")->group(function () {
             Route::get("/", "index");
             Route::post("/", "store");
         });
@@ -118,9 +118,9 @@ Route::prefix("api")->group(function () {
                 Route::delete("/{leaveRequest}", "destroy");
             });
 
-        // employee leave request route
+        // hr to user leave request route
         Route::controller(HRUserLeaveRequestController::class)
-            ->prefix("employee_leave_request")
+            ->prefix("user_leave_request")
             ->group(function () {
                 Route::patch("/{leaveRequest}", "update");
             });
@@ -136,9 +136,9 @@ Route::prefix("api")->group(function () {
                 Route::delete("/{onboarding}", "destroy");
             });
 
-        // employee onboarding route
+        // hr to user onboarding route
         Route::controller(HRUserOnboardingController::class)
-            ->prefix("employee_onboarding")
+            ->prefix("user_onboarding")
             ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
@@ -163,9 +163,9 @@ Route::prefix("api")->group(function () {
                 Route::delete("/{performanceReview}", "destroy");
             });
 
-        // employee performance review route
+        // hr to user performance review route
         Route::controller(HRUserPerformanceReviewController::class)
-            ->prefix("employee_performance_review")
+            ->prefix("user_performance_review")
             ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
@@ -182,9 +182,9 @@ Route::prefix("api")->group(function () {
                 Route::delete("/{training}", "destroy");
             });
 
-        // employee training route
+        // hr to user training route
         Route::controller(HRUserTrainingController::class)
-            ->prefix("employee_training")
+            ->prefix("user_training")
             ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");

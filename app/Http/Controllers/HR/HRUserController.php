@@ -103,38 +103,38 @@ class HRUserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $employee)
+    public function show(User $user)
     {
         try {
 
-            $employee->load("currentProfilePicture");
+            $user->load("currentProfilePicture");
 
             $onboardings = UserOnboarding::with(["onboarding", "assignedBy"])
-                ->where("user_onboardings.assigned_to", "=", $employee->id)
+                ->where("user_onboardings.assigned_to", "=", $user->id)
                 ->get();
 
             // leave balances
 
             $leaveBalances = LeaveBalance::with(["leave", "providedBy"])
-                ->where("leave_balances.assigned_to", "=", $employee->id)
+                ->where("leave_balances.assigned_to", "=", $user->id)
                 ->get();
 
             $leaveRequests = LeaveRequest::with(["leave", "requestedBy"])
-                ->where("leave_requests.requested_by", "=", $employee->id)
+                ->where("leave_requests.requested_by", "=", $user->id)
                 ->get();
 
             $performanceReviews = UserPerformanceReview::with(["performanceReview", "assignedBy"])
-                ->where("user_performance_reviews.assigned_to", "=", $employee->id)
+                ->where("user_performance_reviews.assigned_to", "=", $user->id)
                 ->get();
 
             $trainings = UserTraining::with(["training", "assignedBy"])
-                ->where("user_trainings.assigned_to", "=", $employee->id)
+                ->where("user_trainings.assigned_to", "=", $user->id)
                 ->get();
 
             return response()
                 ->json(
                     [
-                        "employee" => $employee,
+                        "employee" => $user,
                         "onboardings" => $onboardings,
                         "leave_balances" => $leaveBalances,
                         "leave_requests" => $leaveRequests,
