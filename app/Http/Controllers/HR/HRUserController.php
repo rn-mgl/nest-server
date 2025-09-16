@@ -45,7 +45,7 @@ class HRUserController extends Controller
                         "requestedBy" => ["currentProfilePicture"],
                         "actionedBy" => ["currentProfilePicture"]
                     ])->get()->each(function ($leave) {
-                        $leave->balance = LeaveBalance::where(
+                        $leave->leave_balance = LeaveBalance::where(
                             [
                                 "leave_type_id" => $leave->leave_type_id,
                                 "assigned_to" => $leave->relationLoaded("requestedBy") ? $leave->requestedBy->id : 0
