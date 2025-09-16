@@ -30,13 +30,14 @@ class HRUserLeaveBalanceController extends Controller
                     "assignedLeaveBalances" => function ($query) use ($attributes) {
                         $query->where("leave_type_id", "=", $attributes["leave_type_id"])
                             ->withTrashed();
-                    }
+                    },
+                    "assignedLeaveBalances.leave"
                 ]
             )
                 ->get()
                 ->each(function ($user) {
                     if ($user->relationLoaded("assignedLeaveBalances")) {
-                        $user->assigned_leave_balances = $user->assignedLeaveBalances->first();
+                        $user->assigned_leave_balance = $user->assignedLeaveBalances->first();
                         $user->unsetRelation("assignedLeaveBalances");
                     }
                 });
@@ -66,8 +67,8 @@ class HRUserLeaveBalanceController extends Controller
                 "user_ids" => ["array"],
                 "user_ids.*" => ["integer", "exists:users,id"],
                 "user_leaves" => ["array", "required"],
-                "user_leaves.*.user_id" => ["integer", "exists:users,id"],
-                "user_leaves.*.balance" => ["integer", "required"],
+                "user_leaves.*.id" => ["integer", "exists:users,id"],
+                "user_leaves.*.assigned_leave_balance.balance" => ["sometimes", "integer"],
                 "leave_type_id" => ["required", "integer", "exists:leave_types,id"]
             ]);
 
@@ -111,12 +112,12 @@ class HRUserLeaveBalanceController extends Controller
                 // update balance of assigned
                 foreach ($usersLeaveDetails as $leave) {
                     // check if the user id is a key in leaveBalances and update the applied balance
-                    $leaveBalance = $leaveBalances->get($leave["user_id"]);
-                    if ($leaveBalance) {
+                    $leaveBalance = $leaveBalances->get($leave["id"]);
+                    if ($leaveBalance && isset($leave["assigned_leave_balance"]["balance"])) {
                         // restore the record only if the user leave record is in the array of user ids (checked users)
                         $leaveBalance->update([
-                            "balance" => $leave["balance"],
-                            "deleted_at" => $checkedUserIds->contains($leave["user_id"]) ? null : $leaveBalance->deleted_at
+                            "balance" => $leave["assigned_leave_balance"]["balance"],
+                            "deleted_at" => $checkedUserIds->contains($leave["id"]) ? null : $leaveBalance->deleted_at
                         ]);
                     }
                 }
