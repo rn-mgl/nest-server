@@ -113,6 +113,7 @@ class HRUserLeaveBalanceController extends Controller
                 foreach ($usersLeaveDetails as $leave) {
                     // check if the user id is a key in leaveBalances and update the applied balance
                     $leaveBalance = $leaveBalances->get($leave["id"]);
+                    // check if $leave["assigned_leave_balance"]["balance"] is set because it is possible that the user only has assigned leave but no balance
                     if ($leaveBalance && isset($leave["assigned_leave_balance"]["balance"])) {
                         // restore the record only if the user leave record is in the array of user ids (checked users)
                         $leaveBalance->update([

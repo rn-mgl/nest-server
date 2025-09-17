@@ -60,7 +60,7 @@ class HRUserPerformanceReviewController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "user_ids" => ["required", "array"],
+                "user_ids" => ["array"],
                 "user_ids.*" => ["integer", "exists:users,id"],
                 "performance_review_id" => ["required", "integer", "exists:performance_reviews,id"]
             ]);
@@ -73,9 +73,10 @@ class HRUserPerformanceReviewController extends Controller
                     ->where("performance_review_id", "=", $performanceReviewId)
                     ->get();
 
-                $alreadyAssignedIds = $performanceReviews->pluck("user_id");
-
+                $alreadyAssignedIds = $performanceReviews->pluck("assigned_to");
                 $newlyAssigned = $checkedUserIds->diff($alreadyAssignedIds);
+                // revoke unchecked ids
+                $revoked = $alreadyAssignedIds->diff($checkedUserIds);
 
                 $assignData = $newlyAssigned->map(function ($user) use ($performanceReviewId) {
                     return [
@@ -89,14 +90,11 @@ class HRUserPerformanceReviewController extends Controller
 
                 // re-assign the previously deleted records but were rechecked
                 $performanceReviews
-                    ->filter(fn($performance) => $performance->trashed() && $checkedUserIds->contains($performance->user_id))
+                    ->filter(fn($performance) => $performance->trashed() && $checkedUserIds->contains($performance->assigned_to))
                     ->each(fn($onboarding) => $onboarding->restore());
 
-                // revoke unchecked ids
-                $revoked = $alreadyAssignedIds->diff($checkedUserIds);
-
                 UserPerformanceReview::where("performance_review_id", "=", $performanceReviewId)
-                    ->whereIn("user_id", $revoked)
+                    ->whereIn("assigned_to", $revoked)
                     ->delete();
 
             });

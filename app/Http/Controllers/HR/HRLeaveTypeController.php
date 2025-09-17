@@ -5,6 +5,8 @@ namespace App\Http\Controllers\HR;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SearchRequest;
 use App\Http\Requests\SortRequest;
+use App\Models\LeaveBalance;
+use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use Exception;
 use Illuminate\Database\Query\JoinClause;
@@ -103,7 +105,20 @@ class HRLeaveTypeController extends Controller
     public function destroy(LeaveType $leaveType)
     {
         try {
-            return response()->json(["success" => $leaveType->delete()]);
+
+            $deleted = DB::transaction(function () use ($leaveType) {
+
+                $deleted = $leaveType->delete();
+
+                $deletedLeaveRequests = LeaveRequest::where("leave_type_id", "=", $leaveType->id)->delete();
+
+                $deletedLeaveBalances = LeaveBalance::where("leave_type_id", "=", $leaveType->id)->delete();
+
+                return $deleted || $deletedLeaveRequests || $deletedLeaveBalances;
+
+            });
+
+            return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

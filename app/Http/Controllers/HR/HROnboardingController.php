@@ -9,6 +9,8 @@ use App\Models\Onboarding;
 use App\Models\OnboardingPolicyAcknowledgement;
 use App\Models\OnboardingRequiredDocument;
 use App\Models\UserOnboarding;
+use App\Models\UserOnboardingPolicyAcknowledgement;
+use App\Models\UserOnboardingRequiredDocuments;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -202,15 +204,28 @@ class HROnboardingController extends Controller
     {
         try {
 
-            $deletedOnboarding = $onboarding->delete();
+            $deleted = DB::transaction(function () use ($onboarding) {
+                $deletedOnboarding = $onboarding->delete();
 
-            $deletedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)
-                ->delete();
+                $affectedRequiredDocuments = OnboardingRequiredDocument::where("onboarding_id", "=", $onboarding->id)->get()->pluck("id");
 
-            $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)
-                ->delete();
+                $affectedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::where("onboarding_id", "=", $onboarding->id)->get()->pluck("id");
 
-            return response()->json(["success" => $deletedOnboarding || $deletedRequiredDocuments || $deletedPolicyAcknowledgements]);
+                $deletedRequiredDocuments = OnboardingRequiredDocument::whereIn("id", $affectedRequiredDocuments)->delete();
+
+                $deletedPolicyAcknowledgements = OnboardingPolicyAcknowledgement::whereIn("id", $affectedPolicyAcknowledgements)
+                    ->delete();
+
+                $deletedAssignedOnboarding = UserOnboarding::where("onboarding_id", "=", $onboarding->id)->delete();
+
+                $deletedUserDocuments = UserOnboardingRequiredDocuments::whereIn("required_document_id", $affectedRequiredDocuments)->delete();
+
+                $deletedUserAcknowledgements = UserOnboardingPolicyAcknowledgement::whereIn("policy_acknowledgement_id", $affectedPolicyAcknowledgements)->delete();
+
+                return $deletedOnboarding || $deletedRequiredDocuments || $deletedPolicyAcknowledgements || $deletedAssignedOnboarding || $deletedUserDocuments || $deletedUserAcknowledgements;
+            });
+
+            return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

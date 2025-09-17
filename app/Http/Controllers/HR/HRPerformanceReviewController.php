@@ -5,6 +5,8 @@ namespace App\Http\Controllers\HR;
 use App\Http\Controllers\Controller;
 use App\Models\PerformanceReview;
 use App\Models\PerformanceReviewContent;
+use App\Models\UserPerformanceReview;
+use App\Models\UserPerformanceReviewResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -106,7 +108,7 @@ class HRPerformanceReviewController extends Controller
                 "description" => ["string", "required"],
                 "surveys" => ["array", "required"],
                 "surveys.*.survey" => ["string", "required"],
-                "surveys.*.performance_review_content_id" => ["integer", "nullable"],
+                "surveys.*.id" => ["integer", "nullable"],
                 "surveyToDelete" => ["array"],
                 "surveyToDelete.*" => ["integer", "nullable"]
             ]);
@@ -130,6 +132,7 @@ class HRPerformanceReviewController extends Controller
                 $updated = $performanceReview->update([
                     "title" => $attributes["title"],
                     "description" => $attributes["description"],
+                    "created_by" => Auth::id(),
                 ]);
 
                 return $updated;
@@ -147,7 +150,24 @@ class HRPerformanceReviewController extends Controller
     public function destroy(PerformanceReview $performanceReview)
     {
         try {
-            return response()->json(["success" => $performanceReview->delete()]);
+
+            $deleted = DB::transaction(function () use ($performanceReview) {
+
+                $deleted = $performanceReview->delete();
+
+                $affectedContents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)->get()->pluck("id");
+
+                $deletedContents = PerformanceReviewContent::whereIn("id", $affectedContents)->delete();
+
+                $deletedUserPerformance = UserPerformanceReview::where("performance_review_id", "=", $performanceReview->id)->delete();
+
+                $deletedUserPerformanceResponses = UserPerformanceReviewResponse::whereIn("performance_review_content_id", $affectedContents)->delete();
+
+                return $deleted || $affectedContents || $deletedContents || $deletedUserPerformance || $deletedUserPerformanceResponses;
+
+            });
+
+            return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

@@ -69,10 +69,9 @@ class HRUserOnboardingController extends Controller
 
                 $assignedOnboardings = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
                     ->withTrashed()
-                    ->get()
-                    ->keyBy("assigned_to");
+                    ->get();
 
-                $alreadyAssigned = $assignedOnboardings->keys();
+                $alreadyAssigned = $assignedOnboardings->pluck("assigned_to");
                 $newlyAssigned = $checkedUserIds->diff($alreadyAssigned);
                 $revoked = $alreadyAssigned->diff($checkedUserIds);
 
@@ -90,7 +89,7 @@ class HRUserOnboardingController extends Controller
                 // trashed records that were re-checked
                 $assignedOnboardings
                     ->filter(
-                        fn($onboarding, $assignedTo) => $onboarding->trashed() && $checkedUserIds->contains($assignedTo)
+                        fn($onboarding) => $onboarding->trashed() && $checkedUserIds->contains($onboarding->assigned_to)
                     )->each(fn($onboarding) => $onboarding->restore());
 
                 UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
