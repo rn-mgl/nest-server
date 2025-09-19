@@ -3,20 +3,15 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\Training;
 use App\Models\TrainingContent;
 use App\Models\TrainingReview;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-
-use function PHPSTORM_META\map;
 
 class HRTrainingController extends Controller
 {
@@ -56,7 +51,7 @@ class HRTrainingController extends Controller
                 ->all();
 
             $contents = $decode($request->input("contents"));
-            $review = $decode($request->input("reviews"));
+            $reviews = $decode($request->input("reviews"));
 
             $request->merge(compact("contents", "reviews"));
 
@@ -70,10 +65,33 @@ class HRTrainingController extends Controller
                 "contents" => ["array"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
-                "contents.*.content" => ["required_if:contents.*.type,text", "string"],
+                "contents.*.content" => [
+                    Rule::requiredIf(function () use ($contents, $request) {
+                        // if current type is text and current content value in index is empty, should be required to be caught
+                        foreach ($contents as $index => $content) {
+                            if ($content["type"] === "text" && empty($request->input("contents.{$index}.content"))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }),
+                    "string"
+                ],
 
                 "content_file" => ["nullable", "array"],
-                "content_file.*" => ["required_if:contents.*.type,image,video,file"],
+                "content_file.*" => [
+                    Rule::requiredIf(function () use ($contents, $request) {
+                        foreach ($contents as $index => $value) {
+                            // if current type is not text and current content file in index does not have file, required to be caught
+                            if ($value["type"] !== "text" && !$request->hasFile("content_file.{$index}")) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }),
+                    'file',
+                    'nullable'
+                ],
 
                 "reviews" => ["array"],
                 "reviews.*.answer" => ["required", "integer"],
@@ -121,7 +139,7 @@ class HRTrainingController extends Controller
 
                         $uploaded = Storage::disk($disk)->put("/contents", $file);
 
-                        $content->content()->create([
+                        $content->contentFile()->create([
                             "disk" => $disk,
                             "path" => $uploaded,
                             "original_name" => $file->getClientOriginalName(),
@@ -164,7 +182,21 @@ class HRTrainingController extends Controller
     {
 
         try {
-            return response()->json(["training" => $training->load(["contents", "reviews"])]);
+
+            $training->load(
+                [
+                    "contents" => ["contentFile"],
+                    "reviews",
+                    "certificate"
+                ]
+            );
+
+            $training->contents->each(function ($content) {
+                $content->content = $content->contentFile ?? $content->content;
+                $content->unsetRelation('contentFile');
+            });
+
+            return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -189,17 +221,10 @@ class HRTrainingController extends Controller
                 ->map(fn($item) => json_decode($item, true))
                 ->all();
 
-            $contents = $decode($request->input("contents", "[]"));
-            $reviews = $decode($request->input("reviews", "[]"));
-            $contentsToDelete = json_decode($request->input("contents_to_delete"), true);
-            $reviewsToDelete = json_decode($request->input("reviews_to_delete"), true);
+            $contents = $decode($request->input("contents", []));
+            $reviews = $decode($request->input("reviews", []));
 
-            $request->merge([
-                "contents" => $contents,
-                "reviews" => $reviews,
-                "contents_to_delete" => $contentsToDelete,
-                "reviews_to_delete" => $reviewsToDelete
-            ]);
+            $request->merge(compact("contents", "reviews"));
 
             $attributes = $request->validate([
                 "title" => ["required", "string"],
@@ -215,19 +240,37 @@ class HRTrainingController extends Controller
                 ],
 
                 "contents" => ["required", "array"],
-                "contents.*.training_content_id" => ["nullable"],
+                "contents.*.id" => ["nullable"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
-                "contents.*.content" => ["required_if:content.*.type,text", "string"],
+                "contents.*.content" => [
+                    Rule::requiredIf(function () use ($contents, $request) {
+                        // if current type is text and current content value in index is empty, should be required to be caught
+                        foreach ($contents as $index => $content) {
+                            if ($content["type"] === "text" && empty($request->input("contents.{$index}.content"))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
+                ],
 
                 "content_file" => ["required", "array"],
                 "content_file.*" => [
-                    "required_unless:contents.*.type,text",
-                    Rule::when(
-                        $request->hasFile("content_file.*"),
-                        ["file"],
-                        ["nullable"]
-                    )
+                    Rule::requiredIf(function () use ($contents, $request) {
+                        foreach ($contents as $index => $content) {
+                            // if current type is not text and current content file in index does not have file, required to be caught
+                            if (
+                                $content['type'] !== "text" &&
+                                !$request->hasFile("content_file.{$index}") &&
+                                !is_array(json_decode($request->input("content_file.{$index}"), true))
+                            ) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }),
+                    'nullable'
                 ],
 
                 "contents_to_delete" => ["array", "nullable"],
@@ -240,21 +283,18 @@ class HRTrainingController extends Controller
                 "reviews.*.choice_2" => ["required", "string"],
                 "reviews.*.choice_3" => ["required", "string"],
                 "reviews.*.choice_4" => ["required", "string"],
-                "reviews.*.training_review_id" => ["nullable"],
+                "reviews.*.id" => ["nullable"],
 
                 "reviews_to_delete" => ["array", "nullable"],
                 "reviews_to_delete.*" => ["integer"]
             ]);
-
-
 
             $updated = DB::transaction(function () use ($attributes, $training, $request) {
 
                 $trainingAttr = [
                     "title" => $attributes["title"],
                     "description" => $attributes["description"],
-                    "deadline_days" => $attributes["deadline_days"],
-                    "certificate" => $attributes["certificate"]
+                    "deadline_days" => $attributes["deadline_days"]
                 ];
 
                 $updated = $training->update($trainingAttr);
@@ -280,7 +320,8 @@ class HRTrainingController extends Controller
 
                 foreach ($attributes["contents"] as $index => $content) {
 
-                    if (!$content["training_content_id"]) {
+                    // upsert can't be used here to get the instance of the created/searched TrainingContent
+                    if (!isset($content["id"])) {
                         $content = TrainingContent::create([
                             "training_id" => $training->id,
                             "title" => $content["title"],
@@ -288,7 +329,7 @@ class HRTrainingController extends Controller
                             "content" => $content["content"] ?? null,
                         ]);
                     } else {
-                        $content = TrainingContent::find($content["training_content_id"]);
+                        $content = TrainingContent::find($content["id"]);
                         $content->update([
                             "title" => $content["title"],
                             "description" => $content["description"],
@@ -296,14 +337,15 @@ class HRTrainingController extends Controller
                         ]);
                     }
 
+                    // soft delete and update the current content's file
                     if ($request->hasFile("content_file.{$index}")) {
                         $file = $request->file("content_file.{$index}");
 
-                        $content->content()->delete();
+                        $content->contentFile()->delete();
 
                         $uploaded = Storage::disk($disk)->put("/contents", $file);
 
-                        $content->content()->create([
+                        $content->contentFile()->create([
                             "disk" => $disk,
                             "path" => $uploaded,
                             "original_name" => $file->getClientOriginalName(),
@@ -315,7 +357,7 @@ class HRTrainingController extends Controller
 
                 $reviewData = collect($attributes["reviews"] ?? [])->map(function ($review) use ($training) {
                     return [
-                        "id" => $review["training_review_id"] ?? null,
+                        "id" => $review["id"] ?? null,
                         "training_id" => $training->id,
                         "question" => $review["question"],
                         "answer" => $review["answer"],
@@ -332,9 +374,9 @@ class HRTrainingController extends Controller
                     ["question", "answer", "choice_1", "choice_2", "choice_3", "choice_4"]
                 );
 
-                TrainingContent::whereIn("id", $attributes["contentsToDelete"] ?? [])->delete();
+                TrainingContent::whereIn("id", $attributes["contents_to_delete"] ?? [])->delete();
 
-                TrainingReview::whereIn("id", $attributes["reviewsToDelete"] ?? [])->delete();
+                TrainingReview::whereIn("id", $attributes["reviews_to_delete"] ?? [])->delete();
 
                 return $updated;
             });
