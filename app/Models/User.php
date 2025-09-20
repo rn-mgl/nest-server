@@ -126,7 +126,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function assignedTrainings()
     {
-        return $this->hasMany(UserTraining::class, "user_training", "id");
+        return $this->hasMany(UserTraining::class, "assigned_to", "id");
     }
 
     # Scopes #

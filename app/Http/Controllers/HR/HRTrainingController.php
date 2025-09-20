@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Training;
 use App\Models\TrainingContent;
 use App\Models\TrainingReview;
+use App\Models\UserTraining;
+use App\Models\UserTrainingReviewResponse;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
@@ -417,10 +419,25 @@ class HRTrainingController extends Controller
     {
         try {
 
-            $deleted = $training->delete();
-            $deletedContents = TrainingContent::where("training_id", "=", $training->id)->delete();
+            $deleted = DB::transaction(function () use ($training) {
 
-            return response()->json(["success" => $deleted || $deletedContents]);
+                $deleted = $training->delete();
+
+                $deletedContents = TrainingContent::where("training_id", "=", $training->id)->delete();
+
+                $affectedReviews = TrainingReview::where("training_id", "=", $training->id)->get()->pluck("id");
+
+                $deletedReviews = TrainingReview::whereIn("id", $affectedReviews)->delete();
+
+                $deletedUserTrainings = UserTraining::where("training_id", "=", $training->id)->delete();
+
+                $deletedUserReviewResponse = UserTrainingReviewResponse::whereIn("training_review_id", $affectedReviews)->delete();
+
+                return $deleted || $deletedContents || $deletedReviews || $deletedUserTrainings || $deletedUserReviewResponse;
+
+            });
+
+            return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

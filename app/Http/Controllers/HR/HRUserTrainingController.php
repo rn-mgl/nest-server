@@ -77,7 +77,7 @@ class HRUserTrainingController extends Controller
                     ->where("training_id", "=", $trainingId)
                     ->get();
 
-                $alreadyAssignedIds = $employeeTrainings->pluck("user_id");
+                $alreadyAssignedIds = $employeeTrainings->pluck("assigned_to");
 
                 $newlyAssigned = $checkedUserIds->diff($alreadyAssignedIds);
 
@@ -94,13 +94,13 @@ class HRUserTrainingController extends Controller
 
                 // re-assign deleted records that were rechecked
                 $employeeTrainings
-                    ->filter(fn($training) => $training->trashed() && $checkedUserIds->contains($training->user_id))
+                    ->filter(fn($training) => $training->trashed() && $checkedUserIds->contains($training->assigned_to))
                     ->each(fn($training) => $training->restore());
 
                 $revoked = $alreadyAssignedIds->diff($checkedUserIds);
 
                 UserTraining::where("training_id", "=", $trainingId)
-                    ->whereIn("user_id", $revoked)
+                    ->whereIn("assigned_to", $revoked)
                     ->delete();
             });
 
