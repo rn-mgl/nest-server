@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Training;
 use App\Models\TrainingContent;
 use App\Models\TrainingReview;
+use Closure;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class HRTrainingController extends Controller
@@ -65,32 +68,44 @@ class HRTrainingController extends Controller
                 "contents" => ["array"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
-                "contents.*.content" => [
-                    Rule::requiredIf(function () use ($contents, $request) {
-                        // if current type is text and current content value in index is empty, should be required to be caught
-                        foreach ($contents as $index => $content) {
-                            if ($content["type"] === "text" && empty($request->input("contents.{$index}.content"))) {
-                                return true;
-                            }
+                // content specific validation
+                "contents.*" => [
+                    function (string $attribute, mixed $value, Closure $fail) use ($request) {
+
+                        $index = Str::of($attribute)->after(".");
+                        $content = $value['content'];
+                        $type = $request->input("contents.{$index}.type");
+
+                        if (
+                            $type === "text" &&
+                            (
+                                empty($content) ||
+                                gettype($content) !== "string"
+                            )
+                        ) {
+                            $fail("The {$attribute} is required when the type is a text");
                         }
-                        return false;
-                    }),
-                    "string"
+
+                    }
                 ],
 
                 "content_file" => ["nullable", "array"],
                 "content_file.*" => [
-                    Rule::requiredIf(function () use ($contents, $request) {
-                        foreach ($contents as $index => $value) {
-                            // if current type is not text and current content file in index does not have file, required to be caught
-                            if ($value["type"] !== "text" && !$request->hasFile("content_file.{$index}")) {
-                                return true;
-                            }
+                    function (string $attribute, mixed $value, Closure $fail) use ($request) {
+                        $index = Str::of($attribute)->after(".");
+
+                        $type = $request->input("contents.{$index}.type");
+
+                        if (
+                            $type !== "text" &&
+                            (
+                                !$request->hasFile("content_file.{$index}") ||
+                                !$request->file("content_file.{$index}") instanceof UploadedFile
+                            )
+                        ) {
+                            $fail("The {$attribute} is required when the type is not a text.");
                         }
-                        return false;
-                    }),
-                    'file',
-                    'nullable'
+                    }
                 ],
 
                 "reviews" => ["array"],
@@ -243,34 +258,41 @@ class HRTrainingController extends Controller
                 "contents.*.id" => ["nullable"],
                 "contents.*.title" => ["required", "string"],
                 "contents.*.description" => ["required", "string"],
-                "contents.*.content" => [
-                    Rule::requiredIf(function () use ($contents, $request) {
-                        // if current type is text and current content value in index is empty, should be required to be caught
-                        foreach ($contents as $index => $content) {
-                            if ($content["type"] === "text" && empty($request->input("contents.{$index}.content"))) {
-                                return true;
-                            }
+                "contents.*" => [
+                    function (string $attribute, mixed $value, Closure $fail) use ($request) {
+                        $index = Str::of($attribute)->after(".");
+                        $type = $request->input("contents.{$index}.type");
+                        $content = $value['content'];
+
+                        if (
+                            $type === "text" &&
+                            (
+                                empty($content) ||
+                                gettype($content) !== "string"
+                            )
+                        ) {
+                            $fail("The {$attribute} must be a text");
                         }
-                        return false;
-                    })
+                    }
                 ],
 
                 "content_file" => ["required", "array"],
                 "content_file.*" => [
-                    Rule::requiredIf(function () use ($contents, $request) {
-                        foreach ($contents as $index => $content) {
-                            // if current type is not text and current content file in index does not have file, required to be caught
-                            if (
-                                $content['type'] !== "text" &&
-                                !$request->hasFile("content_file.{$index}") &&
-                                !is_array(json_decode($request->input("content_file.{$index}"), true))
-                            ) {
-                                return true;
-                            }
+                    function (string $attribute, mixed $value, Closure $fail) use ($request) {
+                        $index = Str::of($attribute)->after(".");
+                        $type = $request->input("contents.{$index}.type");
+
+                        if (
+                            $type !== "text" &&
+                            (
+                                !$request->hasFile("content_file.{$index}") ||
+                                !$request->file("content_file.{$index}") instanceof UploadedFile
+                            ) &&
+                            !is_array(json_decode($request->input("content_file.{$index}"), true))
+                        ) {
+                            $fail("The {$attribute} must be a file.");
                         }
-                        return false;
-                    }),
-                    'nullable'
+                    }
                 ],
 
                 "contents_to_delete" => ["array", "nullable"],
