@@ -35,7 +35,7 @@ class FolderController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "name" => ["required", "string"],
+                "title" => ["required", "string"],
                 "path" => ["required", "integer"]
             ]);
 
@@ -77,7 +77,7 @@ class FolderController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "name" => ["required", "string"],
+                "title" => ["required", "string"],
                 "path" => ["required", "integer"]
             ]);
 
@@ -97,7 +97,7 @@ class FolderController extends Controller
     {
         try {
             // delete folder and everything below it
-            $paths = $this->get_child_folders($folder)->pluck("id")->push($folder)->toArray();
+            $paths = $this->get_child_folders($folder)->pluck("id")->push($folder);
 
             $deletedFolders = Folder::whereIn("id", $paths)->delete();
             $deletedDocuments = Document::whereIn("path", $paths)->delete();
@@ -137,7 +137,7 @@ class FolderController extends Controller
             $paths = Folder::whereNotIn("id", $pathToAvoid)->get();
 
             // map as label => value object pairs
-            $availablePaths = $paths->map(fn($path) => ["label" => $path->name, "value" => $path->id])
+            $availablePaths = $paths->map(fn($path) => ["label" => $path->title, "value" => $path->id])
                 ->prepend(["label" => "Home", "value" => 0])
                 ->toArray();
 
@@ -204,7 +204,7 @@ class FolderController extends Controller
      * Retrieves all child folder paths of the specified parent folder using depth-first search.
      *
      * @param int $folderId The ID of the parent folder to start the search from.
-     * @return \Illuminate\Support\Collection Collection of child folder paths.
+     * @return Collection Collection of child folder paths.
      * @throws \Exception If an error occurs during retrieval.
      */
     public function get_child_folders(int $folderId)
@@ -223,12 +223,10 @@ class FolderController extends Controller
     }
 
     /**
-     * Removes all child paths from the provided list that are descendants of a specified parent path.
+     * Recursively retrieves the child of a parent until none is found.
      *
-     * This function ensures that only the parent path is retained in the result, eliminating any nested child paths.
-     *
-     * @param array $paths Array of file or folder paths.
-     * @param string $parentPath The parent path whose children should be removed from the list.
+     * @param int $path The parent path.
+     * @param Collection $children The compilation of children.
      * @return void
      */
     private function dfs_child_folders(int $path, Collection &$children)

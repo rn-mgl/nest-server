@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Base;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
-use App\Http\Requests\SearchRequest;
-use App\Http\Requests\SortRequest;
 use App\Models\Document;
 use App\Models\Folder;
 use Exception;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
@@ -78,14 +75,15 @@ class DocumentController extends Controller
     {
         try {
             $attributes = $request->validate([
-                "name" => ["required", "string"],
+                "title" => ["required", "string"],
                 "description" => ["required", "string"],
-                "type" => ["required", "string"],
                 "path" => ["required", "integer"],
-                "document" => ["required", "File"]
+                "document" => ["required", "file"]
             ]);
 
             $createdDocument = DB::transaction(function () use ($attributes, $request) {
+
+                unset($attributes["document"]);
 
                 $createdDocument = Document::create($attributes);
 
@@ -103,9 +101,6 @@ class DocumentController extends Controller
                     ]);
                 }
 
-                $document = cloudinary()->uploadFile($file->getRealPath(), ["folder" => "nest-uploads"])->getSecurePath();
-
-                $attributes["document"] = $document;
                 $attributes["created_by"] = Auth::id();
 
                 return $createdDocument;
@@ -115,7 +110,7 @@ class DocumentController extends Controller
             return response()->json(["success" => $createdDocument]);
 
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -125,9 +120,9 @@ class DocumentController extends Controller
     public function show(Document $document)
     {
         try {
-            return response()->json(["document" => $document->load("folders")]);
+            return response()->json(["document" => $document->load(["document", "folder"])]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 
@@ -147,29 +142,31 @@ class DocumentController extends Controller
 
         try {
             $attributes = $request->validate([
-                "name" => ["required", "string"],
+                "title" => ["required", "string"],
                 "description" => ["required", "string"],
-                "document" => ["required"],
-                "path" => ["required", "string"],
-                "type" => ["required", "string"],
+                "document" => [
+                    "required",
+                    Rule::when(
+                        $request->hasFile("document"),
+                        "file",
+                        "string"
+                    )
+                ],
+                "path" => ["required", "integer"],
             ]);
-
-            // if there is no new document and the current document attribute is not a string (link), throw an error
-            if (!$request->hasFile("document") && !is_string($attributes["document"])) {
-                throw new Exception("Invalid Document");
-            }
 
             $updated = DB::transaction(function () use ($attributes, $request, $document) {
                 $documentAttr = [
-                    "name" => $attributes["name"],
+                    "title" => $attributes["title"],
                     "description" => $attributes["description"],
-                    "document" => $attributes["document"],
                     "path" => $attributes["path"],
-                    "type" => $attributes["type"],
                 ];
 
                 if ($request->hasFile("document")) {
                     $file = $request->file("document");
+
+                    // delete old
+                    $document->document()->delete();
 
                     $uploaded = Storage::disk("document")->put("", $file);
 
@@ -186,8 +183,6 @@ class DocumentController extends Controller
 
                 return $updatedDocument;
             });
-
-
 
             return response()->json(["success" => $updated]);
 

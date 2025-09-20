@@ -17,7 +17,7 @@ class Document extends Model
         return $this->morphOne(File::class, "fileable");
     }
 
-    public function folders()
+    public function folder()
     {
         return $this->belongsTo(Folder::class, "path", "id");
     }

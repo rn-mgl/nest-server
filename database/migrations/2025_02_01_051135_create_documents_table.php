@@ -16,13 +16,11 @@ return new class extends Migration {
             $table->id();
             $table->string("title");
             $table->longText("description");
-            $table->string("document");
-            $table->string("type");
             $table->integer("path")->default(0)->index("path");
             $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
-            $table->softDeletes("deleted_at", 0);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
+            $table->softDeletes("deleted_at", 0);
         });
     }
 
