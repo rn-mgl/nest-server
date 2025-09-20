@@ -32,8 +32,8 @@ class HRUserController extends Controller
                     $onboardings = UserOnboarding::with(
                         [
                             "onboarding",
-                            "assignedTo" => ["currentProfilePicture"],
-                            "assignedBy" => ["currentProfilePicture"]
+                            "assignedTo" => ["image"],
+                            "assignedBy" => ["image"]
                         ]
                     )->get();
 
@@ -42,8 +42,8 @@ class HRUserController extends Controller
                     // TO DO: Enhance to avoid N+1 Loading
                     $leaves = LeaveRequest::with([
                         "leave",
-                        "requestedBy" => ["currentProfilePicture"],
-                        "actionedBy" => ["currentProfilePicture"]
+                        "requestedBy" => ["image"],
+                        "actionedBy" => ["image"]
                     ])->get()->each(function ($leave) {
                         $leave->leave_balance = LeaveBalance::where(
                             [
@@ -56,8 +56,8 @@ class HRUserController extends Controller
                 case "performances":
                     $performances = UserPerformanceReview::with([
                         "performanceReview",
-                        "assignedTo" => ["currentProfilePicture"],
-                        "assignedBy" => ["currentProfilePicture"]
+                        "assignedTo" => ["image"],
+                        "assignedBy" => ["image"]
                     ])->get();
 
                     return response()->json(["performances" => $performances]);
@@ -65,14 +65,14 @@ class HRUserController extends Controller
                 case "trainings":
                     $trainings = UserTraining::with([
                         "training",
-                        "assignedTo" => ["currentProfilePicture"],
-                        "assignedBy" => ["currentProfilePicture"],
+                        "assignedTo" => ["image"],
+                        "assignedBy" => ["image"],
                     ])->get();
 
                     return response()->json(["trainings" => $trainings]);
 
                 default:
-                    $employees = User::with(["currentProfilePicture"])
+                    $employees = User::with(["image"])
                         ->ofRole("employee")
                         ->get();
 
@@ -107,7 +107,7 @@ class HRUserController extends Controller
     {
         try {
 
-            $user->load("currentProfilePicture");
+            $user->load("image");
 
             $onboardings = UserOnboarding::with(["onboarding", "assignedBy"])
                 ->where("user_onboardings.assigned_to", "=", $user->id)

@@ -117,7 +117,7 @@ class AuthController extends Controller
             $tokens = new Tokens("SESSION");
             $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role->role, "isVerified" => $isVerified]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role->role, "isVerified" => $isVerified, "image" => $user->image?->url]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

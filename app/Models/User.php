@@ -59,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->morphMany(File::class, "fileable");
     }
 
-    public function currentProfilePicture()
+    public function image()
     {
         return $this->morphOne(File::class, "fileable")->latestOfMany();
     }

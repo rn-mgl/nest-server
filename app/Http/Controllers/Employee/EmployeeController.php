@@ -43,7 +43,7 @@ class EmployeeController extends Controller
     {
         try {
 
-            return response()->json(["profile" => $employee->load("currentProfilePicture")]);
+            return response()->json(["profile" => $employee->load("image")]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

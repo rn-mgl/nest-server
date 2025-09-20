@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\Rule;
 
 class HRController extends Controller
 {
@@ -43,7 +42,7 @@ class HRController extends Controller
     {
         try {
 
-            return response()->json(["profile" => $hr->load("currentProfilePicture")]);
+            return response()->json(["profile" => $hr->load("image")]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -68,7 +67,13 @@ class HRController extends Controller
             $attributes = $request->validate([
                 "first_name" => ["required", "string"],
                 "last_name" => ["required", "string"],
-                "image" => ["nullable"]
+                "image" => [
+                    Rule::when(
+                        $request->hasFile("image"),
+                        "file"
+                    ),
+                    "nullable"
+                ]
             ]);
 
             if ($request->hasFile("image")) {
