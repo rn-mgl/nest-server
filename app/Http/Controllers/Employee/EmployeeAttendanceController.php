@@ -62,7 +62,8 @@ class EmployeeAttendanceController extends Controller
                 "login_time" => null,
                 "logout_time" => null,
                 "late" => null,
-                "absent" => true
+                "absent" => true,
+                "user_id" => Auth::id()
             ];
 
             $log = Attendance::where("user_id", "=", $user)
@@ -72,11 +73,12 @@ class EmployeeAttendanceController extends Controller
 
             if ($log) {
                 $attendance = [
-                    "attendance_id" => $log->id,
+                    "id" => $log->id,
                     "login_time" => $log->login_time,
                     "logout_time" => $log->logout_time,
                     "late" => Carbon::parse($log->login_time)->greaterThan($lateThreshold),
-                    "absent" => false
+                    "absent" => false,
+                    "user_id" => Auth::id()
                 ];
             }
 
