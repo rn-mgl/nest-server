@@ -50,10 +50,12 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             if ($request->hasFile("document")) {
                 $file = $request->file("document");
 
-                $uploaded = Storage::disk("onboarding")->put("/requirements", $file);
+                $disk = "user_required_documents";
 
-                $requirement->userRequiredDocuments()->create([
-                    "disk" => "onboarding",
+                $uploaded = Storage::disk($disk)->put("/requirements", $file);
+
+                $requirement->document()->create([
+                    "disk" => $disk,
                     "path" => $uploaded,
                     "original_name" => $file->getClientOriginalName(),
                     "mime_type" => $file->getMimeType(),
@@ -100,10 +102,12 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             if ($request->hasFile("document")) {
                 $file = $request->file("document");
 
-                $uploaded = Storage::disk("onboarding")->put("/requirements", $file);
+                $disk = "user_required_documents";
 
-                $requiredDocument->userRequiredDocuments()->create([
-                    "disk" => "onboarding",
+                $uploaded = Storage::disk($disk)->put("/requirements", $file);
+
+                $requiredDocument->document()->create([
+                    "disk" => $disk,
                     "path" => $uploaded,
                     "original_name" => $file->getClientOriginalName(),
                     "mime_type" => $file->getMimeType(),
@@ -126,7 +130,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
     public function destroy(UserOnboardingRequiredDocuments $requiredDocument)
     {
         try {
-            $deleted = $requiredDocument->userRequiredDocuments()->delete();
+            $deleted = $requiredDocument->document()->delete();
 
             return response()->json(["success" => $deleted]);
 

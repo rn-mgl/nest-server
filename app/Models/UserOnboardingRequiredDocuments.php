@@ -23,13 +23,12 @@ class UserOnboardingRequiredDocuments extends Model
     }
 
     /**
-     * Get all of the files for the UserOnboardingRequiredDocuments.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<File, UserOnboardingRequiredDocuments>
+     * Summary of document
+     * @return \Illuminate\Database\Eloquent\Relations\MorphOne<File, UserOnboardingRequiredDocuments>
      */
-    public function userRequiredDocuments()
+    public function document()
     {
-        return $this->morphMany(File::class, "fileable");
+        return $this->morphOne(File::class, "fileable");
     }
 
 

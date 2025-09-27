@@ -28,7 +28,6 @@ return new class extends Migration {
             $table->id();
             $table->foreignIdFor(User::class, "complied_by")->constrained("users")->cascadeOnDelete();
             $table->foreignIdFor(OnboardingRequiredDocument::class, "required_document_id")->constrained("onboarding_required_documents", "id", "required_document_id_foreign")->cascadeOnDelete();
-            $table->string("document")->nullable();
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
             $table->softDeletes("deleted_at", 0);

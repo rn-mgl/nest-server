@@ -61,7 +61,7 @@ class EmployeeOnboardingController extends Controller
             // an employee onboarding is connected to the parent onboarding,
             // the parent onboarding has acknowledgement and document,
             // acknowledgement and document each has user compliance
-            $onboarding = $employeeOnboarding->load(
+            $employeeOnboarding->load(
                 [
                     "onboarding" =>
                         [
@@ -73,13 +73,14 @@ class EmployeeOnboardingController extends Controller
                             "requiredDocuments" => [
                                 "userCompliance" => function ($query) use ($employeeOnboarding) {
                                     $query->where("complied_by", "=", $employeeOnboarding->assigned_to);
-                                }
+                                },
+                                "userCompliance.document"
                             ]
                         ]
                 ]
             );
 
-            return response()->json(["onboarding" => $onboarding]);
+            return response()->json(["onboarding" => $employeeOnboarding]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

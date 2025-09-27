@@ -99,6 +99,17 @@ return [
             'url' => env('FILESYSTEM_URL'),
             'prefix' => 'trainings',
             'throw' => true
+        ],
+
+        'user_required_documents' => [
+            'driver' => 'ftp',
+            'host' => env('FTP_HOST'),
+            'user_name' => env('FTP_USERNAME'),
+            'password' => env('FTP_PASSWORD'),
+            'root' => env('FTP_ROOT'),
+            'url' => env('FILESYSTEM_URL'),
+            'prefix' => 'user_required_documents',
+            'throw' => true
         ]
 
     ],
