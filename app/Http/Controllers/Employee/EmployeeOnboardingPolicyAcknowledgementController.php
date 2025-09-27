@@ -41,7 +41,7 @@ class EmployeeOnboardingPolicyAcknowledgementController extends Controller
             $user = Auth::id();
 
             $acknowledgementAttributes = [
-                "user_id" => $user,
+                "acknowledged_by" => $user,
                 "policy_acknowledgement_id" => $attributes["policy_acknowledgement_id"],
                 "acknowledged" => $attributes["policy_acknowledged"]
             ];

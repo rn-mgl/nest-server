@@ -101,10 +101,10 @@ return [
             'throw' => true
         ],
 
-        'user_required_documents' => [
+        'user_required_document' => [
             'driver' => 'ftp',
             'host' => env('FTP_HOST'),
-            'user_name' => env('FTP_USERNAME'),
+            'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
             'root' => env('FTP_ROOT'),
             'url' => env('FILESYSTEM_URL'),

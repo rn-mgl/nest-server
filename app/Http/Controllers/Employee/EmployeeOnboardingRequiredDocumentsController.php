@@ -40,28 +40,33 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 "onboarding_required_document_id" => ["required", "exists:onboarding_required_documents,id"]
             ]);
 
-            $requiredDocumentsAttr = [
-                "user_id" => Auth::id(),
-                "required_document_id" => $attributes["onboarding_required_document_id"]
-            ];
+            $requirement = DB::transaction(function () use ($attributes, $request) {
 
-            $requirement = UserOnboardingRequiredDocuments::create($requiredDocumentsAttr);
+                $requiredDocumentsAttr = [
+                    "complied_by" => Auth::id(),
+                    "required_document_id" => $attributes["onboarding_required_document_id"]
+                ];
 
-            if ($request->hasFile("document")) {
-                $file = $request->file("document");
+                $requirement = UserOnboardingRequiredDocuments::create($requiredDocumentsAttr);
 
-                $disk = "user_required_documents";
+                if ($request->hasFile("document")) {
+                    $file = $request->file("document");
 
-                $uploaded = Storage::disk($disk)->put("/requirements", $file);
+                    $disk = "user_required_document";
 
-                $requirement->document()->create([
-                    "disk" => $disk,
-                    "path" => $uploaded,
-                    "original_name" => $file->getClientOriginalName(),
-                    "mime_type" => $file->getMimeType(),
-                    "size" => $file->getSize(),
-                ]);
-            }
+                    $uploaded = Storage::disk($disk)->put("/", $file);
+
+                    $requirement->document()->create([
+                        "disk" => $disk,
+                        "path" => $uploaded,
+                        "original_name" => $file->getClientOriginalName(),
+                        "mime_type" => $file->getMimeType(),
+                        "size" => $file->getSize(),
+                    ]);
+                }
+
+                return $requirement;
+            });
 
             return response()->json(["success" => $requirement]);
 
@@ -102,9 +107,9 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
             if ($request->hasFile("document")) {
                 $file = $request->file("document");
 
-                $disk = "user_required_documents";
+                $disk = "user_required_document";
 
-                $uploaded = Storage::disk($disk)->put("/requirements", $file);
+                $uploaded = Storage::disk($disk)->put("/", $file);
 
                 $requiredDocument->document()->create([
                     "disk" => $disk,
@@ -115,9 +120,7 @@ class EmployeeOnboardingRequiredDocumentsController extends Controller
                 ]);
             }
 
-            $updated = $requiredDocument->update(["document" => $uploaded]);
-
-            return response()->json(["success" => $updated]);
+            return response()->json(["success" => $uploaded]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

@@ -28,7 +28,7 @@ class UserOnboardingRequiredDocuments extends Model
      */
     public function document()
     {
-        return $this->morphOne(File::class, "fileable");
+        return $this->morphOne(File::class, "fileable")->latest();
     }
 
 
