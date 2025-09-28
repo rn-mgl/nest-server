@@ -82,7 +82,7 @@ class HRPerformanceReviewController extends Controller
     public function show(PerformanceReview $performanceReview)
     {
         try {
-            return response()->json(["performance" => $performanceReview->load("contents")]);
+            return response()->json(["performance" => $performanceReview->load("surveys")]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
