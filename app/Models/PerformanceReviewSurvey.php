@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PerformanceReviewContent extends Model
+class PerformanceReviewSurvey extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -19,6 +19,6 @@ class PerformanceReviewContent extends Model
 
     public function userResponse()
     {
-        return $this->hasOne(UserPerformanceReviewResponse::class, "performance_review_content_id", "id");
+        return $this->hasOne(UserPerformanceReviewResponse::class, "performance_review_survey_id", "id");
     }
 }

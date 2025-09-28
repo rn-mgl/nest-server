@@ -14,8 +14,8 @@ return new class extends Migration {
     {
         Schema::create('user_performance_review_responses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger("performance_review_content_id");
-            $table->foreign("performance_review_content_id", "user_performance_review_responses_content_id_foreign")->references("id")->on("performance_review_contents")->cascadeOnDelete();
+            $table->unsignedBigInteger("performance_review_survey_id");
+            $table->foreign("performance_review_survey_id", "user_performance_review_responses_content_id_foreign")->references("id")->on("performance_review_surveys")->cascadeOnDelete();
             $table->foreignIdFor(User::class, "response_from")->constrained("users")->cascadeOnDelete();
             $table->longText("response");
             $table->timestamp("created_at")->useCurrent();

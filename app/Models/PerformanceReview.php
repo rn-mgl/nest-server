@@ -13,12 +13,12 @@ class PerformanceReview extends Model
     protected $guarded = [];
 
     /**
-     * Summary of contents
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<PerformanceReviewContent, PerformanceReview>
+     * Summary of surveys
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<PerformanceReviewSurvey, PerformanceReview>
      */
-    public function contents()
+    public function surveys()
     {
-        return $this->hasMany(PerformanceReviewContent::class, "performance_review_id", "id");
+        return $this->hasMany(PerformanceReviewSurvey::class, "performance_review_id", "id");
     }
 
     public function createdBy()

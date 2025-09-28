@@ -37,7 +37,7 @@ class EmployeePerformanceReviewResponseController extends Controller
         try {
             $attributes = $request->validate([
                 "response" => ["array", "required"],
-                "response.*.performance_review_content_id" => ["required", "integer"],
+                "response.*.performance_review_survey_id" => ["required", "integer"],
                 "response.*.user_performance_review_response_id" => ["nullable", "integer"],
                 "response.*.response" => ["required", "string"],
             ]);
@@ -50,7 +50,7 @@ class EmployeePerformanceReviewResponseController extends Controller
                     UserPerformanceReview::updateOrInsert(['id' => $response["user_performance_review_response_id"]], [
                         'response' => $response["response"],
                         'response_from' => $user,
-                        'performance_review_content_id' => $response["performance_review_content_id"]
+                        'performance_review_survey_id' => $response["performance_review_survey_id"]
                     ]);
                 }
 

@@ -61,7 +61,7 @@ class EmployeePerformanceReviewController extends Controller
             $employeePerformanceReview->load(
                 [
                     "performanceReview" => [
-                        "contents" => [
+                        "surveys" => [
                             "userResponse" => function ($query) use ($employeePerformanceReview) {
                                 $query->where("response_from", "=", $employeePerformanceReview->assigned_to);
                             }

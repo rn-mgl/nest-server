@@ -4,7 +4,7 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\PerformanceReview;
-use App\Models\PerformanceReviewContent;
+use App\Models\PerformanceReviewSurvey;
 use App\Models\UserPerformanceReview;
 use App\Models\UserPerformanceReviewResponse;
 use Illuminate\Http\Request;
@@ -64,7 +64,7 @@ class HRPerformanceReviewController extends Controller
                     ];
                 });
 
-                PerformanceReviewContent::insert($surveyData->all());
+                PerformanceReviewSurvey::insert($surveyData->all());
 
                 return $createdPerformance;
             });
@@ -125,9 +125,9 @@ class HRPerformanceReviewController extends Controller
                     ];
                 });
 
-                PerformanceReviewContent::upsert($surveyData->all(), ["id"], ["survey"]);
+                PerformanceReviewSurvey::upsert($surveyData->all(), ["id"], ["survey"]);
 
-                PerformanceReviewContent::whereIn("id", $surveyToDelete)->delete();
+                PerformanceReviewSurvey::whereIn("id", $surveyToDelete)->delete();
 
                 $updated = $performanceReview->update([
                     "title" => $attributes["title"],
@@ -155,13 +155,13 @@ class HRPerformanceReviewController extends Controller
 
                 $deleted = $performanceReview->delete();
 
-                $affectedContents = PerformanceReviewContent::where("performance_review_id", "=", $performanceReview->id)->get()->pluck("id");
+                $affectedContents = PerformanceReviewSurvey::where("performance_review_id", "=", $performanceReview->id)->get()->pluck("id");
 
-                $deletedContents = PerformanceReviewContent::whereIn("id", $affectedContents)->delete();
+                $deletedContents = PerformanceReviewSurvey::whereIn("id", $affectedContents)->delete();
 
                 $deletedUserPerformance = UserPerformanceReview::where("performance_review_id", "=", $performanceReview->id)->delete();
 
-                $deletedUserPerformanceResponses = UserPerformanceReviewResponse::whereIn("performance_review_content_id", $affectedContents)->delete();
+                $deletedUserPerformanceResponses = UserPerformanceReviewResponse::whereIn("performance_review_survey_id", $affectedContents)->delete();
 
                 return $deleted || $affectedContents || $deletedContents || $deletedUserPerformance || $deletedUserPerformanceResponses;
 
