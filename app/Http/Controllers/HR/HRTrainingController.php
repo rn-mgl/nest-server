@@ -148,7 +148,7 @@ class HRTrainingController extends Controller
                         "training_id" => $training->id,
                         "title" => $value["title"],
                         "description" => $value["description"],
-                        "content" => $value["content"] ?? null
+                        "content" => !empty($value["content"]) ? $value["content"] : null
                     ]);
 
                     if ($request->hasFile("content_file.{$key}")) {
@@ -350,14 +350,14 @@ class HRTrainingController extends Controller
                             "training_id" => $training->id,
                             "title" => $content["title"],
                             "description" => $content["description"],
-                            "content" => $content["content"] ?? null,
+                            "content" => !empty($content["content"]) ? $content["content"] : null,
                         ]);
                     } else {
                         $content = TrainingContent::find($content["id"]);
                         $content->update([
                             "title" => $content["title"],
                             "description" => $content["description"],
-                            "content" => $content["content"] ?? null,
+                            "content" => !empty($content["content"]) ? $content["content"] : null,
                         ]);
                     }
 

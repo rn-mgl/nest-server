@@ -68,6 +68,11 @@ class EmployeeTrainingController extends Controller
                 ]
             ]);
 
+            $employeeTraining->training->contents->each(function ($content) {
+                $content->content = $content->contentFile ?? $content->content;
+                $content->unsetRelation("contentFile");
+            });
+
             return response()->json(["training" => $employeeTraining]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
