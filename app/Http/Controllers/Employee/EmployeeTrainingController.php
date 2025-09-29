@@ -59,7 +59,7 @@ class EmployeeTrainingController extends Controller
 
             $employeeTraining->load([
                 "training" => [
-                    "contents",
+                    "contents" => ["contentFile"],
                     "reviews" => [
                         "userResponse" => function ($query) use ($employeeTraining) {
                             $query->where("response_from", "=", $employeeTraining->assigned_to);

@@ -65,9 +65,9 @@ class EmployeeTrainingReviewResponseController extends Controller
             $userTraining = UserTraining::where([
                 "training_id" => $trainingId,
                 "assigned_to" => $user
-            ])->first();
+            ])->firstOrFail();
 
-            $newScore = $userTraining->score;
+            $newScore = $userTraining->score ?? 0;
 
             foreach ($pendingReviews as $review) {
 
@@ -79,14 +79,14 @@ class EmployeeTrainingReviewResponseController extends Controller
                 }
 
                 UserTrainingReviewResponse::create([
-                    "response_by" => $user,
+                    "response_from" => $user,
                     "training_review_id" => $reviewId,
                     "answer" => $userAnswer
                 ]);
             }
 
             // update score if there is a change
-            if ($newScore !== $userTraining->score) {
+            if ($newScore !== $userTraining?->score) {
                 $userTraining->update(["score" => $newScore]);
             }
 
