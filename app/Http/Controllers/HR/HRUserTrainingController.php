@@ -32,7 +32,8 @@ class HRUserTrainingController extends Controller
                     "assignedTrainings" => function ($query) use ($attributes) {
                         $query->where("training_id", "=", $attributes["training_id"])
                             ->withTrashed();
-                    }
+                    },
+                    "image"
                 ]
             )->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedTrainings")) {

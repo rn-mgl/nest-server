@@ -29,7 +29,8 @@ class HRUserPerformanceReviewController extends Controller
                     "assignedPerformanceReviews" => function ($query) use ($attributes) {
                         $query->where("performance_review_id", "=", $attributes["performance_review_id"])
                             ->withTrashed();
-                    }
+                    },
+                    "image"
                 ]
             )->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedPerformanceReviews")) {

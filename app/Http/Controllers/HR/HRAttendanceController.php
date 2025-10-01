@@ -80,7 +80,8 @@ class HRAttendanceController extends Controller
 
             $attendances = User::with(
                 [
-                    "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate)
+                    "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate),
+                    "image"
                 ]
             )->get()->map(function ($user) use ($lateThreshold) {
                 $attendance = $user->attendances->first();

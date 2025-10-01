@@ -28,7 +28,8 @@ class HRUserOnboardingController extends Controller
                     "assignedOnboardings" => function ($query) use ($attributes) {
                         $query->where("onboarding_id", "=", $attributes["onboarding_id"])
                             ->withTrashed();
-                    }
+                    },
+                    "image"
                 ]
             )->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedOnboardings")) {

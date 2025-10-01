@@ -31,7 +31,8 @@ class HRUserLeaveBalanceController extends Controller
                         $query->where("leave_type_id", "=", $attributes["leave_type_id"])
                             ->withTrashed();
                     },
-                    "assignedLeaveBalances.leave"
+                    "assignedLeaveBalances.leave",
+                    "image"
                 ]
             )
                 ->get()
