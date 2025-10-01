@@ -56,7 +56,7 @@ class HRLeaveRequestController extends Controller
                 "leave_type_id" => ["required", "exists:leave_types,id"]
             ]);
 
-            $attributes["user_id"] = Auth::id();
+            $attributes["requested_by"] = Auth::id();
             $attributes["start_date"] = Carbon::parse($attributes["start_date"])->toDateTimeString();
             $attributes["end_date"] = Carbon::parse($attributes["end_date"])->toDateTimeString();
 

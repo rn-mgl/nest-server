@@ -20,12 +20,12 @@ class HRAttendanceController extends Controller
         try {
 
             $attributes = $request->validate([
-                "currentDate" => ["required", "integer"],
-                "currentMonth" => ["required", "integer"],
-                "currentYear" => ["required", "integer"],
+                "activeDate" => ["required", "integer"],
+                "activeMonth" => ["required", "integer"],
+                "activeYear" => ["required", "integer"],
             ]);
 
-            $parsedDate = Carbon::create($attributes['currentYear'], $attributes['currentMonth'], $attributes['currentDate'])->startOfDay();
+            $parsedDate = Carbon::create($attributes['activeYear'], $attributes['activeMonth'], $attributes['activeDate'])->startOfDay();
             $latesThreshold = $parsedDate->copy()->addHours(6)->format("Y-m-d H:i:s");
 
             // get logs within the day
