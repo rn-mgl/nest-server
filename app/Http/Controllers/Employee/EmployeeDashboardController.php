@@ -52,22 +52,22 @@ class EmployeeDashboardController extends Controller
                 "absent" => empty($attendance)
             ];
 
-            $onboardings = UserOnboarding::where("user_id", "=", $user)
+            $onboardings = UserOnboarding::where("assigned_to", "=", $user)
                 ->get()
                 ->groupBy("status")
                 ->map(fn($onboarding) => $onboarding->count());
 
-            $leaves = LeaveRequest::where("user_id", "=", $user)
+            $leaves = LeaveRequest::where("requested_by", "=", $user)
                 ->get()
                 ->groupBy("status")
                 ->map(fn($leave) => $leave->count());
 
-            $performances = UserPerformanceReview::where("user_id", "=", $user)
+            $performances = UserPerformanceReview::where("assigned_to", "=", $user)
                 ->get()
                 ->groupBy("status")
                 ->map(fn($performance) => $performance->count());
 
-            $trainings = UserTraining::where("user_id", "=", $user)
+            $trainings = UserTraining::where("assigned_to", "=", $user)
                 ->get()
                 ->groupBy("status")
                 ->map(fn($training) => $training->count());
