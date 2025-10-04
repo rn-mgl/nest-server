@@ -8,7 +8,8 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use stdClass;
 
-class Tokens {
+class Tokens
+{
 
     protected string $key;
     protected bool $isAdmin;
@@ -17,16 +18,18 @@ class Tokens {
      * Initialize the Tokens class
      * @param string $key The type of key to be used. VERIFICATION | SESSION | RESET
      */
-    public function __construct(string $key) {
+    public function __construct(string $key)
+    {
 
         if (!env("{$key}_KEY")) {
             throw new Exception("The {$key} is not defined in the environment.");
         }
 
-        $this->key = env("VERIFICATION_KEY");
+        $this->key = env("{$key}_KEY");
     }
 
-    public function createToken(int $identifier, string $name, string $email, string $role) {
+    public function createToken(int $identifier, string $name, string $email, string $role)
+    {
 
         $payload = [
             "user" => $identifier,
@@ -44,14 +47,16 @@ class Tokens {
         return $token;
     }
 
-    public function decodeToken(string $token) {
+    public function decodeToken(string $token)
+    {
 
         $decoded = JWT::decode($token, new Key($this->key, "HS256"));
         return $decoded;
 
     }
 
-    public function verifyMetadata(stdClass $decodedToken) {
+    public function verifyMetadata(stdClass $decodedToken)
+    {
 
         // check if expired
         $expiration = Carbon::createFromTimestamp($decodedToken->exp);
