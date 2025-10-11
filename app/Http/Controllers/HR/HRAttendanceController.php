@@ -138,7 +138,14 @@ class HRAttendanceController extends Controller
      */
     public function update(Request $request, Attendance $attendance)
     {
-        //
+        try {
+            $updated = $attendance->update(["logout_time" => Carbon::now()]);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     /**

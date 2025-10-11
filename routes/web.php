@@ -151,6 +151,7 @@ Route::prefix("api")->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
                 Route::get("/{attendance}", "show");
+                Route::patch("/{attendance}", "update");
             });
 
         // performance review route
