@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserOnboarding;
 use App\Models\UserPerformanceReview;
 use App\Models\UserTraining;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -22,12 +23,49 @@ class HRUserController extends Controller
         try {
 
             $attributes = $request->validate([
-                "tab" => ["required", "string", "in:employees,onboardings,leaves,performances,trainings"]
+                "tab" => ["required", "string", "in:users,onboardings,leaves,performances,trainings,attendances"],
+                "date" => ["string", "date"]
             ]);
 
             $tab = $attributes["tab"];
 
             switch ($tab) {
+                case "attendances":
+                    $parsedDate = Carbon::parse($attributes["date"]) ?? Carbon::now();
+                    $lateThreshold = $parsedDate->copy()->addHours(6);
+
+                    $attendances = User::with(
+                        [
+                            "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate),
+                            "image"
+                        ]
+                    )->get()->map(function ($user) use ($lateThreshold) {
+                        $attendance = $user->attendances->first();
+                        $user->unsetRelation('attendances');
+
+                        if (!$attendance) {
+                            $user->attendance = [
+                                'id' => null,
+                                'user_id' => $user->id,
+                                'login_time' => null,
+                                'logout_time' => null,
+                                'late' => null,
+                                'absent' => true
+                            ];
+
+                            return $user;
+                        }
+
+                        $attendance->late = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
+                        $attendance->absent = false;
+
+                        $user->attendance = $attendance;
+
+                        return $user;
+                    });
+
+                    return response()->json(["attendances" => $attendances]);
+
                 case "onboardings":
                     $onboardings = UserOnboarding::with(
                         [
@@ -72,11 +110,9 @@ class HRUserController extends Controller
                     return response()->json(["trainings" => $trainings]);
 
                 default:
-                    $employees = User::with(["image"])
-                        ->ofRole("employee")
-                        ->get();
+                    $users = User::with(["image"])->get();
 
-                    return response()->json(["employees" => $employees]);
+                    return response()->json(["users" => $users]);
             }
 
         } catch (\Throwable $th) {

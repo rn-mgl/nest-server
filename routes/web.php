@@ -149,6 +149,7 @@ Route::prefix("api")->group(function () {
             ->prefix("attendance")
             ->group(function () {
                 Route::get("/", "index");
+                Route::post("/", "store");
                 Route::get("/{attendance}", "show");
             });
 

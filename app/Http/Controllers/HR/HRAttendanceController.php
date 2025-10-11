@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Broadcasting\Broadcasters\NullBroadcaster;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HRAttendanceController extends Controller
 {
@@ -66,49 +67,59 @@ class HRAttendanceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $attendanceAttr = [
+                "user_id" => Auth::id(),
+                "login_time" => Carbon::now()
+            ];
+
+            $log = Attendance::create($attendanceAttr);
+
+            return response()->json(["success" => $log]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($requestDate)
+    public function show(string $requestDate)
     {
         try {
             $parsedDate = Carbon::parse($requestDate)->startOfDay();
             $lateThreshold = $parsedDate->copy()->addHours(6);
 
-            $attendances = User::with(
-                [
-                    "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate),
-                    "image"
-                ]
-            )->get()->map(function ($user) use ($lateThreshold) {
-                $attendance = $user->attendances->first();
-                $user->unsetRelation('attendances');
+            $user = Auth::id();
 
-                if (!$attendance) {
-                    $user->attendance = [
-                        'id' => null,
-                        'user_id' => $user->id,
-                        'login_time' => null,
-                        'logout_time' => null,
-                        'late' => null,
-                        'absent' => true
-                    ];
+            $attendance = [
+                "attendance_id" => null,
+                "login_time" => null,
+                "logout_time" => null,
+                "late" => null,
+                "absent" => true,
+                "user_id" => Auth::id()
+            ];
 
-                    return $user;
-                }
+            $log = Attendance::where("user_id", "=", $user)
+                ->whereDate("login_time", $parsedDate)
+                ->where(fn($query) => $query->whereDate("logout_time", $parsedDate)->orWhereNull("logout_time"))
+                ->first();
 
-                $attendance->late = Carbon::parse($attendance->login_time)->greaterThan($lateThreshold);
-                $attendance->absent = false;
+            if ($log) {
+                $attendance = [
+                    "id" => $log->id,
+                    "login_time" => $log->login_time,
+                    "logout_time" => $log->logout_time,
+                    "late" => Carbon::parse($log->login_time)->greaterThan($lateThreshold),
+                    "absent" => false,
+                    "user_id" => Auth::id()
+                ];
+            }
 
-                $user->attendance = $attendance;
+            return response()->json(["attendance" => $attendance]);
 
-                return $user;
-            });
-
-            return response()->json(["attendances" => $attendances]);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
