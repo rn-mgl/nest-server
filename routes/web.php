@@ -17,8 +17,6 @@ use App\Http\Controllers\HR\HRUserOnboardingController;
 use App\Http\Controllers\HR\HRUserPerformanceReviewController;
 use App\Http\Controllers\HR\HRUserTrainingController;
 use App\Http\Controllers\HR\HRUserLeaveBalanceController;
-use App\Http\Controllers\HR\HRLeaveBalanceController;
-use App\Http\Controllers\HR\HRLeaveRequestController;
 
 use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Employee\EmployeeDashboardController;
@@ -94,29 +92,11 @@ Route::prefix("api")->group(function () {
                 Route::delete("/{leaveType}", "destroy");
             });
 
-        // leave balance route
-        Route::controller(HRLeaveBalanceController::class)
-            ->prefix("leave_balance")
-            ->group(function () {
-                Route::get("/", "index");
-            });
-
         // hr to user leave balance route
         Route::controller(HRUserLeaveBalanceController::class)->prefix("user_leave_balance")->group(function () {
             Route::get("/", "index");
             Route::post("/", "store");
         });
-
-        // leave request
-        Route::controller(HRLeaveRequestController::class)
-            ->prefix("leave_request")
-            ->group(function () {
-                Route::get("/", "index");
-                Route::post("/", "store");
-                Route::get("/{leaveRequest}", "show");
-                Route::patch("/{leaveRequest}", "update");
-                Route::delete("/{leaveRequest}", "destroy");
-            });
 
         // hr to user leave request route
         Route::controller(HRUserLeaveRequestController::class)

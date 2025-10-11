@@ -39,7 +39,7 @@ class HRUserController extends Controller
                             "attendances" => fn($query) => $query->whereDate("login_time", "=", $parsedDate),
                             "image"
                         ]
-                    )->get()->map(function ($user) use ($lateThreshold) {
+                    )->ofRole("employee")->get()->map(function ($user) use ($lateThreshold) {
                         $attendance = $user->attendances->first();
                         $user->unsetRelation('attendances');
 
@@ -73,7 +73,9 @@ class HRUserController extends Controller
                             "assignedTo" => ["image"],
                             "assignedBy" => ["image"]
                         ]
-                    )->get();
+                    )->whereHas('assignedTo', function ($query) {
+                        $query->ofRole("employee");
+                    })->get();
 
                     return response()->json(["onboardings" => $onboardings]);
                 case "leaves":
@@ -82,7 +84,9 @@ class HRUserController extends Controller
                         "leave",
                         "requestedBy" => ["image"],
                         "actionedBy" => ["image"]
-                    ])->get()->each(function ($leave) {
+                    ])->whereHas("requestedBy", function ($query) {
+                        $query->ofRole("employee");
+                    })->get()->each(function ($leave) {
                         $leave->leave_balance = LeaveBalance::where(
                             [
                                 "leave_type_id" => $leave->leave_type_id,
@@ -96,7 +100,9 @@ class HRUserController extends Controller
                         "performanceReview",
                         "assignedTo" => ["image"],
                         "assignedBy" => ["image"]
-                    ])->get();
+                    ])->whereHas("assignedTo", function ($query) {
+                        $query->ofRole("employee");
+                    })->get();
 
                     return response()->json(["performances" => $performances]);
 
@@ -105,7 +111,9 @@ class HRUserController extends Controller
                         "training",
                         "assignedTo" => ["image"],
                         "assignedBy" => ["image"],
-                    ])->get();
+                    ])->whereHas("assignedTo", function ($query) {
+                        $query->ofRole("employee");
+                    })->get();
 
                     return response()->json(["trainings" => $trainings]);
 
