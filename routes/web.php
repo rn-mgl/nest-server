@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\AdminHRController;
 
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
-use App\Http\Controllers\HR\HRAttendanceController;
 use App\Http\Controllers\HR\HRUserController;
 use App\Http\Controllers\HR\HRUserLeaveRequestController;
 use App\Http\Controllers\HR\HRLeaveTypeController;
@@ -122,16 +121,6 @@ Route::prefix("api")->group(function () {
             ->group(function () {
                 Route::get("/", "index");
                 Route::post("/", "store");
-            });
-
-        // attendance route
-        Route::controller(HRAttendanceController::class)
-            ->prefix("attendance")
-            ->group(function () {
-                Route::get("/", "index");
-                Route::post("/", "store");
-                Route::get("/{attendance}", "show");
-                Route::patch("/{attendance}", "update");
             });
 
         // performance review route
