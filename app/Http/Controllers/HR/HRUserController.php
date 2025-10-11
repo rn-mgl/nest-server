@@ -110,7 +110,7 @@ class HRUserController extends Controller
                     return response()->json(["trainings" => $trainings]);
 
                 default:
-                    $users = User::with(["image"])->get();
+                    $users = User::with(["image"])->ofRole("employee")->get();
 
                     return response()->json(["users" => $users]);
             }

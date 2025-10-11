@@ -31,7 +31,7 @@ class HRUserOnboardingController extends Controller
                     },
                     "image"
                 ]
-            )->get()->each(function ($user) {
+            )->ofRole("employee")->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedOnboardings")) {
                     $user->assigned_onboarding = $user->assignedOnboardings?->first();
                     $user->unsetRelation("assignedOnboardings");

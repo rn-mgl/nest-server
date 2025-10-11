@@ -32,7 +32,7 @@ class HRUserPerformanceReviewController extends Controller
                     },
                     "image"
                 ]
-            )->get()->each(function ($user) {
+            )->ofRole("employee")->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedPerformanceReviews")) {
                     $user->assigned_performance_review = $user->assignedPerformanceReviews->first();
                     $user->unsetRelation("assignedPerformanceReviews");

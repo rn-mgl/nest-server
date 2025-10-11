@@ -34,7 +34,7 @@ class HRUserLeaveBalanceController extends Controller
                     "assignedLeaveBalances.leave",
                     "image"
                 ]
-            )
+            )->ofRole("employee")
                 ->get()
                 ->each(function ($user) {
                     if ($user->relationLoaded("assignedLeaveBalances")) {

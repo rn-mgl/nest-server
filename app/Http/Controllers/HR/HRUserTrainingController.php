@@ -35,7 +35,7 @@ class HRUserTrainingController extends Controller
                     },
                     "image"
                 ]
-            )->get()->each(function ($user) {
+            )->ofRole("employee")->get()->each(function ($user) {
                 if ($user->relationLoaded("assignedTrainings")) {
                     $user->assigned_training = $user->assignedTrainings->first();
                     $user->unsetRelation("assignedTrainings");
