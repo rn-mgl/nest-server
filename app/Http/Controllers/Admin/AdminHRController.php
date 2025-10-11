@@ -18,7 +18,7 @@ class AdminHRController extends Controller
 
         try {
 
-            $hrs = User::ofRole("hr")->get();
+            $hrs = User::ofRole("hr")->with(["image"])->get();
 
             return response()->json(["hrs" => $hrs]);
         } catch (\Throwable $th) {
