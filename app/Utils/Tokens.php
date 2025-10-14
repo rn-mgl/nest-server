@@ -28,7 +28,7 @@ class Tokens
         $this->key = env("{$key}_KEY");
     }
 
-    public function createToken(int $identifier, string $name, string $email, string $role)
+    public function createToken(int $identifier, string $name, string $email, array $role)
     {
 
         $payload = [

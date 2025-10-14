@@ -107,17 +107,19 @@ class AuthController extends Controller
 
             $isVerified = $user->email_verified_at;
 
+            $roles = $user->roles()->pluck("role")->toArray();
+
             if (!$isVerified) {
                 $tokens = new Tokens("VERIFICATION");
-                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "role" => $user->role->role, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "role" => $roles, "isVerified" => false]);
             }
 
             $tokens = new Tokens("SESSION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $user->role->role, "isVerified" => $isVerified, "image" => $user->image?->url]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $roles, "isVerified" => $isVerified, "image" => $user->image?->url]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

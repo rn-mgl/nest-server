@@ -69,13 +69,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Attendance::class, "user_id", "id");
     }
 
-    /**
-     * Summary of role
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Role, User>
-     */
-    public function role()
+    public function roles()
     {
-        return $this->belongsTo(Role::class, "role_id", "id");
+        return $this->belongsToMany(Role::class, "role_user", "user_id", "role_id");
     }
 
     /**
