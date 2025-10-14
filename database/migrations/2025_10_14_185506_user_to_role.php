@@ -12,13 +12,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string("role")->unique()->fulltext();
-            $table->foreignIdFor(User::class, "created_by")->nullable()->constrained("users")->nullOnDelete();
+        Schema::create('role_user', function (Blueprint $table) {
+            $table->foreignIdFor(Role::class, "role_id")->constrained("roles")->cascadeOnDelete();
+            $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
             $table->timestamp("created_at")->useCurrent();
-            $table->timestamp("updated_at")->useCurrent()->useCurrentOnUpdate();
-            $table->softDeletes("deleted_at", 0);
+            $table->timestamp("updated_at")->useCurrent();
         });
     }
 
@@ -27,6 +25,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists("role_user");
     }
 };
