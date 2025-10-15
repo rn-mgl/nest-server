@@ -131,10 +131,10 @@ class User extends Authenticatable implements MustVerifyEmail
      * Local query scope to filter users by role
      */
     #[Scope]
-    protected function ofRole(Builder $query, string $role)
+    protected function ofRole(Builder $query, array $role)
     {
-        $query->whereHas("role", function (Builder $query2) use ($role) {
-            $query2->where("role", "=", $role);
+        $query->whereHas("roles", function (Builder $roleQuery) use ($role) {
+            $roleQuery->whereIn("role", $role);
         });
     }
 

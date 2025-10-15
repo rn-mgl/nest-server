@@ -33,7 +33,7 @@ use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
 use App\Http\Controllers\Base\AuthController;
 use App\Http\Controllers\Base\DocumentController;
 use App\Http\Controllers\Base\FolderController;
-
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -53,6 +53,18 @@ Route::prefix("api")->group(function () {
             Route::post("/forgot-password", "forgot_password");
             Route::patch("/reset-password", "reset_password");
         });
+
+    // shared
+    Route::middleware(["auth"])->group(function () {
+
+        // dashboard
+        Route::controller(DashboardController::class)
+            ->prefix("dashboard")
+            ->group(function () {
+                Route::get("/", "index");
+            });
+
+    });
 
     // hr routes
     Route::middleware(["auth", "user_token:hr"])->prefix("hr")->group(function () {
