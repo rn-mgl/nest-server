@@ -15,6 +15,7 @@ return new class extends Migration {
         Schema::create('role_user', function (Blueprint $table) {
             $table->foreignIdFor(Role::class, "role_id")->constrained("roles")->cascadeOnDelete();
             $table->foreignIdFor(User::class, "user_id")->constrained("users")->cascadeOnDelete();
+            $table->primary(['role_id', 'user_id']);
             $table->timestamp("created_at")->useCurrent();
             $table->timestamp("updated_at")->useCurrent();
         });
