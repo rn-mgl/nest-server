@@ -28,14 +28,14 @@ class Tokens
         $this->key = env("{$key}_KEY");
     }
 
-    public function createToken(int $identifier, string $name, string $email, string $role)
+    public function createToken(int $identifier, string $name, string $email, array $roles)
     {
 
         $payload = [
             "user" => $identifier,
             "name" => $name,
             "email" => $email,
-            "role" => $role,
+            "roles" => $roles,
             "iss" => env("TOKEN_ISSUER"),
             "aud" => env("TOKEN_AUDIENCE"),
             "iat" => Carbon::now()->timestamp,

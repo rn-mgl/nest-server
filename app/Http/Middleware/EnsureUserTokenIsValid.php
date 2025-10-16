@@ -21,7 +21,7 @@ class EnsureUserTokenIsValid
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next): Response
     {
         try {
 
@@ -43,13 +43,10 @@ class EnsureUserTokenIsValid
             }
 
             $user = $request->user();
+            $userRoles = $user->roles->pluck("role");
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $user->role->role !== $decoded->role) {
-                throw new UnauthorizedException("You are unauthorized to proceed.");
-            }
-
-            if ($user->role->role !== $role) {
+            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $userRoles->diff(collect($decoded->roles))->isNotEmpty()) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
