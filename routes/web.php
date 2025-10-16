@@ -64,6 +64,14 @@ Route::prefix("api")->group(function () {
                 Route::get("/", "index")->middleware(["check_permission:read.dashboard"]);
             });
 
+        // auth
+        Route::controller(AuthController::class)
+            ->prefix("auth")
+            ->group(function () {
+                Route::post("/logout", "logout");
+                Route::patch("/change-password", "change_password");
+            });
+
     });
 
     // hr routes
