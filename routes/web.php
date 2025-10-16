@@ -61,7 +61,7 @@ Route::prefix("api")->group(function () {
         Route::controller(DashboardController::class)
             ->prefix("dashboard")
             ->group(function () {
-                Route::get("/", "index");
+                Route::get("/", "index")->middleware(["check_permission:read.dashboard"]);
             });
 
     });

@@ -7,8 +7,10 @@ use App\Models\Training;
 use App\Models\TrainingContent;
 use App\Models\User;
 use App\Models\UserOnboardingRequiredDocuments;
+use App\Policies\PermissionPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -35,5 +37,7 @@ class AppServiceProvider extends ServiceProvider
             "training_content" => TrainingContent::class,
             "user_required_documents" => UserOnboardingRequiredDocuments::class
         ]);
+
+        Gate::define('perform-action', [PermissionPolicy::class, 'perform']);
     }
 }
