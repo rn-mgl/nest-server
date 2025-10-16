@@ -37,7 +37,5 @@ class AppServiceProvider extends ServiceProvider
             "training_content" => TrainingContent::class,
             "user_required_documents" => UserOnboardingRequiredDocuments::class
         ]);
-
-        Gate::define('perform-action', [PermissionPolicy::class, 'perform']);
     }
 }

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
-
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRUserController;
@@ -19,7 +19,6 @@ use App\Http\Controllers\HR\HRUserLeaveBalanceController;
 
 use App\Http\Controllers\Employee\EmployeeController;
 use App\Http\Controllers\Employee\EmployeeDashboardController;
-use App\Http\Controllers\Employee\EmployeeAttendanceController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
 use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
@@ -55,13 +54,13 @@ Route::prefix("api")->group(function () {
         });
 
     // shared
-    Route::middleware(["auth"])->group(function () {
+    Route::middleware(["auth", "user_token"])->group(function () {
 
         // dashboard
         Route::controller(DashboardController::class)
             ->prefix("dashboard")
             ->group(function () {
-                Route::get("/", "index")->middleware(["check_permission:read.dashboard"]);
+                Route::get("/", "index");
             });
 
         // auth
@@ -69,7 +68,17 @@ Route::prefix("api")->group(function () {
             ->prefix("auth")
             ->group(function () {
                 Route::post("/logout", "logout");
-                Route::patch("/change-password", "change_password");
+                Route::patch("/change_password", "change_password");
+            });
+
+        // attendance
+        Route::controller(AttendanceController::class)
+            ->prefix("attendance")
+            ->group(function () {
+                Route::get("/", "index")->middleware(["check_permission:read.attendance"]);
+                Route::post("/", "store");
+                Route::get("/{attendance}", "show");
+                Route::patch("/{attendance}", "update");
             });
 
     });
@@ -228,15 +237,6 @@ Route::prefix("api")->group(function () {
             ->group(function () {
                 Route::post("/logout", "logout");
                 Route::patch("/change-password", "change_password");
-            });
-
-        // attendance route
-        Route::controller(EmployeeAttendanceController::class)
-            ->prefix("attendance")
-            ->group(function () {
-                Route::get("/{attendance}", "show");
-                Route::post("/", "store");
-                Route::patch("/{attendance}", "update");
             });
 
         // employee onboarding route

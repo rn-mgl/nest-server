@@ -30,17 +30,10 @@ class AuthController extends Controller
                 "first_name" => ["required", "string"],
                 "last_name" => ["required", "string"],
                 "email" => ["required", "string", "email", "unique:users,email"],
-                "password" => ["required", Password::min(8)],
-                "role" => ["required", "string", "in:employee,hr"]
+                "password" => ["required", Password::min(8)]
             ]);
 
             DB::transaction(function () use ($attributes) {
-
-                $role = Role::where("role", "=", $attributes["role"])->firstOrFail();
-
-                $attributes["role_id"] = $role->id;
-
-                unset($attributes["role"]);
 
                 $user = User::create($attributes);
                 $tokens = new Tokens("VERIFICATION");
@@ -113,13 +106,13 @@ class AuthController extends Controller
                 $tokens = new Tokens("VERIFICATION");
                 $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "role" => $roles, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "roles" => $roles, "isVerified" => false]);
             }
 
             $tokens = new Tokens("SESSION");
             $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "role" => $roles, "isVerified" => $isVerified, "image" => $user->image?->url]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "roles" => $roles, "isVerified" => $isVerified, "image" => $user->image?->url]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
