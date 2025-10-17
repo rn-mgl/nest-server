@@ -27,7 +27,10 @@ class EnsureUserTokenIsValid
 
             $authToken = $request->header("Authorization");
 
-            if (!$authToken || !Str::startsWith($authToken, "Bearer ")) {
+            if (
+                !$authToken ||
+                !Str::startsWith($authToken, "Bearer ")
+            ) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 
@@ -43,10 +46,16 @@ class EnsureUserTokenIsValid
             }
 
             $user = $request->user();
-            $userRoles = $user->roles->pluck("role");
+            $userRoles = $user->assignedRoles();
+            $userPermissions = $user->assignedPermissions();
 
             // check if payload match db
-            if ($user->id !== $decoded->user || $user->email !== $decoded->email || $userRoles->diff(collect($decoded->roles))->isNotEmpty()) {
+            if (
+                $user->id !== $decoded->user ||
+                $user->email !== $decoded->email ||
+                $userRoles->diff(collect($decoded->roles))->isNotEmpty() ||
+                $userPermissions->diff(collect($decoded->permissions))->isNotEmpty()
+            ) {
                 throw new UnauthorizedException("You are unauthorized to proceed.");
             }
 

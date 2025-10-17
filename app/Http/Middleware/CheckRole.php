@@ -17,7 +17,7 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
 
-        $roles = $request->user()->roles->pluck("role");
+        $roles = $request->user()->assignedRoles();
 
         if (!$roles->contains($role)) {
             throw new UnauthorizedException("You are not allowed to access this resource.");

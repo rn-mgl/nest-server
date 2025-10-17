@@ -19,11 +19,7 @@ class CheckPermission
     public function handle(Request $request, Closure $next, string $permission): Response
     {
 
-        $actions = $request->user()->roles
-            ->load("permissions")
-            ->pluck("permissions")
-            ->flatten()
-            ->pluck("action");
+        $actions = $request->user()->assignedPermissions();
 
         if (!$actions->contains($permission)) {
 
