@@ -33,6 +33,7 @@ use App\Http\Controllers\Base\AuthController;
 use App\Http\Controllers\Base\DocumentController;
 use App\Http\Controllers\Base\FolderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -48,9 +49,9 @@ Route::prefix("api")->group(function () {
             Route::post("/login", "login");
             Route::post("/register", "register");
             Route::patch('/verify', "verify");
-            Route::post("/verification-notification", "resend_verification")->middleware(["auth", "throttle:6,1"]);
-            Route::post("/forgot-password", "forgot_password");
-            Route::patch("/reset-password", "reset_password");
+            Route::post("/verification-notification", "resendVerification")->middleware(["auth", "throttle:6,1"]);
+            Route::post("/forgot-password", "forgotPassword");
+            Route::patch("/reset-password", "resetPassword");
         });
 
     // shared
@@ -68,7 +69,7 @@ Route::prefix("api")->group(function () {
             ->prefix("auth")
             ->group(function () {
                 Route::post("/logout", "logout");
-                Route::patch("/change_password", "change_password");
+                Route::patch("/change-password", "changePassword");
             });
 
         // attendance
@@ -79,6 +80,26 @@ Route::prefix("api")->group(function () {
                 Route::post("/", "store");
                 Route::get("/{attendance}", "show");
                 Route::patch("/{attendance}", "update");
+            });
+
+        // onboarding
+        Route::controller(OnboardingController::class)
+            ->prefix("onboarding")
+            ->group(function () {
+                Route::prefix("assigned")
+                    ->group(function () {
+                        Route::get("/", "assignedIndex");
+                        Route::get("/{onboarding}", "resourceShow");
+                    });
+
+                Route::prefix("resource")
+                    ->group(function () {
+                        Route::get("/", "resourceIndex");
+                        Route::post("/", "resourceStore");
+                        Route::get("/{onboarding}", "resourceShow");
+                        Route::patch("/{onboarding}", "resourceUpdate");
+                        Route::delete("/{onboarding}", "resourceDestroy");
+                    });
             });
 
     });

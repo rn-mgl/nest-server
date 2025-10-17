@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureUserTokenIsValid;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,7 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'user_token' => EnsureUserTokenIsValid::class,
-            'check_permission' => CheckPermission::class
+            'check_permission' => CheckPermission::class,
+            "check_role" => CheckRole::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

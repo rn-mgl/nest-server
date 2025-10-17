@@ -118,7 +118,7 @@ class AuthController extends Controller
         }
     }
 
-    public function resend_verification()
+    public function resendVerification()
     {
         try {
             $id = Auth::id();
@@ -152,7 +152,7 @@ class AuthController extends Controller
 
     }
 
-    public function change_password(Request $request)
+    public function changePassword(Request $request)
     {
         try {
 
@@ -182,7 +182,7 @@ class AuthController extends Controller
         }
     }
 
-    public function forgot_password(Request $request)
+    public function forgotPassword(Request $request)
     {
         try {
 
@@ -208,7 +208,7 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(Request $request)
+    public function resetPassword(Request $request)
     {
         try {
 
