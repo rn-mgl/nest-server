@@ -33,6 +33,8 @@ use App\Http\Controllers\Base\AuthController;
 use App\Http\Controllers\Base\DocumentController;
 use App\Http\Controllers\Base\FolderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,10 +99,10 @@ Route::prefix("api")->group(function () {
                 Route::prefix("resource")
                     ->group(function () {
                     Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
-                    Route::post("/", "resourceStore");
-                    Route::get("/{onboarding}", "resourceShow");
-                    Route::patch("/{onboarding}", "resourceUpdate");
-                    Route::delete("/{onboarding}", "resourceDestroy");
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.onboarding_resource"]);
+                    Route::get("/{onboarding}", "resourceShow")->middleware(["check_permission:read.onboarding_resource"]);
+                    Route::patch("/{onboarding}", "resourceUpdate")->middleware(["check_permission:update.onboarding_resource"]);
+                    Route::delete("/{onboarding}", "resourceDestroy")->middleware(["check_permission:delete.onboarding_resource"]);
                 });
 
                 // route for the assigning of onboardings
@@ -109,6 +111,50 @@ Route::prefix("api")->group(function () {
                     ->group(function () {
                     Route::get("/", "assignmentIndex");
                     Route::post("/", "assignmentStore");
+                });
+            });
+
+        // leave types
+        Route::controller(LeaveTypeController::class)
+            ->prefix("leave-type")
+            ->group(function () {
+                // route for the assigned leave types (leave balance)
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::get("/", "assignedIndex");
+                });
+
+                // route for the resource leave types
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::post("/", "resourceStore");
+                    Route::get("/{leaveType}", "resourceShow");
+                    Route::patch("/{leaveType}", "resourceUpdate");
+                    Route::delete("/{leaveType}", "resourceDestroy");
+                });
+
+                // route for the assigning of leave types (leave balance)
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.leave_type_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
+            });
+
+        // leave requests
+        Route::controller(LeaveRequestController::class)
+            ->prefix("leave-request")
+            ->group(function () {
+                // route for the resource leave types
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::post("/", "resourceStore");
+                    Route::get("/{leaveRequest}", "resourceShow");
+                    Route::patch("/{leaveRequest}", "resourceUpdate");
+                    Route::delete("/{leaveRequest}", "resourceDestroy");
                 });
             });
 

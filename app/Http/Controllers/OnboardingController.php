@@ -289,8 +289,6 @@ class OnboardingController extends Controller
                 "onboarding_id" => ["required", "integer"]
             ]);
 
-            logger($attributes);
-
             $users = User::with(
                 [
                     "assignedOnboardings" => function ($query) use ($attributes) {
