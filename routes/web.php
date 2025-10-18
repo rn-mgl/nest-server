@@ -94,7 +94,7 @@ Route::prefix("api")->group(function () {
 
                 Route::prefix("resource")
                     ->group(function () {
-                        Route::get("/", "resourceIndex");
+                        Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
                         Route::post("/", "resourceStore");
                         Route::get("/{onboarding}", "resourceShow");
                         Route::patch("/{onboarding}", "resourceUpdate");

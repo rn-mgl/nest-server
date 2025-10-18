@@ -25,7 +25,7 @@ class CheckPermission
 
             [$action, $resource] = explode(".", $permission);
 
-            throw new UnauthorizedException("You are not allowed to perform the action: " . Str::ucfirst($action) . " " . Str::ucfirst($resource));
+            throw new UnauthorizedException("You are not allowed to perform the action: " . Str::ucfirst($action) . " " . str_replace("_", " ", $resource));
         }
 
         return $next($request);
