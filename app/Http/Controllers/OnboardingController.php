@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Onboarding;
 use App\Models\OnboardingPolicyAcknowledgement;
 use App\Models\OnboardingRequiredDocument;
+use App\Models\User;
 use App\Models\UserOnboarding;
 use App\Models\UserOnboardingPolicyAcknowledgement;
 use App\Models\UserOnboardingRequiredDocuments;
@@ -40,25 +41,25 @@ class OnboardingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function assignedShow(UserOnboarding $employeeOnboarding)
+    public function assignedShow(UserOnboarding $userOnboarding)
     {
         try {
 
             // an employee onboarding is connected to the parent onboarding,
             // the parent onboarding has acknowledgement and document,
             // acknowledgement and document each has user compliance
-            $employeeOnboarding->load(
+            $userOnboarding->load(
                 [
                     "onboarding" =>
                         [
                             "policyAcknowledgements" => [
-                                "userAcknowledgement" => function ($query) use ($employeeOnboarding) {
-                                    $query->where("acknowledged_by", "=", $employeeOnboarding->assigned_to);
+                                "userAcknowledgement" => function ($query) use ($userOnboarding) {
+                                    $query->where("acknowledged_by", "=", $userOnboarding->assigned_to);
                                 }
                             ],
                             "requiredDocuments" => [
-                                "userCompliance" => function ($query) use ($employeeOnboarding) {
-                                    $query->where("complied_by", "=", $employeeOnboarding->assigned_to);
+                                "userCompliance" => function ($query) use ($userOnboarding) {
+                                    $query->where("complied_by", "=", $userOnboarding->assigned_to);
                                 },
                                 "userCompliance.document"
                             ]
@@ -66,7 +67,7 @@ class OnboardingController extends Controller
                 ]
             );
 
-            return response()->json(["onboarding" => $employeeOnboarding]);
+            return response()->json(["onboarding" => $userOnboarding]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -156,7 +157,7 @@ class OnboardingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function resouceShow(Onboarding $onboarding)
+    public function resourceShow(Onboarding $onboarding)
     {
         try {
             return response()->json(["onboarding" => $onboarding->load(["requiredDocuments", "policyAcknowledgements"])]);
@@ -268,6 +269,97 @@ class OnboardingController extends Controller
             });
 
             return response()->json(["success" => $deleted]);
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    ##############
+    # ASSIGNMENT #
+    ##############
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function assignmentIndex(Request $request)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "onboarding_id" => ["required", "integer"]
+            ]);
+
+            logger($attributes);
+
+            $users = User::with(
+                [
+                    "assignedOnboardings" => function ($query) use ($attributes) {
+                        $query->where("onboarding_id", "=", $attributes["onboarding_id"])
+                            ->withTrashed();
+                    },
+                    "image"
+                ]
+            )->get()->each(function ($user) {
+                if ($user->relationLoaded("assignedOnboardings")) {
+                    $user->assigned_onboarding = $user->assignedOnboardings?->first();
+                    $user->unsetRelation("assignedOnboardings");
+                }
+            });
+
+            return response()->json(["users" => $users]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function assignmentStore(Request $request)
+    {
+        try {
+            $attributes = $request->validate([
+                "user_ids" => ["array"],
+                "user_ids.*" => ["integer", "exists:users,id"],
+                "onboarding_id" => ["required", "integer", "exists:onboardings,id"]
+            ]);
+
+            DB::transaction(function () use ($attributes) {
+                $checkedUserIds = collect($attributes["user_ids"] ?? []);
+
+                $assignedOnboardings = UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
+                    ->withTrashed()
+                    ->get();
+
+                $alreadyAssigned = $assignedOnboardings->pluck("assigned_to");
+                $newlyAssigned = $checkedUserIds->diff($alreadyAssigned);
+                $revoked = $alreadyAssigned->diff($checkedUserIds);
+
+                // assign to employees
+                $userOnboardingData = $newlyAssigned->map(function ($id) use ($attributes) {
+                    return [
+                        "assigned_by" => Auth::id(),
+                        "onboarding_id" => $attributes["onboarding_id"],
+                        "assigned_to" => $id
+                    ];
+                });
+
+                UserOnboarding::insert($userOnboardingData->all());
+
+                // trashed records that were re-checked
+                $assignedOnboardings
+                    ->filter(
+                        fn($onboarding) => $onboarding->trashed() && $checkedUserIds->contains($onboarding->assigned_to)
+                    )->each(fn($onboarding) => $onboarding->restore());
+
+                UserOnboarding::where("onboarding_id", "=", $attributes["onboarding_id"])
+                    ->whereIn("assigned_to", $revoked)
+                    ->delete();
+            });
+
+            return response()->json(["success" => true]);
+
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }

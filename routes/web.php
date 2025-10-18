@@ -86,20 +86,30 @@ Route::prefix("api")->group(function () {
         Route::controller(OnboardingController::class)
             ->prefix("onboarding")
             ->group(function () {
+                // route for the assigned onboardings
                 Route::prefix("assigned")
                     ->group(function () {
-                        Route::get("/", "assignedIndex");
-                        Route::get("/{onboarding}", "resourceShow");
-                    });
+                    Route::get("/", "assignedIndex");
+                    Route::get("/{userOnboarding}", "assignedShow");
+                });
 
+                // route for the resource onboardings
                 Route::prefix("resource")
                     ->group(function () {
-                        Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
-                        Route::post("/", "resourceStore");
-                        Route::get("/{onboarding}", "resourceShow");
-                        Route::patch("/{onboarding}", "resourceUpdate");
-                        Route::delete("/{onboarding}", "resourceDestroy");
-                    });
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
+                    Route::post("/", "resourceStore");
+                    Route::get("/{onboarding}", "resourceShow");
+                    Route::patch("/{onboarding}", "resourceUpdate");
+                    Route::delete("/{onboarding}", "resourceDestroy");
+                });
+
+                // route for the assigning of onboardings
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.onboarding_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
             });
 
     });
