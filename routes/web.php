@@ -127,11 +127,11 @@ Route::prefix("api")->group(function () {
                 // route for the resource leave types
                 Route::prefix("resource")
                     ->group(function () {
-                    Route::get("/", "resourceIndex");
-                    Route::post("/", "resourceStore");
-                    Route::get("/{leaveType}", "resourceShow");
-                    Route::patch("/{leaveType}", "resourceUpdate");
-                    Route::delete("/{leaveType}", "resourceDestroy");
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.leave_type_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.leave_type_resource"]);
+                    Route::get("/{leaveType}", "resourceShow")->middleware(["check_permission:read.leave_type_resource"]);
+                    Route::patch("/{leaveType}", "resourceUpdate")->middleware(["check_permission:update.leave_type_resource"]);
+                    Route::delete("/{leaveType}", "resourceDestroy")->middleware(["check_permission:delete.leave_type_resource"]);
                 });
 
                 // route for the assigning of leave types (leave balance)

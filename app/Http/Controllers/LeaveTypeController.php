@@ -27,7 +27,7 @@ class LeaveTypeController extends Controller
                 ->where("assigned_to", "=", $user)
                 ->get();
 
-            return response()->json(["leave_balances" => $leaveBalances]);
+            return response()->json(["leaves" => $leaveBalances]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

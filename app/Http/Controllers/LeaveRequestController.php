@@ -25,7 +25,7 @@ class LeaveRequestController extends Controller
 
             $leaveRequests = LeaveRequest::with(["leave"])->where("requested_by", "=", $user)->get();
 
-            return response()->json(["requests" => $leaveRequests]);
+            return response()->json(["leaves" => $leaveRequests]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -66,7 +66,7 @@ class LeaveRequestController extends Controller
     public function resourceShow(LeaveRequest $leaveRequest)
     {
         try {
-            return response()->json(["request" => $leaveRequest]);
+            return response()->json(["leave" => $leaveRequest]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
