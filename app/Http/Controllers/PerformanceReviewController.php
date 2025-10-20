@@ -33,7 +33,7 @@ class PerformanceReviewController extends Controller
         }
     }
 
-    public function assignedShow(PerformanceReview $performanceReview)
+    public function assignedShow(UserPerformanceReview $performanceReview)
     {
         try {
 
@@ -179,7 +179,7 @@ class PerformanceReviewController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PerformanceReview $performanceReview)
+    public function resourceDestroy(PerformanceReview $performanceReview)
     {
         try {
 
@@ -201,7 +201,7 @@ class PerformanceReviewController extends Controller
 
             return response()->json(["success" => $deleted]);
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            throw new Exception($th->getMessage());
         }
     }
 

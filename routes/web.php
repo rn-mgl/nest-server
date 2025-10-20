@@ -172,14 +172,15 @@ Route::prefix("api")->group(function () {
 
                 Route::prefix("resource")
                     ->group(function () {
-                        Route::get("/", "resourceIndex");
-                        Route::post("/", "resourceStore");
-                        Route::get("/{performanceReview}", "resourceShow");
-                        Route::patch("/{performanceReview}", "resourceUpdate");
-                        Route::delete("/{performanceReview}", "resourceDestroy");
+                        Route::get("/", "resourceIndex")->middleware(["check_permission:read.performance_review_resource"]);
+                        Route::post("/", "resourceStore")->middleware(["check_permission:create.performance_review_resource"]);
+                        Route::get("/{performanceReview}", "resourceShow")->middleware(["check_permission:read.performance_review_resource"]);
+                        Route::patch("/{performanceReview}", "resourceUpdate")->middleware(["check_permission:update.performance_review_resource"]);
+                        Route::delete("/{performanceReview}", "resourceDestroy")->middleware(["check_permission:delete.performance_review_resource"]);
                     });
 
                 Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.performance_review_resource"])
                     ->group(function () {
                         Route::get("/", "assignmentIndex");
                         Route::post("/", "assignmentStore");
