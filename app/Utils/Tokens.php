@@ -28,19 +28,22 @@ class Tokens
         $this->key = env("{$key}_KEY");
     }
 
-    public function createToken(int $identifier, string $name, string $email, array $roles)
+    public function createToken(int $identifier, string $name, string $email, array $options = [])
     {
 
         $payload = [
             "user" => $identifier,
             "name" => $name,
             "email" => $email,
-            "roles" => $roles,
             "iss" => env("TOKEN_ISSUER"),
             "aud" => env("TOKEN_AUDIENCE"),
             "iat" => Carbon::now()->timestamp,
             "exp" => Carbon::now()->addDay()->timestamp,
         ];
+
+        foreach ($options as $key => $value) {
+            $payload[$key] = $value;
+        }
 
         $token = JWT::encode($payload, $this->key, "HS256");
 

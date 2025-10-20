@@ -37,7 +37,7 @@ class AuthController extends Controller
 
                 $user = User::create($attributes);
                 $tokens = new Tokens("VERIFICATION");
-                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email);
 
                 event(new Registered($user, $token));
 
@@ -100,32 +100,38 @@ class AuthController extends Controller
 
             $isVerified = $user->email_verified_at;
 
-            $roles = $user->roles()->pluck("role")->toArray();
+            $roles = $user->assignedRoles()->toArray();
+            $permissions = $user->assignedPermissions()->toArray();
+
+            $tokenOptions = [
+                "roles" => $roles,
+                "permissions" => $permissions
+            ];
 
             if (!$isVerified) {
                 $tokens = new Tokens("VERIFICATION");
-                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
+                $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $tokenOptions);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "roles" => $roles, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "roles" => $roles, "permissions" => $permissions, "isVerified" => false]);
             }
 
             $tokens = new Tokens("SESSION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $roles);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $tokenOptions);
 
-            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "roles" => $roles, "isVerified" => $isVerified, "image" => $user->image?->url]);
+            return response()->json(["success" => true, "token" => $token, "current" => $user->id, "roles" => $roles, "permissions" => $permissions, "isVerified" => $isVerified, "image" => $user->image?->url]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
     }
 
-    public function resend_verification()
+    public function resendVerification()
     {
         try {
             $id = Auth::id();
             $user = User::findOrFail($id);
 
             $tokens = new Tokens("VERIFICATION");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email);
 
             event(new Registered($user, $token));
 
@@ -152,7 +158,7 @@ class AuthController extends Controller
 
     }
 
-    public function change_password(Request $request)
+    public function changePassword(Request $request)
     {
         try {
 
@@ -182,7 +188,7 @@ class AuthController extends Controller
         }
     }
 
-    public function forgot_password(Request $request)
+    public function forgotPassword(Request $request)
     {
         try {
 
@@ -193,7 +199,7 @@ class AuthController extends Controller
             $user = User::where("email", "=", $attributes["email"])->firstOrFail();
 
             $tokens = new Tokens("RESET");
-            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $user->role->role);
+            $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email);
 
             Mail::to($user->email, "{$user->first_name} {$user->last_name}")->queue(new PasswordResetLink($token));
 
@@ -208,7 +214,7 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(Request $request)
+    public function resetPassword(Request $request)
     {
         try {
 

@@ -151,4 +151,15 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
+    # Utils #
+    public function assignedRoles()
+    {
+        return $this->roles->pluck("role");
+    }
+
+    public function assignedPermissions()
+    {
+        return $this->roles->load("permissions")->pluck("permissions")->flatten()->pluck("action");
+    }
+
 }

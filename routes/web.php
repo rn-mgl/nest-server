@@ -33,6 +33,10 @@ use App\Http\Controllers\Base\AuthController;
 use App\Http\Controllers\Base\DocumentController;
 use App\Http\Controllers\Base\FolderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PerformanceReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -48,9 +52,9 @@ Route::prefix("api")->group(function () {
             Route::post("/login", "login");
             Route::post("/register", "register");
             Route::patch('/verify', "verify");
-            Route::post("/verification-notification", "resend_verification")->middleware(["auth", "throttle:6,1"]);
-            Route::post("/forgot-password", "forgot_password");
-            Route::patch("/reset-password", "reset_password");
+            Route::post("/verification-notification", "resendVerification")->middleware(["auth", "throttle:6,1"]);
+            Route::post("/forgot-password", "forgotPassword");
+            Route::patch("/reset-password", "resetPassword");
         });
 
     // shared
@@ -68,7 +72,7 @@ Route::prefix("api")->group(function () {
             ->prefix("auth")
             ->group(function () {
                 Route::post("/logout", "logout");
-                Route::patch("/change_password", "change_password");
+                Route::patch("/change-password", "changePassword");
             });
 
         // attendance
@@ -79,6 +83,109 @@ Route::prefix("api")->group(function () {
                 Route::post("/", "store");
                 Route::get("/{attendance}", "show");
                 Route::patch("/{attendance}", "update");
+            });
+
+        // onboarding
+        Route::controller(OnboardingController::class)
+            ->prefix("onboarding")
+            ->group(function () {
+                // route for the assigned onboardings
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::get("/", "assignedIndex");
+                    Route::get("/{userOnboarding}", "assignedShow");
+                });
+
+                // route for the resource onboardings
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.onboarding_resource"]);
+                    Route::get("/{onboarding}", "resourceShow")->middleware(["check_permission:read.onboarding_resource"]);
+                    Route::patch("/{onboarding}", "resourceUpdate")->middleware(["check_permission:update.onboarding_resource"]);
+                    Route::delete("/{onboarding}", "resourceDestroy")->middleware(["check_permission:delete.onboarding_resource"]);
+                });
+
+                // route for the assigning of onboardings
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.onboarding_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
+            });
+
+        // leave types
+        Route::controller(LeaveTypeController::class)
+            ->prefix("leave-type")
+            ->group(function () {
+                // route for the assigned leave types (leave balance)
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::get("/", "assignedIndex");
+                });
+
+                // route for the resource leave types
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.leave_type_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.leave_type_resource"]);
+                    Route::get("/{leaveType}", "resourceShow")->middleware(["check_permission:read.leave_type_resource"]);
+                    Route::patch("/{leaveType}", "resourceUpdate")->middleware(["check_permission:update.leave_type_resource"]);
+                    Route::delete("/{leaveType}", "resourceDestroy")->middleware(["check_permission:delete.leave_type_resource"]);
+                });
+
+                // route for the assigning of leave types (leave balance)
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.leave_type_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
+            });
+
+        // leave requests
+        Route::controller(LeaveRequestController::class)
+            ->prefix("leave-request")
+            ->group(function () {
+                // route for the resource leave types
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::post("/", "resourceStore");
+                    Route::get("/{leaveRequest}", "resourceShow");
+                    Route::patch("/{leaveRequest}", "resourceUpdate");
+                    Route::delete("/{leaveRequest}", "resourceDestroy");
+                });
+            });
+
+        // performance reviews
+        Route::controller(PerformanceReviewController::class)
+            ->prefix("performance-review")
+            ->group(function () {
+
+                Route::prefix("assigned")
+                    ->group(function () {
+                        Route::get("/", "assignedIndex");
+                        Route::get("/{performanceReview}", "assignedShow");
+                    });
+
+                Route::prefix("resource")
+                    ->group(function () {
+                        Route::get("/", "resourceIndex")->middleware(["check_permission:read.performance_review_resource"]);
+                        Route::post("/", "resourceStore")->middleware(["check_permission:create.performance_review_resource"]);
+                        Route::get("/{performanceReview}", "resourceShow")->middleware(["check_permission:read.performance_review_resource"]);
+                        Route::patch("/{performanceReview}", "resourceUpdate")->middleware(["check_permission:update.performance_review_resource"]);
+                        Route::delete("/{performanceReview}", "resourceDestroy")->middleware(["check_permission:delete.performance_review_resource"]);
+                    });
+
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.performance_review_resource"])
+                    ->group(function () {
+                        Route::get("/", "assignmentIndex");
+                        Route::post("/", "assignmentStore");
+                    });
+
             });
 
     });
