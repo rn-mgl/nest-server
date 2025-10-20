@@ -36,6 +36,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PerformanceReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -156,6 +157,34 @@ Route::prefix("api")->group(function () {
                     Route::patch("/{leaveRequest}", "resourceUpdate");
                     Route::delete("/{leaveRequest}", "resourceDestroy");
                 });
+            });
+
+        // performance reviews
+        Route::controller(PerformanceReviewController::class)
+            ->prefix("performance-review")
+            ->group(function () {
+
+                Route::prefix("assigned")
+                    ->group(function () {
+                        Route::get("/", "assignedIndex");
+                        Route::get("/{performanceReview}", "assignedShow");
+                    });
+
+                Route::prefix("resource")
+                    ->group(function () {
+                        Route::get("/", "resourceIndex");
+                        Route::post("/", "resourceStore");
+                        Route::get("/{performanceReview}", "resourceShow");
+                        Route::patch("/{performanceReview}", "resourceUpdate");
+                        Route::delete("/{performanceReview}", "resourceDestroy");
+                    });
+
+                Route::prefix("assignment")
+                    ->group(function () {
+                        Route::get("/", "assignmentIndex");
+                        Route::post("/", "assignmentStore");
+                    });
+
             });
 
     });
