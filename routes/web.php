@@ -37,6 +37,7 @@ use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PerformanceReviewController;
+use App\Http\Controllers\TrainingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -185,6 +186,38 @@ Route::prefix("api")->group(function () {
                         Route::get("/", "assignmentIndex");
                         Route::post("/", "assignmentStore");
                     });
+
+            });
+
+        // trainings
+        Route::controller(TrainingController::class)
+            ->prefix("training")
+            ->group(function () {
+
+                // route for assigned training
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::get("/", "assignedIndex");
+                    Route::get("/{training}", "assignedShow");
+                });
+
+                // route for training resource
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.training_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.training_resource"]);
+                    Route::get("/{training}", "resourceShow")->middleware(["check_permission:read.training_resource"]);
+                    Route::patch("/{training}", "resourceUpdate")->middleware(["check_permission:update.training_permission"]);
+                    Route::delete("/{training}", "resourceDestroy")->middleware(["check_permission:delete.training_resource"]);
+                });
+
+                // route for training assignment
+                Route::prefix("assignment")
+                    ->middleware(["check_permission:assign.training_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
 
             });
 

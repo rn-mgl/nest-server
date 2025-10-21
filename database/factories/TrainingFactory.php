@@ -20,8 +20,7 @@ class TrainingFactory extends Factory
             "title" => fake()->word,
             "created_by" => 1,
             "description" => fake()->text,
-            "deadline_days" => fake()->numberBetween(10, 30),
-            "certificate" => "https://res.cloudinary.com/dnzuptxvy/image/upload/v1756020737/nest-uploads/dikw1qg5m3loedlk1xxi.pdf"
+            "deadline_days" => fake()->numberBetween(10, 30)
         ];
     }
 }
