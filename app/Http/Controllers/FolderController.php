@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Base;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
@@ -12,26 +12,15 @@ use Illuminate\Support\Facades\Auth;
 
 class FolderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+    ############
+    # RESOURCE #
+    ############
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function resourceStore(Request $request)
     {
         try {
             $attributes = $request->validate([
@@ -53,7 +42,7 @@ class FolderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Folder $folder)
+    public function resourceShow(Folder $folder)
     {
         try {
             return response()->json(["folder" => $folder]);
@@ -63,17 +52,9 @@ class FolderController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Folder $folder)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Folder $folder)
+    public function resourceUpdate(Request $request, Folder $folder)
     {
         try {
             $attributes = $request->validate([
@@ -93,11 +74,11 @@ class FolderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $folder)
+    public function resourceDestroy(int $folder)
     {
         try {
             // delete folder and everything below it
-            $paths = $this->get_child_folders($folder)->pluck("id")->push($folder);
+            $paths = $this->getChildFolders($folder)->pluck("id")->push($folder);
 
             $deletedFolders = Folder::whereIn("id", $paths)->delete();
             $deletedDocuments = Document::whereIn("path", $paths)->delete();
@@ -108,6 +89,7 @@ class FolderController extends Controller
             throw new Exception($th->getMessage());
         }
     }
+
     /**
      * Retrieves the paths of folders based on the incoming request.
      *
@@ -118,7 +100,7 @@ class FolderController extends Controller
      * @return \Illuminate\Http\JsonResponse JSON response with folder paths.
      * @throws \Exception If unable to retrieve folder paths.
      */
-    public function get_folder_paths(Request $request)
+    public function getFolderPaths(Request $request)
     {
         try {
 
@@ -131,7 +113,7 @@ class FolderController extends Controller
             // the paths to avoid are the children of the current folder to be moved if the folder is not the base
             // do not move a parent folder to its child folders, "ouroboros"
             // allow documents to be moved anywhere
-            $pathToAvoid = $folder === 0 ? [] : $this->get_child_folders($folder)->pluck("id")->toArray();
+            $pathToAvoid = $folder === 0 ? [] : $this->getChildFolders($folder)->pluck("id")->toArray();
 
             // other available paths that are not the children of the folder to move
             $paths = Folder::whereNotIn("id", $pathToAvoid)->get();
@@ -158,7 +140,7 @@ class FolderController extends Controller
      * @throws \Exception If the folder cannot be found or another error occurs.
      * @return \Illuminate\Support\Collection<int, \App\Models\Folder> Collection of Folder instances representing the parent path.
      */
-    public function get_parent_paths(int $folderId)
+    public function getParentPaths(int $folderId)
     {
         try {
 
@@ -207,13 +189,13 @@ class FolderController extends Controller
      * @return Collection Collection of child folder paths.
      * @throws \Exception If an error occurs during retrieval.
      */
-    public function get_child_folders(int $folderId)
+    public function getChildFolders(int $folderId)
     {
         try {
 
             $children = collect();
 
-            $this->dfs_child_folders($folderId, $children);
+            $this->dfsChildFolders($folderId, $children);
 
             return $children;
 
@@ -229,7 +211,7 @@ class FolderController extends Controller
      * @param Collection $children The compilation of children.
      * @return void
      */
-    private function dfs_child_folders(int $path, Collection &$children)
+    private function dfsChildFolders(int $path, Collection &$children)
     {
         // get the folders where the path is the parent
         $childPaths = Folder::where("path", "=", $path)->get();
@@ -237,7 +219,7 @@ class FolderController extends Controller
         foreach ($childPaths as $child) {
             // push the current child to the children record to be stored in the next iteration and recursion
             $children->push($child);
-            $this->dfs_child_folders($child->id, $children);
+            $this->dfsChildFolders($child->id, $children);
         }
     }
 }

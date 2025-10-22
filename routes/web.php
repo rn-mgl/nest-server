@@ -29,9 +29,9 @@ use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
 
-use App\Http\Controllers\Base\AuthController;
-use App\Http\Controllers\Base\DocumentController;
-use App\Http\Controllers\Base\FolderController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
@@ -217,6 +217,40 @@ Route::prefix("api")->group(function () {
                     ->group(function () {
                     Route::get("/", "assignmentIndex");
                     Route::post("/", "assignmentStore");
+                });
+
+            });
+
+        // documents
+        Route::controller(DocumentController::class)
+            ->prefix("document")
+            ->group(function () {
+
+                // route for document resource
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::get("/{document}", "resourceShow");
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.document_resource"]);
+                    Route::patch("/{document}", "resourceUpdate")->middleware(["check_permission:update.document_resource"]);
+                    Route::delete("/{document}", "resourceDestroy")->middleware(["check_permission:delete.document_resource"]);
+                });
+
+            });
+
+        // folders
+        Route::controller(FolderController::class)
+            ->prefix("folder")
+            ->group(function () {
+
+                // route for folder resource
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/paths", "getFolderPaths");
+                    Route::get("/{folder}", "resourceShow");
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.folder_resource"]);
+                    Route::patch("/{folder}", "resourceUpdate")->middleware(["check_permission:update.folder_resource"]);
+                    Route::delete("/{folder}", "resourceDestroy")->middleware(["check_permission:delete.folder_resource"]);
                 });
 
             });

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Base;
+namespace App\Http\Controllers;
 
 use App\Events\Registered;
 use App\Http\Controllers\Controller;
