@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Performance;
 
+use App\Http\Controllers\Controller;
 use App\Models\PerformanceReview;
 use App\Models\PerformanceReviewSurvey;
 use App\Models\User;
@@ -12,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class PerformanceReviewController extends Controller
+class ResourcePerformanceReviewController extends Controller
 {
     ############
     # ASSIGNED #

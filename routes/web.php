@@ -38,8 +38,12 @@ use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\Onboarding\ResourceOnboardingController;
-use App\Http\Controllers\PerformanceReviewController;
-use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\Performance\AssignedPerformanceReviewController;
+use App\Http\Controllers\Performance\AssignmentPerformanceReviewController;
+use App\Http\Controllers\Performance\ResourcePerformanceReviewController;
+use App\Http\Controllers\Training\ResourceTrainingController;
+use App\Http\Controllers\Training\AssignedTrainingController;
+use App\Http\Controllers\Training\AssignmentTrainingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -175,17 +179,19 @@ Route::prefix("api")->group(function () {
             });
 
         // performance reviews
-        Route::controller(PerformanceReviewController::class)
-            ->prefix("performance-review")
+        Route::prefix("performance-review")
             ->group(function () {
 
-                Route::prefix("assigned")
+                Route::controller(AssignedPerformanceReviewController::class)
+                    ->prefix("assigned")
                     ->group(function () {
                         Route::get("/", "assignedIndex");
                         Route::get("/{performanceReview}", "assignedShow");
+                        Route::post("/review-response", "reviewResponseStore");
                     });
 
-                Route::prefix("resource")
+                Route::controller(ResourcePerformanceReviewController::class)
+                    ->prefix("resource")
                     ->group(function () {
                         Route::get("/", "resourceIndex")->middleware(["check_permission:read.performance_review_resource"]);
                         Route::post("/", "resourceStore")->middleware(["check_permission:create.performance_review_resource"]);
@@ -194,7 +200,8 @@ Route::prefix("api")->group(function () {
                         Route::delete("/{performanceReview}", "resourceDestroy")->middleware(["check_permission:delete.performance_review_resource"]);
                     });
 
-                Route::prefix("assignment")
+                Route::controller(AssignmentPerformanceReviewController::class)
+                    ->prefix("assignment")
                     ->middleware(["check_permission:assign.performance_review_resource"])
                     ->group(function () {
                         Route::get("/", "assignmentIndex");
@@ -204,19 +211,21 @@ Route::prefix("api")->group(function () {
             });
 
         // trainings
-        Route::controller(TrainingController::class)
-            ->prefix("training")
+        Route::prefix("training")
             ->group(function () {
 
                 // route for assigned training
-                Route::prefix("assigned")
+                Route::controller(AssignedTrainingController::class)
+                    ->prefix("assigned")
                     ->group(function () {
                     Route::get("/", "assignedIndex");
                     Route::get("/{training}", "assignedShow");
+                    Route::post("/review-response", "reviewResponseStore");
                 });
 
                 // route for training resource
-                Route::prefix("resource")
+                Route::controller(ResourceTrainingController::class)
+                    ->prefix("resource")
                     ->group(function () {
                     Route::get("/", "resourceIndex")->middleware(["check_permission:read.training_resource"]);
                     Route::post("/", "resourceStore")->middleware(["check_permission:create.training_resource"]);
@@ -226,7 +235,8 @@ Route::prefix("api")->group(function () {
                 });
 
                 // route for training assignment
-                Route::prefix("assignment")
+                Route::controller(AssignmentTrainingController::class)
+                    ->prefix("assignment")
                     ->middleware(["check_permission:assign.training_resource"])
                     ->group(function () {
                     Route::get("/", "assignmentIndex");
