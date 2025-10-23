@@ -35,6 +35,7 @@ use App\Http\Controllers\FolderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PerformanceReviewController;
 use App\Http\Controllers\TrainingController;
@@ -149,6 +150,12 @@ Route::prefix("api")->group(function () {
         Route::controller(LeaveRequestController::class)
             ->prefix("leave-request")
             ->group(function () {
+                // route for the assigned leave requests (for hr to approve request)
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::patch("/{leaveRequest}", "assignedUpdate")->middleware(["check_permission:update.leave_request_resource"]);
+                });
+
                 // route for the resource leave types
                 Route::prefix("resource")
                     ->group(function () {
@@ -253,6 +260,14 @@ Route::prefix("api")->group(function () {
                     Route::delete("/{folder}", "resourceDestroy")->middleware(["check_permission:delete.folder_resource"]);
                 });
 
+            });
+
+        // management (for hr)
+        Route::controller(ManagementController::class)
+            ->prefix("management")
+            ->group(function () {
+                Route::get("/", "index");
+                Route::get("/{user}", "show");
             });
 
     });
