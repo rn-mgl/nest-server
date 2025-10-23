@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
+use App\Http\Controllers\Onboarding\AssignedOnboardingController;
+use App\Http\Controllers\Onboarding\AssignmentOnboardingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
@@ -18,7 +20,6 @@ use App\Http\Controllers\HR\HRUserTrainingController;
 use App\Http\Controllers\HR\HRUserLeaveBalanceController;
 
 use App\Http\Controllers\Employee\EmployeeController;
-use App\Http\Controllers\Employee\EmployeeDashboardController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
 use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
@@ -36,7 +37,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\ManagementController;
-use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\Onboarding\ResourceOnboardingController;
 use App\Http\Controllers\PerformanceReviewController;
 use App\Http\Controllers\TrainingController;
 use Illuminate\Support\Facades\Route;
@@ -88,18 +89,23 @@ Route::prefix("api")->group(function () {
             });
 
         // onboarding
-        Route::controller(OnboardingController::class)
-            ->prefix("onboarding")
+        Route::prefix("onboarding")
             ->group(function () {
                 // route for the assigned onboardings
-                Route::prefix("assigned")
+                Route::controller(AssignedOnboardingController::class)
+                    ->prefix("assigned")
                     ->group(function () {
                     Route::get("/", "assignedIndex");
                     Route::get("/{userOnboarding}", "assignedShow");
+                    Route::post("/policy-acknowledgement", "policyAcknowledgementStore");
+                    Route::post("/required-document", "requiredDocumentStore");
+                    Route::patch("/required-document/{requiredDocument}", "requiredDocumentUpdate");
+                    Route::delete("/required-document/{requiredDocument}", "requiredDocumentDestroy");
                 });
 
                 // route for the resource onboardings
-                Route::prefix("resource")
+                Route::controller(ResourceOnboardingController::class)
+                    ->prefix("resource")
                     ->group(function () {
                     Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
                     Route::post("/", "resourceStore")->middleware(["check_permission:create.onboarding_resource"]);
@@ -109,7 +115,8 @@ Route::prefix("api")->group(function () {
                 });
 
                 // route for the assigning of onboardings
-                Route::prefix("assignment")
+                Route::controller(AssignmentOnboardingController::class)
+                    ->prefix("assignment")
                     ->middleware(["check_permission:assign.onboarding_resource"])
                     ->group(function () {
                     Route::get("/", "assignmentIndex");
@@ -413,20 +420,6 @@ Route::prefix("api")->group(function () {
     // employee routes
     Route::middleware(["auth", "user_token:employee"])->prefix("employee")->group(function () {
 
-        // employee dashboard
-        Route::controller(EmployeeDashboardController::class)
-            ->prefix("dashboard")
-            ->group(function () {
-                Route::get("/", "index");
-            });
-
-        // employee auth
-        Route::controller(AuthController::class)
-            ->prefix("auth")
-            ->group(function () {
-                Route::post("/logout", "logout");
-                Route::patch("/change-password", "change_password");
-            });
 
         // employee onboarding route
         Route::controller(EmployeeOnboardingController::class)
@@ -498,21 +491,6 @@ Route::prefix("api")->group(function () {
             ->prefix("employee_training_review_response")
             ->group(function () {
                 Route::post("/", "store");
-            });
-
-        // employee document
-        Route::controller(DocumentController::class)
-            ->prefix("document")
-            ->group(function () {
-                Route::get("/", "index");
-                Route::get("/{document}", "show");
-            });
-
-        // employee document folder
-        Route::controller(FolderController::class)
-            ->prefix("folder")
-            ->group(function () {
-                Route::get("/{folder}", "show");
             });
 
         // employee profile controller
