@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\Onboarding\AssignedOnboardingController;
 use App\Http\Controllers\Onboarding\AssignmentOnboardingController;
-use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Base\AttendanceController;
 use App\Http\Controllers\HR\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRUserController;
@@ -30,13 +30,13 @@ use App\Http\Controllers\Employee\EmployeeLeaveRequestController;
 use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\FolderController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LeaveRequestController;
-use App\Http\Controllers\LeaveTypeController;
-use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\Base\AuthController;
+use App\Http\Controllers\Document\DocumentController;
+use App\Http\Controllers\Document\FolderController;
+use App\Http\Controllers\Base\DashboardController;
+use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Leave\LeaveTypeController;
+use App\Http\Controllers\Privilege\ManagementController;
 use App\Http\Controllers\Onboarding\ResourceOnboardingController;
 use App\Http\Controllers\Performance\AssignedPerformanceReviewController;
 use App\Http\Controllers\Performance\AssignmentPerformanceReviewController;
@@ -286,6 +286,9 @@ Route::prefix("api")->group(function () {
                 Route::get("/", "index");
                 Route::get("/{user}", "show");
             });
+
+        // user
+        // R
 
     });
 

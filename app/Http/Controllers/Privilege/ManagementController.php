@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Privilege;
 
+use App\Http\Controllers\Controller;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
 use App\Models\User;

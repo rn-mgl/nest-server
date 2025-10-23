@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Base;
 
+use App\Http\Controllers\Controller;
 use App\Models\File;
 use Illuminate\Http\Request;
 

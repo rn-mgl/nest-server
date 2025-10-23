@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Base;
 
+use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Document;
 use App\Models\Folder;
