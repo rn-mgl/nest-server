@@ -44,6 +44,7 @@ use App\Http\Controllers\Performance\ResourcePerformanceReviewController;
 use App\Http\Controllers\Training\ResourceTrainingController;
 use App\Http\Controllers\Training\AssignedTrainingController;
 use App\Http\Controllers\Training\AssignmentTrainingController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -288,7 +289,12 @@ Route::prefix("api")->group(function () {
             });
 
         // user
-        // R
+        Route::controller(UserController::class)
+            ->prefix("user")
+            ->group(function () {
+                Route::get("/{user}", "show");
+                Route::patch("/{user}", "update");
+            });
 
     });
 
