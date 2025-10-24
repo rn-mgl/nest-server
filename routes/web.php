@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\AdminHRController;
 use App\Http\Controllers\Onboarding\AssignedOnboardingController;
 use App\Http\Controllers\Onboarding\AssignmentOnboardingController;
 use App\Http\Controllers\Base\AttendanceController;
-use App\Http\Controllers\HR\HRController;
+use App\Http\Controllers\Privilege\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRUserController;
 use App\Http\Controllers\HR\HRUserLeaveRequestController;
@@ -280,20 +280,38 @@ Route::prefix("api")->group(function () {
 
             });
 
+        // user profile
+        Route::controller(UserController::class)
+            ->prefix("user")
+            ->group(function () {
+                Route::get("/{user}", "show");
+                Route::patch("/{user}", "update");
+            });
+
         // management (for hr)
         Route::controller(ManagementController::class)
+            ->middleware(["check_role:hr", "check_permission:read.management"])
             ->prefix("management")
             ->group(function () {
                 Route::get("/", "index");
                 Route::get("/{user}", "show");
             });
 
-        // user
-        Route::controller(UserController::class)
-            ->prefix("user")
+        // hr (for admin)
+        Route::prefix("hr")
+            ->middleware(["check_role:admin"])
             ->group(function () {
-                Route::get("/{user}", "show");
-                Route::patch("/{user}", "update");
+
+                // main hr controller
+                Route::controller(HRController::class)
+                    ->group(function () {
+                    Route::get("/", "index")->middleware(["check_permission:read.hr"]);
+                    Route::patch("/{hr}", "update")->middleware(["check_permission:update.hr"]);
+                });
+
+                // create hr
+                Route::post("/", [AuthController::class, "register"])->middleware(["check_permission:create.hr"]);
+
             });
 
     });
