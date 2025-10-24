@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Leave;
 
+use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use Carbon\Carbon;
 use Exception;
@@ -10,6 +11,33 @@ use Illuminate\Support\Facades\Auth;
 
 class LeaveRequestController extends Controller
 {
+
+    ############
+    # ASSIGNED #
+    ############
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function assignedUpdate(Request $request, LeaveRequest $leaveRequest)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "approved" => ["required", "boolean"]
+            ]);
+
+            $status = $attributes["approved"] ? "approved" : "rejected";
+
+            $updated = $leaveRequest->update(["status" => $status, "actioned_by" => Auth::id()]);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     ############
     # RESOURCE #
     ############

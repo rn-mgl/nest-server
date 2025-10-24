@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Base;
+namespace App\Http\Controllers\Document;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
@@ -14,10 +14,15 @@ use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
+
+    ############
+    # RESOURCE #
+    ############
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function resourceIndex(Request $request)
     {
         try {
 
@@ -61,17 +66,9 @@ class DocumentController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function resourceStore(Request $request)
     {
         try {
             $attributes = $request->validate([
@@ -117,7 +114,7 @@ class DocumentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Document $document)
+    public function resourceShow(Document $document)
     {
         try {
             return response()->json(["document" => $document->load(["document", "folder"])]);
@@ -127,17 +124,9 @@ class DocumentController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Document $document)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Document $document)
+    public function resourceUpdate(Request $request, Document $document)
     {
 
         try {
@@ -194,7 +183,7 @@ class DocumentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Document $document)
+    public function resourceDestroy(Document $document)
     {
         try {
             return response()->json(["success" => $document->delete()]);

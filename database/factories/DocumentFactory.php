@@ -19,8 +19,6 @@ class DocumentFactory extends Factory
         return [
             "title" => fake()->title(),
             "description" => fake()->paragraph(),
-            "document" => fake()->filePath(),
-            "type" => "pdf",
             "path" => 0,
             "created_by" => 1
         ];

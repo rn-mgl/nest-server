@@ -3,8 +3,10 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHRController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\HR\HRController;
+use App\Http\Controllers\Onboarding\AssignedOnboardingController;
+use App\Http\Controllers\Onboarding\AssignmentOnboardingController;
+use App\Http\Controllers\Base\AttendanceController;
+use App\Http\Controllers\Privilege\HRController;
 use App\Http\Controllers\HR\HRDashboardController;
 use App\Http\Controllers\HR\HRUserController;
 use App\Http\Controllers\HR\HRUserLeaveRequestController;
@@ -18,7 +20,6 @@ use App\Http\Controllers\HR\HRUserTrainingController;
 use App\Http\Controllers\HR\HRUserLeaveBalanceController;
 
 use App\Http\Controllers\Employee\EmployeeController;
-use App\Http\Controllers\Employee\EmployeeDashboardController;
 use App\Http\Controllers\Employee\EmployeeOnboardingController;
 use App\Http\Controllers\Employee\EmployeeOnboardingPolicyAcknowledgementController;
 use App\Http\Controllers\Employee\EmployeeOnboardingRequiredDocumentsController;
@@ -30,13 +31,20 @@ use App\Http\Controllers\Employee\EmployeeTrainingController;
 use App\Http\Controllers\Employee\EmployeeTrainingReviewResponseController;
 
 use App\Http\Controllers\Base\AuthController;
-use App\Http\Controllers\Base\DocumentController;
-use App\Http\Controllers\Base\FolderController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LeaveRequestController;
-use App\Http\Controllers\LeaveTypeController;
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\PerformanceReviewController;
+use App\Http\Controllers\Document\DocumentController;
+use App\Http\Controllers\Document\FolderController;
+use App\Http\Controllers\Base\DashboardController;
+use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Leave\LeaveTypeController;
+use App\Http\Controllers\Privilege\ManagementController;
+use App\Http\Controllers\Onboarding\ResourceOnboardingController;
+use App\Http\Controllers\Performance\AssignedPerformanceReviewController;
+use App\Http\Controllers\Performance\AssignmentPerformanceReviewController;
+use App\Http\Controllers\Performance\ResourcePerformanceReviewController;
+use App\Http\Controllers\Training\ResourceTrainingController;
+use App\Http\Controllers\Training\AssignedTrainingController;
+use App\Http\Controllers\Training\AssignmentTrainingController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -86,18 +94,23 @@ Route::prefix("api")->group(function () {
             });
 
         // onboarding
-        Route::controller(OnboardingController::class)
-            ->prefix("onboarding")
+        Route::prefix("onboarding")
             ->group(function () {
                 // route for the assigned onboardings
-                Route::prefix("assigned")
+                Route::controller(AssignedOnboardingController::class)
+                    ->prefix("assigned")
                     ->group(function () {
                     Route::get("/", "assignedIndex");
                     Route::get("/{userOnboarding}", "assignedShow");
+                    Route::post("/policy-acknowledgement", "policyAcknowledgementStore");
+                    Route::post("/required-document", "requiredDocumentStore");
+                    Route::patch("/required-document/{requiredDocument}", "requiredDocumentUpdate");
+                    Route::delete("/required-document/{requiredDocument}", "requiredDocumentDestroy");
                 });
 
                 // route for the resource onboardings
-                Route::prefix("resource")
+                Route::controller(ResourceOnboardingController::class)
+                    ->prefix("resource")
                     ->group(function () {
                     Route::get("/", "resourceIndex")->middleware(["check_permission:read.onboarding_resource"]);
                     Route::post("/", "resourceStore")->middleware(["check_permission:create.onboarding_resource"]);
@@ -107,7 +120,8 @@ Route::prefix("api")->group(function () {
                 });
 
                 // route for the assigning of onboardings
-                Route::prefix("assignment")
+                Route::controller(AssignmentOnboardingController::class)
+                    ->prefix("assignment")
                     ->middleware(["check_permission:assign.onboarding_resource"])
                     ->group(function () {
                     Route::get("/", "assignmentIndex");
@@ -148,6 +162,12 @@ Route::prefix("api")->group(function () {
         Route::controller(LeaveRequestController::class)
             ->prefix("leave-request")
             ->group(function () {
+                // route for the assigned leave requests (for hr to approve request)
+                Route::prefix("assigned")
+                    ->group(function () {
+                    Route::patch("/{leaveRequest}", "assignedUpdate")->middleware(["check_permission:update.leave_request_resource"]);
+                });
+
                 // route for the resource leave types
                 Route::prefix("resource")
                     ->group(function () {
@@ -160,17 +180,19 @@ Route::prefix("api")->group(function () {
             });
 
         // performance reviews
-        Route::controller(PerformanceReviewController::class)
-            ->prefix("performance-review")
+        Route::prefix("performance-review")
             ->group(function () {
 
-                Route::prefix("assigned")
+                Route::controller(AssignedPerformanceReviewController::class)
+                    ->prefix("assigned")
                     ->group(function () {
                         Route::get("/", "assignedIndex");
                         Route::get("/{performanceReview}", "assignedShow");
+                        Route::post("/review-response", "reviewResponseStore");
                     });
 
-                Route::prefix("resource")
+                Route::controller(ResourcePerformanceReviewController::class)
+                    ->prefix("resource")
                     ->group(function () {
                         Route::get("/", "resourceIndex")->middleware(["check_permission:read.performance_review_resource"]);
                         Route::post("/", "resourceStore")->middleware(["check_permission:create.performance_review_resource"]);
@@ -179,12 +201,116 @@ Route::prefix("api")->group(function () {
                         Route::delete("/{performanceReview}", "resourceDestroy")->middleware(["check_permission:delete.performance_review_resource"]);
                     });
 
-                Route::prefix("assignment")
+                Route::controller(AssignmentPerformanceReviewController::class)
+                    ->prefix("assignment")
                     ->middleware(["check_permission:assign.performance_review_resource"])
                     ->group(function () {
                         Route::get("/", "assignmentIndex");
                         Route::post("/", "assignmentStore");
                     });
+
+            });
+
+        // trainings
+        Route::prefix("training")
+            ->group(function () {
+
+                // route for assigned training
+                Route::controller(AssignedTrainingController::class)
+                    ->prefix("assigned")
+                    ->group(function () {
+                    Route::get("/", "assignedIndex");
+                    Route::get("/{training}", "assignedShow");
+                    Route::post("/review-response", "reviewResponseStore");
+                });
+
+                // route for training resource
+                Route::controller(ResourceTrainingController::class)
+                    ->prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.training_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.training_resource"]);
+                    Route::get("/{training}", "resourceShow")->middleware(["check_permission:read.training_resource"]);
+                    Route::patch("/{training}", "resourceUpdate")->middleware(["check_permission:update.training_permission"]);
+                    Route::delete("/{training}", "resourceDestroy")->middleware(["check_permission:delete.training_resource"]);
+                });
+
+                // route for training assignment
+                Route::controller(AssignmentTrainingController::class)
+                    ->prefix("assignment")
+                    ->middleware(["check_permission:assign.training_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
+
+            });
+
+        // documents
+        Route::controller(DocumentController::class)
+            ->prefix("document")
+            ->group(function () {
+
+                // route for document resource
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::get("/{document}", "resourceShow");
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.document_resource"]);
+                    Route::patch("/{document}", "resourceUpdate")->middleware(["check_permission:update.document_resource"]);
+                    Route::delete("/{document}", "resourceDestroy")->middleware(["check_permission:delete.document_resource"]);
+                });
+
+            });
+
+        // folders
+        Route::controller(FolderController::class)
+            ->prefix("folder")
+            ->group(function () {
+
+                // route for folder resource
+                Route::prefix("resource")
+                    ->group(function () {
+                    Route::get("/paths", "getFolderPaths");
+                    Route::get("/{folder}", "resourceShow");
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.folder_resource"]);
+                    Route::patch("/{folder}", "resourceUpdate")->middleware(["check_permission:update.folder_resource"]);
+                    Route::delete("/{folder}", "resourceDestroy")->middleware(["check_permission:delete.folder_resource"]);
+                });
+
+            });
+
+        // user profile
+        Route::controller(UserController::class)
+            ->prefix("user")
+            ->group(function () {
+                Route::get("/{user}", "show");
+                Route::patch("/{user}", "update");
+            });
+
+        // management (for hr)
+        Route::controller(ManagementController::class)
+            ->middleware(["check_role:hr", "check_permission:read.management"])
+            ->prefix("management")
+            ->group(function () {
+                Route::get("/", "index");
+                Route::get("/{user}", "show");
+            });
+
+        // hr (for admin)
+        Route::prefix("hr")
+            ->middleware(["check_role:admin"])
+            ->group(function () {
+
+                // main hr controller
+                Route::controller(HRController::class)
+                    ->group(function () {
+                    Route::get("/", "index")->middleware(["check_permission:read.hr"]);
+                    Route::patch("/{hr}", "update")->middleware(["check_permission:update.hr"]);
+                });
+
+                // create hr
+                Route::post("/", [AuthController::class, "register"])->middleware(["check_permission:create.hr"]);
 
             });
 
@@ -331,20 +457,6 @@ Route::prefix("api")->group(function () {
     // employee routes
     Route::middleware(["auth", "user_token:employee"])->prefix("employee")->group(function () {
 
-        // employee dashboard
-        Route::controller(EmployeeDashboardController::class)
-            ->prefix("dashboard")
-            ->group(function () {
-                Route::get("/", "index");
-            });
-
-        // employee auth
-        Route::controller(AuthController::class)
-            ->prefix("auth")
-            ->group(function () {
-                Route::post("/logout", "logout");
-                Route::patch("/change-password", "change_password");
-            });
 
         // employee onboarding route
         Route::controller(EmployeeOnboardingController::class)
@@ -416,21 +528,6 @@ Route::prefix("api")->group(function () {
             ->prefix("employee_training_review_response")
             ->group(function () {
                 Route::post("/", "store");
-            });
-
-        // employee document
-        Route::controller(DocumentController::class)
-            ->prefix("document")
-            ->group(function () {
-                Route::get("/", "index");
-                Route::get("/{document}", "show");
-            });
-
-        // employee document folder
-        Route::controller(FolderController::class)
-            ->prefix("folder")
-            ->group(function () {
-                Route::get("/{folder}", "show");
             });
 
         // employee profile controller
