@@ -30,7 +30,7 @@ use App\Http\Controllers\Training\AssignmentTrainingController;
 // Leave
 use App\Http\Controllers\Leave\LeaveTypeController;
 use App\Http\Controllers\Leave\LeaveRequestController;
-
+use App\Http\Controllers\Privilege\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -297,6 +297,20 @@ Route::prefix("api")->group(function () {
 
                 // create hr
                 Route::post("/", [AuthController::class, "register"])->middleware(["check_permission:create.hr"]);
+
+            });
+
+        // roles
+        Route::controller(RoleController::class)
+            ->prefix("role")
+            ->group(function () {
+
+                // resource
+                Route::get("/", "index");
+                Route::get("/{role}", "show");
+                Route::post("/", "store");
+                Route::patch("/{role}", "update");
+                Route::delete("/{role}", "destroy");
 
             });
 
