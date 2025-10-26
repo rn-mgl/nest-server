@@ -30,7 +30,7 @@ use App\Http\Controllers\Training\AssignmentTrainingController;
 // Leave
 use App\Http\Controllers\Leave\LeaveTypeController;
 use App\Http\Controllers\Leave\LeaveRequestController;
-use App\Http\Controllers\Privilege\RoleController;
+use App\Http\Controllers\Role\ResourceRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix("api")->group(function () {
@@ -301,16 +301,20 @@ Route::prefix("api")->group(function () {
             });
 
         // roles
-        Route::controller(RoleController::class)
-            ->prefix("role")
+        Route::prefix("role")
             ->group(function () {
 
                 // resource
-                Route::get("/", "index");
-                Route::get("/{role}", "show");
-                Route::post("/", "store");
-                Route::patch("/{role}", "update");
-                Route::delete("/{role}", "destroy");
+                Route::controller(ResourceRoleController::class)
+                    ->prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "index");
+                    Route::get("/{role}", "show");
+                    Route::post("/", "store");
+                    Route::patch("/{role}", "update");
+                    Route::delete("/{role}", "destroy");
+                });
+
 
             });
 
