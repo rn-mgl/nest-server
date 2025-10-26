@@ -308,11 +308,11 @@ Route::prefix("api")->group(function () {
                 Route::controller(ResourceRoleController::class)
                     ->prefix("resource")
                     ->group(function () {
-                    Route::get("/", "index");
-                    Route::get("/{role}", "show");
-                    Route::post("/", "store");
-                    Route::patch("/{role}", "update");
-                    Route::delete("/{role}", "destroy");
+                    Route::get("/", "index")->middleware(["check_permission:read.role_resource"]);
+                    Route::get("/{role}", "show")->middleware(["check_permission:read.role_resource"]);
+                    Route::post("/", "store")->middleware(["check_permission:create.role_resource"]);
+                    Route::patch("/{role}", "update")->middleware(["check_permission:update.role_resource"]);
+                    Route::delete("/{role}", "destroy")->middleware(["check_permission:delete.role_resource"]);
                 });
 
 
