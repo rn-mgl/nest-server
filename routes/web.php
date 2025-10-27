@@ -30,6 +30,7 @@ use App\Http\Controllers\Training\AssignmentTrainingController;
 // Leave
 use App\Http\Controllers\Leave\LeaveTypeController;
 use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Permission\ResourcePermissionController;
 use App\Http\Controllers\Role\ResourceRoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -308,13 +309,30 @@ Route::prefix("api")->group(function () {
                 Route::controller(ResourceRoleController::class)
                     ->prefix("resource")
                     ->group(function () {
-                    Route::get("/", "index")->middleware(["check_permission:read.role_resource"]);
-                    Route::get("/{role}", "show")->middleware(["check_permission:read.role_resource"]);
-                    Route::post("/", "store")->middleware(["check_permission:create.role_resource"]);
-                    Route::patch("/{role}", "update")->middleware(["check_permission:update.role_resource"]);
-                    Route::delete("/{role}", "destroy")->middleware(["check_permission:delete.role_resource"]);
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.role_resource"]);
+                    Route::get("/{role}", "resourceShow")->middleware(["check_permission:read.role_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.role_resource"]);
+                    Route::patch("/{role}", "resourceUpdate")->middleware(["check_permission:update.role_resource"]);
+                    Route::delete("/{role}", "resourceDestroy")->middleware(["check_permission:delete.role_resource"]);
                 });
 
+
+            });
+
+        // permission
+        Route::prefix("permission")
+            ->group(function () {
+
+                // resource
+                Route::controller(ResourcePermissionController::class)
+                    ->prefix("resource")
+                    ->group(function () {
+                    Route::get("/", "resourceIndex");
+                    Route::get("/{permission}", "resourceShow");
+                    Route::post("/", "resourceStore");
+                    Route::patch("/{permission}", "resourceUpdate");
+                    Route::delete("/{permission}", "resourceDestroy");
+                });
 
             });
 

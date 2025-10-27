@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Role;
+namespace App\Http\Controllers\Permission;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
+use App\Models\Permission;
 use Exception;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class ResourceRoleController extends Controller
+class ResourcePermissionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,9 +17,9 @@ class ResourceRoleController extends Controller
     {
         try {
 
-            $roles = Role::with(["createdBy", "permissions"])->get();
+            $permissions = Permission::with(["createdBy"])->get();
 
-            return response()->json(["roles" => $roles]);
+            return response()->json(["permissions" => $permissions]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
@@ -35,12 +34,14 @@ class ResourceRoleController extends Controller
         try {
 
             $attributes = $request->validate([
-                "role" => ["string", "required"]
+                "name" => ["required", "string"],
+                "action" => ["required", "string"],
+                "description" => ["required", "string"]
             ]);
 
             $attributes["created_by"] = Auth::id();
 
-            $created = Role::create($attributes);
+            $created = Permission::create($attributes);
 
             return response()->json(["success" => $created]);
 
@@ -52,29 +53,32 @@ class ResourceRoleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function resourceShow(Role $role): JsonResponse
+    public function resourceShow(Permission $permission)
     {
         try {
 
-            return response()->json(["role" => $role->load(["createdBy", "permissions"])]);
+            return response()->json(["permission" => $permission]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
     }
 
+
     /**
      * Update the specified resource in storage.
      */
-    public function resourceUpdate(Request $request, Role $role)
+    public function resourceUpdate(Request $request, Permission $permission)
     {
         try {
 
             $attributes = $request->validate([
-                "role" => ["required", "string"]
+                "name" => ["required", "string"],
+                "action" => ["required", "string"],
+                "description" => ["required", "string"]
             ]);
 
-            $updated = $role->update($attributes);
+            $updated = $permission->update($attributes);
 
             return response()->json(["success" => $updated]);
 
@@ -86,11 +90,11 @@ class ResourceRoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function resourceDestroy(Role $role)
+    public function resourceDestroy(Permission $permission)
     {
         try {
 
-            return response()->json(["success" => $role->delete()]);
+            return response()->json(["success" => $permission->delete()]);
 
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
