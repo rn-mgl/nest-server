@@ -54,7 +54,7 @@ class AssignmentPermissionController extends Controller
                 $checkedRoleIds = collect($attributes["role_ids"]);
 
                 // get the roles of the target permission
-                $permissionRoles = Permission::with(["roles"])->where("id", "=", $attributes["permission_id"])->first();
+                $permissionRoles = Permission::find($attributes["permission_id"]);
 
                 // attach and detach roles
                 $permissionRoles->roles()->sync($checkedRoleIds);
