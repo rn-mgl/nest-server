@@ -30,6 +30,7 @@ use App\Http\Controllers\Training\AssignmentTrainingController;
 // Leave
 use App\Http\Controllers\Leave\LeaveTypeController;
 use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Permission\AssignmentPermissionController;
 use App\Http\Controllers\Permission\ResourcePermissionController;
 use App\Http\Controllers\Role\ResourceRoleController;
 use Illuminate\Support\Facades\Route;
@@ -327,11 +328,20 @@ Route::prefix("api")->group(function () {
                 Route::controller(ResourcePermissionController::class)
                     ->prefix("resource")
                     ->group(function () {
-                    Route::get("/", "resourceIndex");
-                    Route::get("/{permission}", "resourceShow");
-                    Route::post("/", "resourceStore");
-                    Route::patch("/{permission}", "resourceUpdate");
-                    Route::delete("/{permission}", "resourceDestroy");
+                    Route::get("/", "resourceIndex")->middleware(["check_permission:read.permission_resource"]);
+                    Route::get("/{permission}", "resourceShow")->middleware(["check_permission:read.permission_resource"]);
+                    Route::post("/", "resourceStore")->middleware(["check_permission:create.permission_resource"]);
+                    Route::patch("/{permission}", "resourceUpdate")->middleware(["check_permission:update.permission_resource"]);
+                    Route::delete("/{permission}", "resourceDestroy")->middleware(["check_permission:delete.permission_resource"]);
+                });
+
+                // assignment (permission to role)
+                Route::controller(AssignmentPermissionController::class)
+                    ->prefix("assignment")
+                    ->middleware(["check_permission:assign.permission_resource"])
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
                 });
 
             });
