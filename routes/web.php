@@ -32,6 +32,7 @@ use App\Http\Controllers\Leave\LeaveTypeController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Permission\AssignmentPermissionController;
 use App\Http\Controllers\Permission\ResourcePermissionController;
+use App\Http\Controllers\Role\AssignmentRoleController;
 use App\Http\Controllers\Role\ResourceRoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -317,6 +318,14 @@ Route::prefix("api")->group(function () {
                     Route::delete("/{role}", "resourceDestroy")->middleware(["check_permission:delete.role_resource"]);
                 });
 
+                // assignment
+                Route::controller(AssignmentRoleController::class)
+                    ->middleware(["check_permission:assign.role_resource"])
+                    ->prefix("assignment")
+                    ->group(function () {
+                    Route::get("/", "assignmentIndex");
+                    Route::post("/", "assignmentStore");
+                });
 
             });
 
