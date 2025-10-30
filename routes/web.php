@@ -269,12 +269,22 @@ Route::prefix("api")->group(function () {
 
             });
 
-        // user profile
         Route::controller(UserController::class)
-            ->prefix("user")
             ->group(function () {
-                Route::get("/{user}", "show");
-                Route::patch("/{user}", "update");
+
+                // user list
+                Route::prefix("users")
+                    ->group(function () {
+                    Route::get("/", "index")->middleware(["check_permission:read.users"]);
+                });
+
+                // user profile
+                Route::prefix("profile")
+                    ->group(function () {
+                    Route::get("/{user}", "show")->can("read", "user");
+                    Route::patch("/{user}", "update")->can("update", "user");
+                });
+
             });
 
         // management (for hr)
@@ -303,7 +313,7 @@ Route::prefix("api")->group(function () {
 
             });
 
-        // roles
+        // roles (for admin)
         Route::prefix("role")
             ->group(function () {
 
@@ -329,7 +339,7 @@ Route::prefix("api")->group(function () {
 
             });
 
-        // permission
+        // permission (for admin)
         Route::prefix("permission")
             ->group(function () {
 

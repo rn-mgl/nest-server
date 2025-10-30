@@ -10,6 +10,25 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+
+    public function index()
+    {
+        try {
+
+            $users = User::with(
+                [
+                    "image",
+                    "roles"
+                ]
+            )->get();
+
+            return response()->json(["users" => $users]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     /**
      * Display the specified resource.
      */
