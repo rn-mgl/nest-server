@@ -81,18 +81,30 @@ class AssignedOnboardingController extends Controller
 
             $attributes = $request->validate([
                 "policy_acknowledged" => ["required", "boolean"],
-                "policy_acknowledgement_id" => ["required", "integer"]
+                "policy_acknowledgement_id" => ["required", "integer"],
+                "assigned_onboarding" => ["required", "integer", "exists:user_onboardings,id"]
             ]);
 
-            $user = Auth::id();
+            $acknowledged = DB::transaction(function () use ($attributes) {
+                $assignedOnboarding = UserOnboarding::find($attributes["assigned_onboarding"]);
 
-            $acknowledgementAttributes = [
-                "acknowledged_by" => $user,
-                "policy_acknowledgement_id" => $attributes["policy_acknowledgement_id"],
-                "acknowledged" => $attributes["policy_acknowledged"]
-            ];
+                if (!in_array($assignedOnboarding->status, ["done", "in_progress"])) {
+                    $assignedOnboarding->update(["status" => "in_progress"]);
+                }
 
-            $acknowledged = UserOnboardingPolicyAcknowledgement::create($acknowledgementAttributes);
+                $user = Auth::id();
+
+                $acknowledgementAttributes = [
+                    "acknowledged_by" => $user,
+                    "policy_acknowledgement_id" => $attributes["policy_acknowledgement_id"],
+                    "acknowledged" => $attributes["policy_acknowledged"]
+                ];
+
+                $acknowledged = UserOnboardingPolicyAcknowledgement::create($acknowledgementAttributes);
+
+                return $acknowledged;
+            });
+
 
             return response()->json(["success" => $acknowledged]);
 
@@ -111,10 +123,17 @@ class AssignedOnboardingController extends Controller
 
             $attributes = $request->validate([
                 "document" => ["File", "required"],
-                "onboarding_required_document_id" => ["required", "exists:onboarding_required_documents,id"]
+                "onboarding_required_document_id" => ["required", "exists:onboarding_required_documents,id"],
+                "assigned_onboarding" => ["required", "integer", "exists:user_onboardings,id"]
             ]);
 
             $requirement = DB::transaction(function () use ($attributes, $request) {
+
+                $assignedOnboarding = UserOnboarding::find($attributes["assigned_onboarding"]);
+
+                if (!in_array($assignedOnboarding->status, ["done", "in_progress"])) {
+                    $assignedOnboarding->update(["status" => "in_progress"]);
+                }
 
                 $requiredDocumentsAttr = [
                     "complied_by" => Auth::id(),
@@ -188,10 +207,27 @@ class AssignedOnboardingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function requiredDocumentDestroy(UserOnboardingRequiredDocuments $requiredDocument)
+    public function requiredDocumentDestroy(Request $request, UserOnboardingRequiredDocuments $requiredDocument)
     {
         try {
-            $deleted = $requiredDocument->document()->delete();
+
+            $attributes = $request->validate([
+                "assigned_onboarding" => ["required", "integer", "exists:user_onboardings,id"]
+            ]);
+
+            $deleted = DB::transaction(function () use ($attributes, $requiredDocument) {
+
+                $assignedOnboarding = UserOnboarding::find($attributes["assigned_onboarding"]);
+
+                if (!in_array($assignedOnboarding->status, ["in_progress"])) {
+                    $assignedOnboarding->update(["status" => "in_progress"]);
+                }
+
+                $deleted = $requiredDocument->document()->delete();
+
+                return $deleted;
+            });
+
 
             return response()->json(["success" => $deleted]);
 
