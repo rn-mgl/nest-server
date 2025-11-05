@@ -71,6 +71,26 @@ class AssignedOnboardingController extends Controller
         }
     }
 
+    /**
+     * Update status
+     */
+    public function assignedUpdate(Request $request, UserOnboarding $userOnboarding)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "status" => ["required", "string", "in:pending,in_progress,done"]
+            ]);
+
+            $updated = $userOnboarding->update(["status" => $attributes["status"]]);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.

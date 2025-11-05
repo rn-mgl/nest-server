@@ -91,6 +91,7 @@ Route::prefix("api")->group(function () {
                     ->group(function () {
                     Route::get("/", "assignedIndex");
                     Route::get("/{userOnboarding}", "assignedShow");
+                    Route::patch("/{userOnboarding}", "assignedUpdate");
                     Route::post("/policy-acknowledgement", "policyAcknowledgementStore");
                     Route::post("/required-document", "requiredDocumentStore");
                     Route::patch("/required-document/{requiredDocument}", "requiredDocumentUpdate");
