@@ -58,6 +58,23 @@ class AssignedPerformanceReviewController extends Controller
         }
     }
 
+    public function assignedUpdate(Request $request, UserPerformanceReview $performanceReview)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "status" => ["required", "string", "in:pending,in_progress,done"]
+            ]);
+
+            $updated = $performanceReview->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     public function reviewResponseStore(Request $request)
     {
         try {

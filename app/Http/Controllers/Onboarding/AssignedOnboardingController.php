@@ -39,25 +39,25 @@ class AssignedOnboardingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function assignedShow(UserOnboarding $userOnboarding)
+    public function assignedShow(UserOnboarding $onboarding)
     {
         try {
 
             // an employee onboarding is connected to the parent onboarding,
             // the parent onboarding has acknowledgement and document,
             // acknowledgement and document each has user compliance
-            $userOnboarding->load(
+            $onboarding->load(
                 [
                     "onboarding" =>
                         [
                             "policyAcknowledgements" => [
-                                "userAcknowledgement" => function ($query) use ($userOnboarding) {
-                                    $query->where("acknowledged_by", "=", $userOnboarding->assigned_to);
+                                "userAcknowledgement" => function ($query) use ($onboarding) {
+                                    $query->where("acknowledged_by", "=", $onboarding->assigned_to);
                                 }
                             ],
                             "requiredDocuments" => [
-                                "userCompliance" => function ($query) use ($userOnboarding) {
-                                    $query->where("complied_by", "=", $userOnboarding->assigned_to);
+                                "userCompliance" => function ($query) use ($onboarding) {
+                                    $query->where("complied_by", "=", $onboarding->assigned_to);
                                 },
                                 "userCompliance.document"
                             ]
@@ -65,7 +65,7 @@ class AssignedOnboardingController extends Controller
                 ]
             );
 
-            return response()->json(["onboarding" => $userOnboarding]);
+            return response()->json(["onboarding" => $onboarding]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
@@ -74,7 +74,7 @@ class AssignedOnboardingController extends Controller
     /**
      * Update status
      */
-    public function assignedUpdate(Request $request, UserOnboarding $userOnboarding)
+    public function assignedUpdate(Request $request, UserOnboarding $onboarding)
     {
         try {
 
@@ -82,7 +82,7 @@ class AssignedOnboardingController extends Controller
                 "status" => ["required", "string", "in:pending,in_progress,done"]
             ]);
 
-            $updated = $userOnboarding->update(["status" => $attributes["status"]]);
+            $updated = $onboarding->update($attributes);
 
             return response()->json(["success" => $updated]);
 

@@ -57,6 +57,23 @@ class AssignedTrainingController extends Controller
         }
     }
 
+    public function assignedUpdate(Request $request, UserTraining $training)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "status" => ["string", "required", "in:pending,in_progress,done"]
+            ]);
+
+            $updated = $training->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
