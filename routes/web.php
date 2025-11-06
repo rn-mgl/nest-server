@@ -90,7 +90,8 @@ Route::prefix("api")->group(function () {
                     ->prefix("assigned")
                     ->group(function () {
                     Route::get("/", "assignedIndex");
-                    Route::get("/{userOnboarding}", "assignedShow");
+                    Route::get("/{onboarding}", "assignedShow");
+                    Route::patch("/{onboarding}", "assignedUpdate");
                     Route::post("/policy-acknowledgement", "policyAcknowledgementStore");
                     Route::post("/required-document", "requiredDocumentStore");
                     Route::patch("/required-document/{requiredDocument}", "requiredDocumentUpdate");
@@ -177,6 +178,7 @@ Route::prefix("api")->group(function () {
                     ->group(function () {
                         Route::get("/", "assignedIndex");
                         Route::get("/{performanceReview}", "assignedShow");
+                        Route::patch("/{performanceReview}", "assignedUpdate");
                         Route::post("/review-response", "reviewResponseStore");
                     });
 
@@ -210,6 +212,7 @@ Route::prefix("api")->group(function () {
                     ->group(function () {
                     Route::get("/", "assignedIndex");
                     Route::get("/{training}", "assignedShow");
+                    Route::patch("/{training}", "assignedUpdate");
                     Route::post("/review-response", "reviewResponseStore");
                 });
 
@@ -220,7 +223,7 @@ Route::prefix("api")->group(function () {
                     Route::get("/", "resourceIndex")->middleware(["check_permission:read.training_resource"]);
                     Route::post("/", "resourceStore")->middleware(["check_permission:create.training_resource"]);
                     Route::get("/{training}", "resourceShow")->middleware(["check_permission:read.training_resource"]);
-                    Route::patch("/{training}", "resourceUpdate")->middleware(["check_permission:update.training_permission"]);
+                    Route::patch("/{training}", "resourceUpdate")->middleware(["check_permission:update.training_resource"]);
                     Route::delete("/{training}", "resourceDestroy")->middleware(["check_permission:delete.training_resource"]);
                 });
 

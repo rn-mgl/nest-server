@@ -51,7 +51,7 @@ class LeaveRequestController extends Controller
 
             $user = Auth::id();
 
-            $leaveRequests = LeaveRequest::with(["leave"])->where("requested_by", "=", $user)->get();
+            $leaveRequests = LeaveRequest::with(["leave", "actionedBy"])->where("requested_by", "=", $user)->get();
 
             return response()->json(["leaves" => $leaveRequests]);
 

@@ -58,6 +58,23 @@ class AssignedPerformanceReviewController extends Controller
         }
     }
 
+    public function assignedUpdate(Request $request, UserPerformanceReview $performanceReview)
+    {
+        try {
+
+            $attributes = $request->validate([
+                "status" => ["required", "string", "in:pending,in_progress,done"]
+            ]);
+
+            $updated = $performanceReview->update($attributes);
+
+            return response()->json(["success" => $updated]);
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
     public function reviewResponseStore(Request $request)
     {
         try {
@@ -65,9 +82,16 @@ class AssignedPerformanceReviewController extends Controller
                 "response" => ["string", "required"],
                 "survey_id" => ["required", "integer"],
                 "response_id" => ["nullable", "integer"],
+                "assigned_performance" => ["required", "integer", "exists:user_performance_reviews,id"]
             ]);
 
             DB::transaction(function () use ($attributes) {
+
+                $assignedPerformance = UserPerformanceReview::find($attributes["assigned_performance"]);
+
+                if (!in_array($assignedPerformance->status, ["in_progress", "done"])) {
+                    $assignedPerformance->update(["status" => "in_progress"]);
+                }
 
                 $user = Auth::id();
 
