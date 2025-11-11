@@ -51,6 +51,13 @@ class AssignedTrainingController extends Controller
                 $content->unsetRelation("contentFile");
             });
 
+            $training->training->reviews->each(function ($review) {
+                if (!$review->userResponse) {
+                    $review->makeHidden("answer");
+                    $review->unsetRelation("userResponse");
+                }
+            });
+
             return response()->json(["training" => $training]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
