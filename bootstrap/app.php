@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'check_permission' => CheckPermission::class,
             "check_role" => CheckRole::class
         ]);
+        $middleware->validateCsrfTokens([
+            "api/*"
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
