@@ -73,6 +73,10 @@ class AuthController extends Controller
             $verify = User::where("id", "=", $user->id)
                 ->update(["email_verified_at" => Carbon::now()]);
 
+            $employeeRole = Role::where("role", "employee")->firstOrFail();
+
+            $user->roles()->syncWithoutDetaching([$employeeRole->id]);
+
             return response()->json(["success" => $verify > 0]);
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
