@@ -116,7 +116,7 @@ class AuthController extends Controller
                 $tokens = new Tokens("VERIFICATION");
                 $token = $tokens->createToken($user->id, "{$user->first_name} {$user->last_name}", $user->email, $tokenOptions);
                 event(new Registered($user, $token));
-                return response()->json(["success" => true, "token" => null, "roles" => $roles, "permissions" => $permissions, "isVerified" => false]);
+                return response()->json(["success" => true, "token" => null, "isVerified" => false]);
             }
 
             $tokens = new Tokens("SESSION");
